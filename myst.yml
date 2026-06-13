@@ -1,0 +1,33 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: a8ee0f32-211f-4479-ba30-55214847a08a
+  # description:
+  # keywords: []
+  title: Appunti del corso di Laboratorio di Fisica Computazionale 1
+  authors:
+    - name: Lorenzo Rovigatti
+      email: lorenzo.rovigatti@uniroma1.it
+  github: https://github.com/lorenzo-rovigatti/lab_fis_comp_notes
+  numbering:
+    title: false
+    headings: true
+  settings:
+    output_matplotlib_strings: remove
+  abbreviations:
+    ODE: ordinary differential equations
+  math:
+    '\od': '\frac{\mathrm{d} #1}{ \mathrm{d} #2}'
+    '\odd': '\frac{\mathrm{d}^2 #1}{\mathrm{d} #2^2}'
+  toc:
+    - file: richiami.md
+    - file: ODE.md
+    - file: random_walk.md
+    - file: cluster.md
+    
+site:
+  template: book-theme
+  nav: []
+  domains: []
+  title: Appunti del corso di Laboratorio di Fisica Computazionale I
+  
