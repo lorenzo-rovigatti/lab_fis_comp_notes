@@ -37,66 +37,6 @@ cui di solito si affiancano le condizioni iniziali $\vec{v}(t_0) = \vec{v}_0$ e 
 
 [^3D]: La notazione $\vec{a}$ indica che $a$ è una quantità vettoriale, quindi [](#eq:ODE_second_order) è un *sistema* di equazioni del secondo ordine.
 
-## Dal continuo al discreto
-
-I computer sono macchine discrete e, come tali, non possono rappresentare esattamente quantità continue, ma soltanto approssimarle mediante un numero finito di valori. Quando vogliamo studiare numericamente un sistema descritto da equazioni differenziali, dobbiamo quindi trovare un modo per tradurre un problema continuo in una forma compatibile con l'architettura discreta del calcolatore.
-
-Esistono diverse strategie per affrontare questo problema; in queste note ci concentreremo sui cosiddetti *metodi delle differenze finite* ([*finite difference methods*](https://en.wikipedia.org/wiki/Finite_difference_method))[^oltre_fd]. Per semplicità cominciamo la trattazione considerando casi unidimensionali, in cui la funzione incognita è $x(t)$. L'idea fondamentale consiste nel sostituire il dominio continuo della variabile indipendente (ad esempio il tempo $t$) con una successione discreta di punti separati da un intervallo $\Delta t$. In altre parole, invece di descrivere l'evoluzione del sistema in ogni istante, ne consideriamo soltanto una sequenza di "fotogrammi" successivi. Senza perdità di generalità, consideriamo un intervallo temporale $[t_0, t_{\rm max}]$ e suddividiamolo in $N$ intervalli uguali. Definiamo
-
-$$
-\Delta t \equiv \frac{t_{\rm max} - t_0}{N}
-$$
-
-e i punti della griglia 
-
-$$
-t_n = t_0 + n \Delta t, \qquad n = 0, 1, \ldots, N.
-$$
-
-Nel seguito per alleggerire la trattazione utilizzeremo spesso la notazione $y(t_i) = y(t_0 + i\Delta t) = y_i$.
-
-[^oltre_fd]: Altri esempi di metodi comunemente utilizzati per risolvere sistemi di equazioni differenziali (spesso alle derivate parziali) sono gli elementi finiti ([*finite element methods*](https://en.wikipedia.org/wiki/Finite_element_method)) e la risoluzione in spazio di Fourier tramite [*Fast Fourier transform* (FFT)](https://en.wikipedia.org/wiki/Fast_Fourier_transform).
-
-Una volta discretizzato il dominio, le derivate che compaiono nelle equazioni differenziali possono essere approssimate mediante opportune differenze tra i valori della funzione nei punti della griglia. Ad esempio, la derivata prima di $x(t)$ nel punto $t_d$ può essere approssimata come
-
-$$
-x'(t_d) = x'_d = \left.\od{x}{t}\right|_{t=t_d} \approx \frac{x_{d+1}-x_d}{\Delta t}.
-$$
-
-In questo modo un'equazione differenziale viene trasformata in una relazione algebrica tra valori della funzione calcolati in istanti successivi. Questa semplice idea è alla base di tutti gli algoritmi di integrazione numerica che vedremo in questa parte del corso.
-
-
-
-Per comprendere l'idea alla base di tutti i metodi che introdurremo nelle prossime sezioni, integriamo entrambi i membri dell'equazione [](#eq:ODE_first_order) tra due istanti consecutivi della griglia temporale, $t_n$ e $t_{n+1}$. Otteniamo
-
-$$
-x_{n+1} - x_n = \int_{t_n}^{t_{n+1}} f(x,t) dt,
-$$
-
-ovvero
-
-$$
-\label{eq:ODE_full_solution}
-x_{n+1} = x_n + \int_{t_n}^{t_{n+1}} f(x,t) dt.
-$$
-
-Introducendo il passo temporale $\Delta t = t_{n+1} - t_n$, possiamo riscrivere questa espressione come
-
-$$
-\label{eq:ODE_esatta}
-x_{n+1} = x_n + \Delta t \langle f \rangle_n,
-$$
-
-dove
-
-$$
-\langle f \rangle_n \equiv \frac{1}{\Delta t} \int_{t_n}^{t_{n+1}} f(x,t) dt
-$$
-
-rappresenta il valore medio di $f(x,t)$ nell'intervallo $[t_n,t_{n+1}]$.
-
-La relazione [](#eq:ODE_esatta) è esatta e costituisce il punto di partenza di tutti i metodi di integrazione numerica che vedremo. La difficoltà risiede nel fatto che, in generale, il valore medio $\langle f \rangle_n$ non è noto, poiché dipende dall'andamento della soluzione all'interno dell'intervallo stesso. I diversi algoritmi che presenteremo possono essere interpretati come diversi modi di approssimare questa quantità.
-
 ## Richiamo: l'oscillatore armonico
 
 Come esempio di sistema dinamico utilizzeremo frequentemente l'oscillatore armonico unidimensionale, uno dei modelli più importanti della fisica. Oltre a descrivere direttamente numerosi fenomeni fisici, esso presenta il vantaggio di possedere una soluzione analitica semplice, che potrà essere utilizzata per valutare l'accuratezza dei diversi algoritmi di integrazione numerica.
@@ -163,6 +103,61 @@ A seconda della scelta dei parametri si ottengono diversi casi di interesse fisi
 
 Questo sistema costituirà il principale banco di prova per gli algoritmi di integrazione numerica discussi nelle sezioni successive.
 
+## Dal continuo al discreto
+
+I computer sono macchine discrete e, come tali, non possono rappresentare esattamente quantità continue, ma soltanto approssimarle mediante un numero finito di valori. Quando vogliamo studiare numericamente un sistema descritto da equazioni differenziali, dobbiamo quindi trovare un modo per tradurre un problema continuo in una forma compatibile con l'architettura discreta del calcolatore.
+
+Esistono diverse strategie per affrontare questo problema; in queste note ci concentreremo sui cosiddetti *metodi delle differenze finite* ([*finite difference methods*](https://en.wikipedia.org/wiki/Finite_difference_method))[^oltre_fd]. Per semplicità cominciamo la trattazione considerando casi unidimensionali, in cui la funzione incognita è $x(t)$. L'idea fondamentale consiste nel sostituire il dominio continuo della variabile indipendente (ad esempio il tempo $t$) con una successione discreta di punti separati da un intervallo $\Delta t$. In altre parole, invece di descrivere l'evoluzione del sistema in ogni istante, ne consideriamo soltanto una sequenza di "fotogrammi" successivi. Senza perdità di generalità, consideriamo un intervallo temporale $[t_0, t_{\rm max}]$ e suddividiamolo in $N$ intervalli uguali. Definiamo
+
+$$
+\Delta t \equiv \frac{t_{\rm max} - t_0}{N}
+$$
+
+e i punti della griglia 
+
+$$
+t_n = t_0 + n \Delta t, \qquad n = 0, 1, \ldots, N.
+$$
+
+Nel seguito per alleggerire la trattazione utilizzeremo spesso la notazione $y(t_i) = y(t_0 + i\Delta t) = y_i$.
+
+[^oltre_fd]: Altri esempi di metodi comunemente utilizzati per risolvere sistemi di equazioni differenziali (spesso alle derivate parziali) sono gli elementi finiti ([*finite element methods*](https://en.wikipedia.org/wiki/Finite_element_method)) e la risoluzione in spazio di Fourier tramite [*Fast Fourier transform* (FFT)](https://en.wikipedia.org/wiki/Fast_Fourier_transform).
+
+Una volta discretizzato il dominio, le derivate che compaiono nelle equazioni differenziali possono essere approssimate mediante opportune differenze tra i valori della funzione nei punti della griglia. Ad esempio, la derivata prima di $x(t)$ nel punto $t_d$ può essere approssimata come
+
+$$
+x'(t_d) = x'_d = \left.\od{x}{t}\right|_{t=t_d} \approx \frac{x_{d+1}-x_d}{\Delta t}.
+$$
+
+In questo modo un'equazione differenziale viene trasformata in una relazione algebrica tra valori della funzione calcolati in istanti successivi. Per comprendere l'idea alla base tutti i metodi che introdurremo nelle prossime sezioni, integriamo entrambi i membri dell'equazione [](#eq:ODE_first_order) tra due istanti consecutivi della griglia temporale, $t_n$ e $t_{n+1}$, ottenendo
+
+$$
+x_{n+1} - x_n = \int_{t_n}^{t_{n+1}} f(x,t) dt,
+$$
+
+ovvero
+
+$$
+\label{eq:ODE_full_solution}
+x_{n+1} = x_n + \int_{t_n}^{t_{n+1}} f(x,t) dt.
+$$
+
+Introducendo il passo temporale $\Delta t = t_{n+1} - t_n$, possiamo riscrivere questa espressione come
+
+$$
+\label{eq:ODE_esatta}
+x_{n+1} = x_n + \Delta t \langle f \rangle_n,
+$$
+
+dove
+
+$$
+\langle f \rangle_n \equiv \frac{1}{\Delta t} \int_{t_n}^{t_{n+1}} f(x,t) dt
+$$
+
+rappresenta il valore medio di $f(x,t)$ nell'intervallo $[t_n,t_{n+1}]$.
+
+La relazione [](#eq:ODE_esatta) è esatta e costituisce il punto di partenza di tutti i metodi di integrazione numerica che vedremo. La difficoltà risiede nel fatto che, in generale, il valore medio $\langle f \rangle_n$ non è noto, poiché dipende dall'andamento della soluzione all'interno dell'intervallo stesso. I diversi algoritmi che presenteremo possono essere interpretati come diversi modi di approssimare questa quantità.
 
 # Eulero e Eulero-Cromer
 
@@ -211,7 +206,79 @@ $$
 
 Questa semplice modifica produce risultati significativamente migliori in molti problemi meccanici, in particolare nei sistemi oscillanti.
 
-## Velocity Verlet
+# Velocity Verlet
+
+Sviluppiamo la posizione $x(t)$ in serie di Taylor attorno a $t$:
+
+$$
+\begin{aligned}
+x(t + \Delta t) = x(t) + v(t) \Delta t + \frac{1}{2} a(t) \Delta t^2 + \frac{1}{6} \od{a}{t} \Delta t^3 + \mathcal{O}(\Delta t^4)\\
+x(t - \Delta t) = x(t) - v(t) \Delta t + \frac{1}{2} a(t) \Delta t^2 - \frac{1}{6} \od{a}{t} \Delta t^3 + \mathcal{O}(\Delta t^4)
+\end{aligned}
+$$
+
+Sommando i due sviluppi notiamo che, per simmetria, i termini con potenze dispari di $\Delta t$ si elidono e si ottiene
+
+$$
+x(t + \Delta t) + x(t - \Delta t) = 2x(t) + a(t) \Delta t^2 + \mathcal{O}(\Delta t^4).
+$$
+
+Se trascuriamo i termini di ordine superiore $\mathcal{O}(\Delta t^4)$ e discretizziamo il tempo, $t \to t_n$, l'aggiornamento della posizione diventa
+
+$$
+x_{n+1} = 2x_n - x_{n-1} + a_n \Delta t^2.
+$$
+
+Questo è l'algoritmo di Verlet, che permette di calcolare la posizione $x_{n+1}$ al passo temporale successivo utilizzando la posizione corrente $x_n$, la posizione precedente $ x_{n-1}$ e l'accelerazione corrente $a_n$. Sebbene scritto in questo modo il metodo di Verlet non coinvolge esplicitamente la velocità, se consideriamo lo sviluppo fino al secondo ordine possiamo scrivere esplicitamente
+
+$$
+v_n = \frac{x_{n+1} - x_{n-1}}{2\Delta t} + \mathcal{O}(\Delta t^2),
+$$
+
+dove è importante la differenza di accuratezza ($\mathcal{O}(\Delta t^2)$ *vs* $\mathcal{O}(\Delta t^4)$) rispetto a $x$. Possiamo modificare questo metodo (che è raramente usato in questa forma) per includere un aggiornamento esplicito per la velocità, ottenendo il ben più comune metodo "velocity Verlet". Invece di basarsi sulle posizioni dei passi temporali precedente e corrente, l'algoritmo Velocity Verlet aggiorna la posizione e la velocità in un processo a due fasi.
+
+In primo luogo, utilizziamo la velocità e l'accelerazione correnti per aggiornare la posizione al tempo $t + \Delta t$. Questo viene fatto in modo simile al metodo Verlet di base, ma con il termine della velocità esplicitamente incluso:
+
+$$
+x_{n+1} = x_n + v_n \Delta t + \frac{1}{2} a_n \Delta t^2
+$$ (eq:velocity_verlet_x)
+
+Questa equazione utilizza la posizione corrente $x_n$, la velocità corrente $v_n$ e l'accelerazione corrente $a_n$ per calcolare la nuova posizione $x_{n+1}$. Successivamente, dopo aver aggiornato la posizione, dobbiamo calcolare la nuova accelerazione al tempo $t_{n+1}$ perché la forza (e quindi l'accelerazione) è cambiata a causa della posizione aggiornata. La nuova accelerazione è data da:
+
+$$
+a_{n+1} = \frac{F_{n+1}}{m}
+$$
+
+Avendo a disposizione questa nuova accelerazione, possiamo aggiornare la velocità. Invece di usare solo l'accelerazione corrente, il metodo Velocity Verlet usa la media delle accelerazioni corrente e nuova per aggiornare la velocità:
+
+$$
+v_{n+1} = v_n + \frac{1}{2} (a_n + a_{n+1}) \Delta t
+$$ (eq:velocity_verlet_v)
+
+Questa equazione di aggiornamento della velocità tiene conto della variazione dell'accelerazione nell'intervallo di tempo, fornendo un aggiornamento della velocità più accurato rispetto al semplice utilizzo dell'accelerazione corrente. Il metodo Velocity Verlet è lo standard *de facto* per i codici di Dinamica Molecolare (MD), una tecnica utilizzata per studiare la dinamica e la termodinamica di atomi, molecole, *ecc*. Il modo comune per implementarlo consiste nel suddividere la fase di integrazione della velocità in due, in modo che un passo di integrazione completo diventi:
+
+1. Aggiornamento della velocità, prima fase: $v_{n+1/2} = v_n + \frac{1}{2} a_n \Delta t$.
+2. Aggiornamento della posizione: $x_{n+1} = x_n + v_{n+1/2}\Delta t = x(t) + v_n \Delta t + \frac{1}{2} a_n \Delta t^2$ (cioè l'eq. [](#eq:velocity_verlet_x)).
+3. Calcolo della forza (e quindi dell'accelerazione) utilizzando la nuova posizione: $x_{n+1} \to a_{n+1} = F_{n+1} / m$.
+4. Aggiornamento della velocità, seconda fase: $v_{n+1} = v_{n+1/2} + \frac{1}{2} a_{n+1}\Delta t = v_n + \frac{1}{2} (a_n + a_{n+1}) \Delta t$ (cioè l'eq. [](#eq:velocity_verlet_v)).
+
+Un'implementazione dell'algoritmo Velocity Verlet in pseudocodice è:
+
+:::{code} pseudocode
+:label: code:MD_velocity_verlet
+:caption: Pseudo-codice dell'implementazione dell'algoritmo velocity Verlet.
+
+CALL inizializza_parametri()
+
+t = 0
+
+WHILE t è minore di t_max
+   CALL integra_prima_fase()
+   CALL calcola_accelerazione()
+   CALL integra_seconda_fase()
+
+   t += delta_t
+:::
 
 # Runge-Kutta
 
