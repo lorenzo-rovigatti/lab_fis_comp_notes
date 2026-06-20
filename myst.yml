@@ -12,6 +12,8 @@ project:
   numbering:
     title: false
     headings: true
+    figure:
+      template: Figura %s
   settings:
     output_matplotlib_strings: remove
   abbreviations:
@@ -24,6 +26,8 @@ project:
     - file: ODE.md
     - file: random_walk.md
     - file: cluster.md
+    - file: notebooks/ODEs.ipynb
+      hidden: true
     
 site:
   template: book-theme

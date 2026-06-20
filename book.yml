@@ -1,0 +1,7 @@
+format: jb-book
+root: index
+chapters:
+    - file: richiami.md
+    - file: ODE.md
+    - file: random_walk.md
+    - file: cluster.md

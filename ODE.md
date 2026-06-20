@@ -69,16 +69,27 @@ $$
 La soluzione generale di questa equazione è
 
 $$
-x(t) = A \cos(\omega_0 t) + B \sin(\omega_0 t),
+\begin{split}
+x(t) & = A \cos(\omega_0 t) + B \sin(\omega_0 t)\\
+v(t) & = -A \omega_0 \sin(\omega_0 t) + B \omega_0 \cos(\omega_0 t),
+\end{split}
 $$
 
 oppure, in forma equivalente,
 
 $$
-x(t) = C \cos(\omega_0 t + \phi),
+\begin{split}
+x(t) & = C \cos(\omega_0 t + \phi)\\
+v(t) & = -C \omega_0 \sin(\omega_0 t + \phi),
+\end{split}
 $$
 
-dove le costanti $A$, $B$ (oppure $C$ e $\phi$) sono determinate dalle condizioni iniziali, $x(0) = x_0$ e $v(0) = v_0$.
+dove le costanti $A$, $B$ (oppure $C$ e $\phi$) sono determinate dalle condizioni iniziali, $x(0) = x_0$ e $v(0) = v_0$. Poiché si tratta di un sistema senza attrito sottoposto a una forza che non dipende esplicitamente dal tempo, l'energia totale, somma di energia potenziale $U(t)$ ed energia cinetica $K(t)$, si conserva:
+
+$$
+\label{eq:E_harmonic_oscillator}
+E(t) = U(t) + K(t) = \frac{1}{2} kx^2(t) + \frac{1}{2} m v^2(t).
+$$
 
 Come accennato precedentemente, per risolvere numericamente l'equazione differenziale del secondo ordine [](#eq:ODE_oscillatore) conviene trasformarla nel seguente sistema di due equazioni del primo ordine:
 
@@ -87,6 +98,7 @@ $$
 x' = v, \\
 v' = -\omega_0^2 x.
 \end{cases}
+\label{eq:ODE_harmonic_oscillator}
 $$
 
 Nel resto del capitolo considereremo anche una versione più generale del problema, che include sia l'attrito viscoso sia una *forzante*, ovvero una forza esterna dipendente dal tempo:
@@ -161,6 +173,8 @@ La relazione [](#eq:ODE_esatta) è esatta e costituisce il punto di partenza di 
 
 # Eulero e Eulero-Cromer
 
+## Formulazione
+
 Il metodo di Eulero è il più semplice algoritmo di integrazione numerica per equazioni differenziali ordinarie. L'idea consiste nell'approssimare il valore medio della funzione $f(x,t)$ nell'intervallo $[t_n,t_{n+1}]$ con il suo valore all'inizio dell'intervallo:
 
 $$
@@ -205,6 +219,32 @@ x_{n+1} = x_n + v_{n+1}\Delta t.
 $$
 
 Questa semplice modifica produce risultati significativamente migliori in molti problemi meccanici, in particolare nei sistemi oscillanti.
+
+## Esempio
+
+```{figure} #cell:res_eulero
+:label: fig:res_eulero
+:align: center
+
+Il risultato dell'integrazione del sistema [](#eq:ODE_harmonic_oscillator) con il metodo di Eulero. Dall'alto verso il basso, i tre pannelli mostrano la posizione $x(t)$, la velocità $y(t)$ e l'energia meccanica $E(t)$ in funzione del tempo per tre diversi valori del passo temporale $\Delta t$ ($10^{-1}$ in blu, $10^{-2}$ in arancione e $10^{-3}$ in verde), oltre al risultato esatto (riga tratteggiata). Considerando, per comodità, grandezze adimensionali, il sistema simulato ha $k = m = 1$ (e quindi $\omega_0 = 1$) e, come condizioni iniziali, $x_0 = 2$ e $v_0 = 1$.
+```
+
+Applichiamo i due metodi appena introdotti al sistema di equazioni differenziali [](#eq:ODE_harmonic_oscillator), cercando di valutare la qualità della soluzione numerica discretizzata al variare della grandezza del passo temporale $\Delta t$.
+
+Cominciamo ad analizzare i risultati ottenuti con il metodo di Eulero, mostrati in [](#fig:res_eulero). Notiamo prima di tutto che solo le curva verdi (relative a $\Delta t = 10^{-3}$) sembrano ricalcare fedelmente, almeno alla scala della figura, la soluzione teorica. Per valori maggiori di $\Delta t$ tutte le quantità mostrate si discostano anche sensibilmente dalla teoria. È preoccupante non tanto il fatto che ci sia una differenza tra i valori numerici e quelli teorici, quanto che questa differenza aumenti nel tempo. Infatti, una delle principali proprietà dell'oscillatore armonico è la sua periodicità: il moto si ripete esattamente ogni periodo $T = 2 \pi / \omega_0$. Come si può vedere dalla figura, questa proprietà non è affatto rispettata dalla soluzione ottenuta con il metodo di Eulero: le oscillazioni di posizione e velocità aumentano di ampiezza col tempo. Questo aumento si riflette nell'energia totale, che a sua volta aumenta monotonicamente: l'errore dovuto alla discretizzazione ha l'effetto netto di *immettere* energia nel sistema.
+
+```{figure} #cell:res_eulero_cromer
+:label: fig:res_eulero_cromer
+:align: center
+
+Risultati analoghi a quelli di [](#fig:res_eulero), ottenuti però con il metodo di Eulero-Cromer. Notate l'intervallo dell'asse y del pannello di $E(t)$, decisamente più ristretto rispetto a quello della [](#fig:res_eulero).
+```
+
+Passiamo ad analizzare i risultati ottenuti con Eulero-Cromer e mostrati in [](#fig:res_eulero_cromer). Nonostante l'apparente similitudine dei due metodi, il comportamento che si osserva è molto diverso. In questo caso posizione e velocità sembrano venir riprodotte quasi perfettamente per tutti i valori di $\Delta t$, almeno alla scala della figura[^occhio]. Per quanto riguarda l'energia, questa sembra comportarsi in una maniera più strana: in tutti i casi (anche se, per $\Delta t = 10^{-1}$, non si vede bene) $E(t)$ non è costante nel tempo ma oscilla con periodo uguale a quello di $x(t)$ e $v(t)$ e ampiezza che decresce al diminuire di $\Delta t$. Quindi, se da un lato è vero che l'energia non si conserva, il suo *valore medio* rimane costante nel tempo: non c'è immissione o dissipazione netta di energia. Questa proprietà di "conservazione media" dell'energia è il massimo che possiamo chiedere a un algoritmo di integrazione numerico.
+
+Il confronto fatto tra i risultati ottenuti con Eulero ed Eulero-Cromer ci permette di introdurre due proprietà fondamentali degli algoritmi per l'integrazione numerica: *stabilità* e *accuratezza*. Questi due concetti non sono necessariamente legati: un algoritmo può essere poco stabile ma molto accurato, un altro molto stabile ma poco accurato.
+
+[^occhio]: Se avete un occhio attento potete notare qualche discrepanza tra la posizione teorica e quella ottenuta con $\Delta t = 10^{-1}$ in prossimità di massimi e minimi
 
 # Velocity Verlet
 
@@ -261,24 +301,6 @@ Questa equazione di aggiornamento della velocità tiene conto della variazione d
 2. Aggiornamento della posizione: $x_{n+1} = x_n + v_{n+1/2}\Delta t = x(t) + v_n \Delta t + \frac{1}{2} a_n \Delta t^2$ (cioè l'eq. [](#eq:velocity_verlet_x)).
 3. Calcolo della forza (e quindi dell'accelerazione) utilizzando la nuova posizione: $x_{n+1} \to a_{n+1} = F_{n+1} / m$.
 4. Aggiornamento della velocità, seconda fase: $v_{n+1} = v_{n+1/2} + \frac{1}{2} a_{n+1}\Delta t = v_n + \frac{1}{2} (a_n + a_{n+1}) \Delta t$ (cioè l'eq. [](#eq:velocity_verlet_v)).
-
-Un'implementazione dell'algoritmo Velocity Verlet in pseudocodice è:
-
-:::{code} pseudocode
-:label: code:MD_velocity_verlet
-:caption: Pseudo-codice dell'implementazione dell'algoritmo velocity Verlet.
-
-CALL inizializza_parametri()
-
-t = 0
-
-WHILE t è minore di t_max
-   CALL integra_prima_fase()
-   CALL calcola_accelerazione()
-   CALL integra_seconda_fase()
-
-   t += delta_t
-:::
 
 # Runge-Kutta
 
