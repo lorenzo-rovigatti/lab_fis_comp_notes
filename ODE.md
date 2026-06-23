@@ -242,9 +242,13 @@ Risultati analoghi a quelli di [](#fig:res_eulero), ottenuti però con il metodo
 
 Passiamo ad analizzare i risultati ottenuti con Eulero-Cromer e mostrati in [](#fig:res_eulero_cromer). Nonostante l'apparente similitudine dei due metodi, il comportamento che si osserva è molto diverso. In questo caso posizione e velocità sembrano venir riprodotte quasi perfettamente per tutti i valori di $\Delta t$, almeno alla scala della figura[^occhio]. Per quanto riguarda l'energia, questa sembra comportarsi in una maniera più strana: in tutti i casi (anche se, per $\Delta t = 10^{-1}$, non si vede bene) $E(t)$ non è costante nel tempo ma oscilla con periodo uguale a quello di $x(t)$ e $v(t)$ e ampiezza che decresce al diminuire di $\Delta t$. Quindi, se da un lato è vero che l'energia non si conserva, il suo *valore medio* rimane costante nel tempo: non c'è immissione o dissipazione netta di energia. Questa proprietà di "conservazione media" dell'energia è il massimo che possiamo chiedere a un algoritmo di integrazione numerico.
 
-Il confronto fatto tra i risultati ottenuti con Eulero ed Eulero-Cromer ci permette di introdurre due proprietà fondamentali degli algoritmi per l'integrazione numerica: *stabilità* e *accuratezza*. Questi due concetti non sono necessariamente legati: un algoritmo può essere poco stabile ma molto accurato, un altro molto stabile ma poco accurato.
-
 [^occhio]: Se avete un occhio attento potete notare qualche discrepanza tra la posizione teorica e quella ottenuta con $\Delta t = 10^{-1}$ in prossimità di massimi e minimi
+
+```{iframe} /simulations/eulero.html
+:width: 100%
+```
+
+Il confronto fatto tra i risultati ottenuti con Eulero ed Eulero-Cromer ci permette di introdurre due proprietà fondamentali degli algoritmi per l'integrazione numerica: *stabilità* e *accuratezza*. Questi due concetti non sono necessariamente legati: un algoritmo può essere poco stabile ma molto accurato, un altro molto stabile ma poco accurato.
 
 # Velocity Verlet
 

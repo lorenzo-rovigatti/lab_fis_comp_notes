@@ -21,6 +21,8 @@ project:
   math:
     '\od': '\frac{\mathrm{d} #1}{ \mathrm{d} #2}'
     '\odd': '\frac{\mathrm{d}^2 #1}{\mathrm{d} #2^2}'
+  static_files:
+    - simulations
   toc:
     - file: richiami.md
     - file: ODE.md
