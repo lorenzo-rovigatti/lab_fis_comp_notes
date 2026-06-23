@@ -10,7 +10,8 @@ env:
   # `BASE_URL` determines, relative to the root of the domain, the URL that your site is served from.
   # E.g., if your site lives at `https://mydomain.org/myproject`, set `BASE_URL=/myproject`.
   # If, instead, your site lives at the root of the domain, at `https://mydomain.org`, set `BASE_URL=''`.
-  BASE_URL: /${{ github.event.repository.name }}
+  #BASE_URL: /${{ github.event.repository.name }}
+  BASE_URL: /lab_fis_comp_notes
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -46,3 +47,9 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Debug BASE_URL
+        run: |
+            echo "GITHUB_REPOSITORY=$GITHUB_REPOSITORY"
+            echo "GITHUB_REPOSITORY_OWNER=$GITHUB_REPOSITORY_OWNER"
+            echo "github.event.repository.name=${{ github.event.repository.name }}"
+            echo "BASE_URL=$BASE_URL"
