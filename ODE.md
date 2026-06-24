@@ -244,8 +244,10 @@ Passiamo ad analizzare i risultati ottenuti con Eulero-Cromer e mostrati in [](#
 
 [^occhio]: Se avete un occhio attento potete notare qualche discrepanza tra la posizione teorica e quella ottenuta con $\Delta t = 10^{-1}$ in prossimità di massimi e minimi
 
-```{iframe} /simulations/eulero.html
+```{iframe} ../simulations/eulero.html
 :width: 100%
+
+Simulazione di un oscillatore armonico integrato con Eulero (pallina rossa) ed Eulero-Cromer (pallina blu).
 ```
 
 Il confronto fatto tra i risultati ottenuti con Eulero ed Eulero-Cromer ci permette di introdurre due proprietà fondamentali degli algoritmi per l'integrazione numerica: *stabilità* e *accuratezza*. Questi due concetti non sono necessariamente legati: un algoritmo può essere poco stabile ma molto accurato, un altro molto stabile ma poco accurato.
