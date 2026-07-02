@@ -192,6 +192,7 @@ L'algoritmo può quindi essere interpretato come un'estrapolazione lineare della
 Nel caso di ODE del secondo ordine, come l'oscillatore armonico, le equazioni di aggiornamento diventano
 
 $$
+\label{eq:eulero}
 \begin{cases}
 x_{n+1} = x_n + v_n \Delta t\\
 v_{n+1} = v_n + a_n \Delta t,
@@ -213,6 +214,7 @@ Dal punto di vista concettuale, il metodo di Eulero-Cromer utilizza il valore in
 
 $$
 \begin{cases}
+\label{eq:eulero_cromer}
 v_{n+1} = v_n + a_n\Delta t\\
 x_{n+1} = x_n + v_{n+1}\Delta t.
 \end{cases}
@@ -251,6 +253,345 @@ Simulazione di un oscillatore armonico integrato con Eulero (pallina rossa) ed E
 ```
 
 Il confronto fatto tra i risultati ottenuti con Eulero ed Eulero-Cromer ci permette di introdurre due proprietà fondamentali degli algoritmi per l'integrazione numerica: *stabilità* e *accuratezza*. Questi due concetti non sono necessariamente legati: un algoritmo può essere poco stabile ma molto accurato, un altro molto stabile ma poco accurato.
+
+## Stabilità
+
+Un algoritmo di integrazione numerica si dice stabile se piccoli errori introdotti durante l'evoluzione (dovuti, ad esempio, all'approssimazione del metodo o all'arrotondamento numerico, che sono fonti di errore sempre presenti su un calcolatore) non vengono amplificati in modo incontrollato al procedere dei passi temporali. Un metodo si dice **incondizionatamente stabile** se rimane stabile per qualunque valore del passo temporale $\Delta t$. Si dice invece **condizionatamente stabile** se la stabilità è garantita solo quando $\Delta t$ soddisfa una certa condizione, ad esempio $\Delta t < \Delta t_{\rm max}$. Sia la proprietà di essere condizionatamente/incodizionatamente stabile che l'eventuale valore di $\Delta t_{\rm max}$ dipendono non solo dall'algoritmo, ma anche dal problema che vogliamo risolvere. Vediamo come studiare la stabilità nel caso dell'oscillatore armonico, un sistema lineare che rende questo tipo di analisi più trasparente.
+
+Le equazioni di aggiornamento del metodo di Eulero, Eq. [](#eq:eulero), possono essere riscritte per l'oscillatore armonico come
+
+$$
+\label{eq:eulero_matrix_step}
+\begin{cases}
+x_{n+1} = x_n + v_n \Delta t\\
+v_{n+1} = - \omega^2 x_n \Delta t + v_n.
+\end{cases}
+$$
+
+Introduciamo ora il concetto di *spazio delle fasi*: questo è l'insieme di tutte le possibili configurazioni (o stati) del sistema. Nel caso dell'oscillatore armonico unidimensionale[^spazio_fasi_1D], per identificare una configurazione è sufficiente specificare posizione $x$ e velocità $v$, e quindi lo spazio delle fasi comprende l'intero piano $(x, v)$. Un punto su questo piano, cioè una configurazione del sistema, si può identificare tramite un vettore $\mathbf{y} \equiv \begin{pmatrix} x \\ v\end{pmatrix}$. Discretizzando la notazione, possiamo definire lo stato del sistema al generico tempo $t_k$, $\mathbf{y}_k \equiv \begin{pmatrix} x_k \\ v_k\end{pmatrix}$, così da poter riscrivere il passo di integrazione temporale [](#eq:eulero_matrix_step) in forma compatta:
+
+$$
+\mathbf{y}_{n+1} = \hat{M} \mathbf{y}_n,
+$$
+
+dove
+
+$$
+\hat{M} = 
+\begin{pmatrix}
+1 & \Delta t\\
+-\omega_0^2 \Delta t & 1.
+\end{pmatrix}
+$$
+
+Utilizzando questo formalismo possiamo scrivere direttamente l'evoluzione del sistema dalle condizioni iniziali $\mathbf{y}_0 = \begin{pmatrix} x_0 \\ v_0\end{pmatrix}$ ad un generico tempo $t_n$ come
+
+$$
+\label{eq:eulero_matrix}
+\mathbf{y}_{n+1} = \hat{M}^n \mathbf{y}_0.
+$$
+
+[^spazio_fasi_1D]: in effetti questo vale per qualunque sistema dinamico unidimensionale
+
+Invece di calcolare la potenza $n$-esima di $\hat{M}$ componente per componente, possiamo utilizzare la decomposizione spettrale in autovalori e autovettori per ottenere direttamente l'operatore che determina l'evoluzione del sistema al tempo voluto. Poiché $\hat{M}$ è una matrice $2\times2$, essa ammette due autovalori $\lambda_1$ e $\lambda_2$, ai quali corrispondono due autovettori linearmente indipendenti $\mathbf{v}_1$ e $\mathbf{v}_2$, tali per cui:
+
+$$
+\hat{M}\mathbf{v}_1 = \lambda_1 \mathbf{v}_1, \quad \hat{M}\mathbf{v}_2 = \lambda_2 \mathbf{v}_2.
+$$
+
+Poiché i due autovettori formano una base dello spazio delle fasi, possiamo esprimere qualsiasi condizione iniziale $\mathbf{y}_0$ come una loro combinazione lineare:
+
+$$
+\mathbf{y}_0 = c_1 \mathbf{v}_1 + c_2 \mathbf{v}_2,
+$$
+
+dove $c_1$ e $c_2$ sono coefficienti (in generale complessi) che dipendono dallo stato iniziale scelto. Sfruttando la linearità della matrice $\hat{M}$, l'applicazione ripetuta dell'operatore di evoluzione per $n$ passi si riduce a
+
+$$
+\mathbf{y}_n = \hat{M}^n \mathbf{y}_0 = \hat{M}^n (c_1 \mathbf{v}_1 + c_2 \mathbf{v}_2) = c_1 \hat{M}^n \mathbf{v}_1 + c_2 \hat{M}^n \mathbf{v}_2.
+$$
+
+```{note} Se autovalori e autovettori sono complessi, $x$ e $v$ sono reali?
+:class: dropdown
+
+Un dubbio legittimo sorge spontaneo: se gli autovalori $\lambda$ e gli autovettori $\mathbf{v}$ sono numeri complessi, come fa lo stato fisico del sistema $\mathbf{y}_n$ a rimanere composto da coordinate puramente reali (posizione e velocità) a ogni passo? 
+
+La risposta risiede in una proprietà fondamentale delle matrici reali. Dimostriamolo in tre passi:
+
+1. Poiché la matrice di evoluzione $\hat{M}$ ha elementi puramente reali, se i suoi autovalori non sono reali allora sono complessi coniugati. Infatti, se ammette un autovalore complesso $\lambda_1 = \lambda$, anche il suo complesso coniugato $\lambda_2 = \bar{\lambda}$ deve essere un autovalore. Se $\mathbf{v}$ è l'autovettore associato a $\lambda$ (ovvero $\hat{M}\mathbf{v} = \lambda \mathbf{v}$), coniugando entrambi i membri otteniamo:
+   $$\hat{M}\bar{\mathbf{v}} = \bar{\lambda}\bar{\mathbf{v}}$$
+   Questo mostra che l'autovettore associato a $\bar{\lambda}$ è esattamente il coniugato del primo, cioè $\mathbf{v}_2 = \bar{\mathbf{v}}$.
+
+2. Esprimiamo la condizione iniziale reale $\mathbf{y}_0$ nella base degli autovettori:
+   $$\mathbf{y}_0 = c_1 \mathbf{v} + c_2 \bar{\mathbf{v}}$$
+   Poiché $\mathbf{y}_0$ è reale, deve valere $\mathbf{y}_0 = \bar{\mathbf{y}}_0$. Coniugando l'espressione sopra si ottiene $\mathbf{y}_0 = \bar{c}_1 \bar{\mathbf{v}} + \bar{c}_2 \mathbf{v}$. Uguagliando le due relazioni e sfruttando l'indipendenza lineare di $\mathbf{v}$ e $\bar{\mathbf{v}}$, deduciamo che i coefficienti devono essere l'uno il coniugato dell'altro, cioè $c_2 = \bar{c}_1$. Possiamo quindi definire $c_1 = c$ e $c_2 = \bar{c}$
+
+3. Sostituiamo ora queste relazioni nella formula generale dell'evoluzione al passo $n$, Eq. [](#eq:eulero_matrix), ottenendo
+   $$\mathbf{y}_n = c \lambda^n \mathbf{v} + \bar{c} \bar{\lambda}^n \bar{\mathbf{v}}$$
+   Poiché il prodotto di coniugati è il coniugato del prodotto, il secondo termine non è altro che il complesso coniugato del primo: $\bar{c} \bar{\lambda}^n \bar{\mathbf{v}} = \overline{c \lambda^n \mathbf{v}}$. L'equazione diventa quindi:
+   $$\mathbf{y}_n = c \lambda^n \mathbf{v} + \overline{c \lambda^n \mathbf{v}}$$
+
+Ricordando l'identità algebrica per cui la somma di un numero complesso e del suo coniugato è pari a due volte la sua parte reale ($z + \bar{z} = 2 \text{Re}(z)$), arriviamo al risultato finale:
+$$\mathbf{y}_n = 2 \text{Re}\left( c \lambda^n \mathbf{v} \right)$$
+
+Poiché la parte reale di qualunque quantità è, per definizione, un numero reale, lo stato del sistema $\mathbf{y}_n$ è garantito essere reale ad ogni istante di tempo.
+```
+
+Poiché per definizione di autovettore si ha $\hat{M}^n \mathbf{v} = \lambda^n \mathbf{v}$, otteniamo l'espressione formale per lo stato del sistema al passo $n$:
+
+$$
+\label{eq:evoluzione_autovalori}
+\mathbf{y}_n = c_1 \lambda_1^n \mathbf{v}_1 + c_2 \lambda_2^n \mathbf{v}_2.
+$$
+
+Per comprendere a fondo il comportamento di questa equazione senza dover calcolare immediatamente $\lambda$ e $\mathbf{v}$, analizziamo il sistema da una prospettiva geometrica e strutturale, partendo dal determinante della matrice di evoluzione, che ha un significato geometrico profondo: rappresenta il fattore di scala con cui vengono modificate le aree (o i volumi) nello spazio delle fasi.
+
+Consideriamo prima di tutto l'effetto che l'evoluzione temporale discreta ha sulla propagazione degli errori. Immaginiamo che a un certo passo $k$ l'elaboratore introduca un piccolissimo errore di arrotondamento $\boldsymbol{\delta}_k$ sullo stato del sistema (ad esempio, a causa della rappresentazione a precisione finita dei numeri in virgola mobile, che in doppia precisione hanno errori tipici dell'ordine di $\epsilon \sim 10^{-16}$).
+
+Lo stato numerico reale al generico tempo $t_k$ diventa $\mathbf{y}_k + \boldsymbol{\delta}_k$. Se decomponiamo questa perturbazione microscopica nella base degli autovettori possiamo scrivere
+
+$$
+\boldsymbol{\delta}_k = \epsilon_1 \mathbf{v}_1 + \epsilon_2 \mathbf{v}_2.
+$$
+
+Dopo $m$ passi di calcolo, l'errore iniziale si sarà evoluto in:
+
+$$
+\label{eq:propagazione_errore}
+\hat{M}^m \boldsymbol{\delta}_k = \epsilon_1 \lambda_1^m \mathbf{v}_1 + \epsilon_2 \lambda_2^m \mathbf{v}_2.
+$$
+
+Ipotizziamo che $\lambda_1 \geq \lambda_2$, e consideriamo il caso $|\lambda_1| > 1$. In queste condizioni, anche se l'errore iniziale $\epsilon_1$ è microscopicamente irrilevante (per esempio $\approx 10^{-16}$), il fattore $\lambda_1^m$, che cresce esponenzialmente con $m$, può portare il termine di errore $\epsilon_1 \lambda_1^m$ a diventare dello stesso ordine di grandezza del segnale fisico (si veda [il box qui sotto](#box:error_amplification) per una dimostrazione rigorosa). In questo regime, detto *di instabilità*, i risultati dell'integrazione numerica sono del tutto privi di senso. 
+
+```{note} Dimostrazione dell'amplificazione dell'errore
+:label: box:error_amplification
+
+Per stimare la grandezza dell'errore dopo $m$ passi, prendiamo la norma di ambo i membri dell'equazione [](#eq:propagazione_errore):
+
+$$
+\label{eq:norma_propagazione_errore}
+\|\hat{M}^m \boldsymbol{\delta}_k\| = \|\epsilon_1 \lambda_1^m \mathbf{v}_1 + \epsilon_2 \lambda_2^m \mathbf{v}_2\|
+$$
+
+che, se senza perdita di generalità assumiamo $|\lambda_1| \geq |\lambda_2|$ e $|\lambda_1| > 1$, diventa
+
+$$
+\|\hat{M}^m \boldsymbol{\delta}_k\| = |\lambda_1|^m \cdot \left\| \epsilon_1 \mathbf{v}_1 + \epsilon_2 \left(\frac{\lambda_2}{\lambda_1} \right)^m \mathbf{v}_2 \right\|.
+$$
+
+Poiché $|\lambda_1| > 1$, il fattore $|\lambda_1|^m$ diverge per $m \to \infty$. Per capire il comportamento del secondo fattore, consideriamo i due casi possibili per una matrice reale:
+
+1. I due autovalori sono reali. In questo caso $(\lambda_2 / \lambda_1)^m \to 0$[^limite_uguali] per $m \to \infty$, e quindi:$$\lim_{m \to \infty} \|\hat{M}^m \boldsymbol{\delta}_k\| = \lim_{m \to \infty} |\lambda_1|^m \cdot \| \epsilon_1 \mathbf{v}_1\| = \infty.$$
+2. I due autovalori sono complessi coniugati, e quindi hanno lo stesso modulo $\rho > 1.$ Possiamo esprimerli in forma polare come $\lambda_1 = \rho e^{i \theta}$ e $\lambda_2 = \rho e^{-i \theta}$, con $\theta \neq n\pi$ ($n \in \mathbb{Z}$). In questo caso il rapporto è $(\lambda_2 / \lambda_1)^m = e^{-2 i \theta m}$, un numero complesso di modulo 1 che, al variare di $m$, si muove lungo la circonferenza unitaria. Di conseguenza, il secondo fattore è una quantità reale e positiva $R(m) \in [R_{\rm min}, R_{\rm max}]$ (con $R_{\rm min} > 0$) che oscilla senza decadere. Valutando il limite tramite il [teorema del confronto](https://it.wikipedia.org/wiki/Teorema_del_confronto) si ottiene:
+$$
+\lim_{m \to \infty} \|\hat{M}^m \boldsymbol{\delta}_k\| \geq \lim_{m \to \infty} \rho^m \cdot R_{\rm min} = \infty.
+$$
+
+[^limite_uguali]: Oppure $\to 1$ se $\lambda_1 = \lambda_2$, che non cambia il limite per $m \to \infty$ dell'equazione [](#eq:norma_propagazione_errore).
+```
+
+Passiamo ora ad analizzare come la trasformazione determinata da $\hat{M}$ agisce nello spazio delle fasi. Se consideriamo una regione di condizioni iniziali che racchiude un'area $A_0$ (ad esempio, un quadratino di stati possibili), dopo un passo di integrazione questa regione si deformerà in un parallelogramma la cui area $A_1$ sarà pari a:
+
+$$
+A_1 = |\det(\hat{M})| A_0
+$$
+
+Nei sistemi fisici reali conservativi, l'evoluzione temporale non espande né contrae lo spazio delle fasi. Questa proprietà geometrica fondamentale è nota in meccanica classica come [teorema di Liouville](https://it.wikipedia.org/wiki/Teorema_di_Liouville_(meccanica_hamiltoniana)). Affinché un algoritmo numerico sia un buon modello della fisica reale, deve rispettare questa struttura.
+
+Nel caso di uno spazio delle fasi bidimensionale (come nel nostro caso), la conservazione dell'area corrisponde a richiedere che[^simpletticità_generica]
+
+$$
+\label{eq:simpletticita}
+\det(\hat{M}) = 1.
+$$
+
+```{note} Perché se $\det(\hat{M}) = 1$ l'area si conserva?
+
+Possiamo dimostrare questa proprietà in modo semplice considerando una generica regione dello spazio delle fasi. Siano $\mathbf{u} = \begin{pmatrix} u_x \\ u_v \end{pmatrix}$ e $\mathbf{w} = \begin{pmatrix} w_x \\ w_v \end{pmatrix}$ due vettori linearmente indipendenti che definiscono i lati di un parallelogramma iniziale nello spazio delle fasi.
+
+L'area $A_0$ di questo parallelogramma è pari al valore assoluto del determinante della matrice formata affiancando i due vettori:
+
+$$A_0 = \left| \det \begin{pmatrix} u_x & w_x \\ u_v & w_v \end{pmatrix} \right| = |\det(\mathbf{u}, \mathbf{w})|$$
+
+Applichiamo ora un passo di integrazione numerica tramite la matrice $\hat{M}$. I vettori $\mathbf{u}$ e $\mathbf{w}$ si trasformano rispettivamente in $\mathbf{u}' = \hat{M}\mathbf{u}$ e $\mathbf{w}' = \hat{M}\mathbf{w}$. La nuova area $A_1$ del parallelogramma deformato sarà:
+
+$$A_1 = |\det(\mathbf{u}', \mathbf{w}')| = |\det(\hat{M}\mathbf{u}, \hat{M}\mathbf{w})|$$
+
+Sfruttando le proprietà del prodotto tra matrici, la matrice affiancata $(\hat{M}\mathbf{u}, \hat{M}\mathbf{w})$ può essere scritta esattamente come il prodotto della matrice $\hat{M}$ per la matrice iniziale $(\mathbf{u}, \mathbf{w})$:
+
+$$
+(\hat{M}\mathbf{u}, \hat{M}\mathbf{w}) = \hat{M} \begin{pmatrix} u_x & w_x \\ u_v & w_v \end{pmatrix}.
+$$
+
+Grazie al [teorema di Binet](https://it.wikipedia.org/wiki/Teorema_di_Binet), il determinante del prodotto di due matrici è pari al prodotto dei loro determinanti:
+
+$$A_1 = |\det(\hat{M} (\mathbf{u}, \mathbf{w}))| = |\det(\hat{M})| \cdot |\det(\mathbf{u}, \mathbf{w})| = |\det(\hat{M})| A_0$$
+
+Se ne deduce che se $\det(\hat{M}) = 1$, allora $A_1 = A_0$ per qualunque scelta di condizioni iniziali. Il parallelogramma si deformerà (subendo allungamenti e rotazioni), ma la sua area rimarrà immutata a ogni passo temporale.
+```
+
+[^simpletticità_generica]: In spazi delle fasi a più dimensioni (sistemi con $N \ge 2$ gradi di libertà, dove lo spazio delle fasi ha dimensione $2N \ge 4$), la simpletticità è una condizione molto più restrittiva della semplice conservazione del volume. Un algoritmo simplettico deve conservare non solo il volume totale ($\det(\hat{M}) = 1$), ma anche le proiezioni delle aree orientate su tutte le coppie di piani coordinati coniugati $(x_i, p_i)$, dove $p_i$ è il *momento coniugato* a $x_i$.
+
+Vediamo ora come si collega la conservazione dell'area con il comportamento dei singoli stati descritto dall'equazione [](#eq:evoluzione_autovalori). Dall'algebra lineare sappiamo che il determinante di una matrice è pari al prodotto dei suoi autovalori:
+
+$$
+\label{eq:det_eigenvalues}
+\det(\hat{M}) = \lambda_1 \lambda_2.
+$$
+
+Discutiamo prima il caso in cui l'equazione [](#eq:simpletticita) non è rispettata. Se $\det(\hat{M}) < 1$, aree (o volumi) dello spazio delle fasi si contraggono man mano che si evolvono nel tempo. In questo caso l'equazione [](#eq:det_eigenvalues) implica che almeno uno degli autovalori è minore di uno. Se l'altro ha modulo maggiore di uno si ricade nell'amplificazione dell'errore discussa prima. Se invece entrambi gli autovalori hanno modulo minore di uno, i termini $\lambda^n$ tenderanno a zero per $n \to \infty$. L'evoluzione numerica smorzerà artificialmente le oscillazioni, comportandosi come se nel sistema fosse presente un attrito fittizio non fisico.
+
+Di converso, se $\det(\hat{M}) > 1$, almeno uno degli autovalori deve avere modulo maggiore di 1 per via dell'equazione [](#eq:det_eigenvalues), e darà quindi luogo ad un'espansione verso l'infinito di aree (o volumi) dello spazio delle fasi, oltre che ad un'amplificazione incontrollata degli errori. In questo caso, dell'energia viene *immessa* artificialmente nel sistema.
+
+D'altro canto, se l'equazione [](#eq:simpletticita) è rispettata, allora l'area occupata da un insieme di stati nello spazio delle fasi rimane rigorosamente costante nel tempo. La condizione $\det(\hat{M}) = 1$ è quindi una condizione necessaria per garantire la stabilità a lungo termine e la quasi-conservazione[^quasi_conservazione] dell'energia numerica, la cui violazione porta ad un'alterazione artificiale della fisica del sistema ad ogni passo temporale, con conseguenze più o meno gravi a seconda del sistema studiato. Questa proprietà geometrica è nota come simpletticità (e l'algoritmo di integrazione che ne è provvisto si dice *simplettico*). 
+
+[^quasi_conservazione]: con *quasi conservazione* si intende quella proprietà per cui l'energia meccanica di un sistema fluttua intorno a un valore costante. Quando integriamo numericamente delle equazioni differenziali non possiamo sperare di fare meglio.
+
+Per un integratore simplettico, gli autovalori sono rigidamente vincolati dalla relazione $\lambda_1 \lambda_2 = 1$. Questo vincolo fa sì che esistano diversi scenari da analizzare.
+
+Consideriamo il caso di due autovalori reali e diversi da $1$. A causa del vincolo $\lambda_1 \lambda_2 = 1$, è impossibile che entrambi abbiano modulo unitario. Uno dei due autovalori (supponiamo $\lambda_1$) dovrà essere maggiore di $1$ in modulo, mentre l'altro ($\lambda_2$) dovrà essere minore di $1$. L'effetto geometrico combinato sulla dinamica del sistema prende il nome di *strain* (o deformazione a forbice):
+
+* Lungo la direzione dell'autovettore $\mathbf{v}_1$, lo stato viene allungato esponenzialmente dal fattore $\lambda_1^n \to \infty$.
+* Lungo la direzione dell'autovettore $\mathbf{v}_2$, lo stato viene compresso esponenzialmente a ogni passo dal fattore $\lambda_2^n \to 0$.
+
+L'area totale del parallelogramma nello spazio delle fasi si conserva (poiché la compressione bilancia esattamente l'allungamento), ma la forma si allunga indefinitamente come una striscia infinitamente sottile e lunga. Fisicamente, il sistema diverge ed "esplode". In questo regime, l'algoritmo è numericamente instabile, in maniera del tutto simile al caso $\det(\hat{M}) > 1$.
+
+Questa divergenza catastrofica viene evitata quando gli autovalori non sono reali ma complessi e coniugati: $\lambda_{1,2} = \lambda, \bar{\lambda}$. In questo caso, il vincolo del determinante si può scrivere come
+
+$$
+\lambda_1 \lambda_2 = \lambda \bar{\lambda} = |\lambda|^2 = 1 \implies |\lambda| = 1,
+$$
+
+cioè il modulo di entrambi gli autovalori deve essere esattamente pari a 1. Possiamo quindi scrivere gli autovalori in forma polare come $\lambda_{1,2} = e^{\pm i \theta}$, che mostra esplicitamente come l'evoluzione temporale rappresenti una *pura rotazione periodica* nel piano complesso. Le traiettorie rimangono limitate e la simulazione è numericamente stabile: gli errori di arrotondamento non vengono amplificati, ma si limitano a oscillare insieme al sistema.
+
+### La stabilità dei metodi di Eulero ed Eulero-Cromer
+
+Per visualizzare concretamente il legame profondo tra la conservazione dell'area e la stabilità numerica, analizziamo ora l'animazione mostrata in Figura [](#fig:euler_volume_conservation), che confronta l'evoluzione di una regione dello spazio delle fasi secondo i metodi di Eulero ed Eulero-Cromer.
+
+```{figure} #cell:euler_volume_conservation
+:label: fig:euler_volume_conservation
+:align: center
+
+L'evoluzione di un volume di spazio delle fasi (che per l'oscillatore armonico è un piano) delimitato da un rettangolo ottenuto con i metodi di Eulero (in rosso) ed Eulero-Cromer (in blue). I parametri della simulazione sono $k = 1$, $m = 1$ (quindi $\omega = 1$) e $\Delta t = 0.1$.
+```
+
+L'animazione mostra come nelle condizioni di simulazione (cioè per i valori di $\omega$ e $\Delta t$ utilizzati), l'algoritmo di Eulero mostra un'espansione dell'area dello spazio delle fasi, che invece non si verifica con Eulero-Cromer. Verifichiamo questi comportamenti calcolando esplicitamente determinanti ed autovalori associati all'oscillatore armonico integrato con i due metodi.
+
+La matrice di propagazione per il metodo di Eulero è
+
+$$
+\hat{M}_E = 
+\begin{pmatrix} 1 & \Delta t \\
+-\omega_0^2 \Delta t & 1,
+\end{pmatrix}
+$$
+
+da cui possiamo immediatamente ottenere il determinante:
+
+$$
+\det(\hat{M}_E) = 1 \cdot 1 - (\Delta t)(-\omega_0^2 \Delta t) = 1 + \omega_0^2 \Delta t^2.
+$$
+
+Poiché $\Delta t > 0$ e $\omega_0 > 0$, si ha che  $\det(\hat{M}_E) > 1$ per qualunque valore di $\Delta t$. Essendo il modulo strettamente maggiore di 1, l'errore globale cresce esponenzialmente a ogni passo temporale. Il metodo è quindi incondizionatamente instabile per l'oscillatore armonico; nello spazio delle fasi, la soluzione numerica descrive una spirale che diverge verso l'infinito, accumulando energia artificiale.
+
+Poiché $\omega_0^2 \Delta t^2$ è un numero strettamente positivo, il determinante della matrice è sempre maggiore di 1. Di conseguenza, il metodo di Eulero è **incondizionatamente instabile** per l'oscillatore armonico: l'ampiezza delle oscillazioni numeriche crescerà artificialmente all'infinito per qualunque scelta di $\Delta t$. Nello spazio delle fasi, questo comportamento si manifesta come mostrato in figura [](#fig:euler_volume_conservation): la soluzione numerica descrive una spirale che diverge verso l'infinito, accumulando energia artificiale.
+
+Calcoliamo ora gli autovalori di $\hat{M}_E$. Risolvendo il polinomio caratteristico $\det(\hat{M}_E - \lambda \hat{I}) = (1-\lambda)^2 + \omega_0^2 \Delta t^2 = 0$ si trova $(1-\lambda)^2 = -\omega_0^2 \Delta t^2$, da cui si ottengono i due autovalori complessi coniugati
+
+$$
+\lambda_{1,2} = 1 \pm i \omega_0 \Delta t.
+$$
+
+Poiché sono complessi coniugati, i due autovalori hanno lo stesso modulo, che vale[^lambda2_equal_det]
+
+$$
+|\lambda_1| = |\lambda_2| = \sqrt{1 + \omega_0^2 \Delta t^2},
+$$
+
+cioè un numero maggiore di 1, indipendentemente dal passo di integrazione. Come abbiamo dimostrato precedentemente, se il modulo degli autovalori è strettamente maggiore di 1, l'errore cresce esponenzialmente, dimostrando ancora una volta l'instabilità del metodo di Eulero.
+
+[^lambda2_equal_det]: Questo risultato si può ottenere immediatamente ricordando che $\det(\hat{M}) = \lambda_1 \lambda_2$.
+
+Passiamo ora a studiare il metodo di Eulero-Cromer. In questo caso, la matrice di propagazione del metodo nello spazio delle fasi è
+
+$$
+M_{EC} = 
+\begin{pmatrix}
+1 - \omega_0^2 \Delta t^2 & \Delta t \\
+-\omega_0^2 \Delta t & 1,
+\end{pmatrix}
+$$
+
+che ha determinante
+
+$$
+\det(M_{EC}) = (1 - \omega_0^2 \Delta t^2)(1) - (\Delta t)(-\omega_0^2 \Delta t) = 1 - \omega_0^2 \Delta t^2 + \omega_0^2 \Delta t^2 = 1
+$$
+
+Poiché $\det(M_{EC}) = 1$, il metodo conserva l'area nello spazio delle fasi, che per sistemi unidimensionali come l'oscillatore armonico implica simpletticità. Questo garantisce l'assenza di derive energetiche artificiali a lungo termine. In questo caso, il polinomio caratteristico è $\lambda^2 - (2 - \omega_0^2 \Delta t^2)\lambda + 1 = 0$, da cui si ottengono gli autovalori 
+
+$$
+\lambda_{1,2} = \frac{(2-\omega_0^2 \Delta t^2) \pm \sqrt{(2-\omega_0^2 \Delta t^2)^2 - 4}}{2} = \frac{(2-\omega_0^2 \Delta t^2) \pm \omega_0 \Delta t \sqrt{\omega_0^2 \Delta t^2 - 4}}{2}.
+$$
+
+Il comportamento del sistema dipende dal segno del radicando ($\omega_0^2 \Delta t^2 - 4$):
+
+1. $\omega_0 \Delta t < 2$. Il radicando è negativo, producendo autovalori complessi coniugati. Poiché il determinante è unitario, e in forza all'equazione [](#eq:det_eigenvalues), i due autovalori devono avere anche modulo 1, e quindi trovarsi sulla circonferenza unitaria. In questo regime il metodo è stabile e genera orbite ellittiche chiuse nello spazio delle fasi.
+2. $\omega_0 \Delta t > 2$. Il radicando è positivo, quindi i due autovalori sono reali e distinti. Poiché il loro prodotto deve rimanere pari a $1$, uno dei due autovalori sarà necessariamente maggiore di 1 in modulo: il sistema diventa instabile e l'errore diverge esponenzialmente. Questa dipendenza della stabilità dai parametri del sistema (e dell'integrazione numerica) fa sì che il metodo di Eulero-Cromer sia **condizionatamente stabile**. Nel caso in esame, la condizione di stabilità matematica, che richiede che gli autovalori abbiano modulo 1, impone infatti un limite superiore rigoroso al passo temporale:
+$$
+\Delta t < \frac{2}{\omega_0}.
+$$
+
+## Accuratezza
+
+Per valutare la bontà (e quindi l'accuratezza) di un metodo di integrazione numerica è fondamentale distinguere tra due definizioni di errore:
+
+* Errore di Troncamento Locale (LTE): rappresenta l'errore introdotto dal metodo in un singolo passo temporale $\Delta t$, assumendo che tutti i dati al passo precedente siano esatti. Si esprime matematicamente come la differenza tra la soluzione esatta del sistema continuo e quella fornita dallo schema numerico dopo un passo.
+* Errore Globale: rappresenta l'errore totale accumulato dall'inizio della simulazione fino al tempo finale $T$. Se l'errore locale è dell'ordine di $O(\Delta t^{p+1})$, su un intervallo di tempo limitato $T$ (che richiede un numero di passi pari a $m = T/\Delta t$) l'errore globale scala come $m \cdot O(\Delta t^{p+1}) = O(\Delta t^p)$. L'esponente $p$ definisce l'ordine di accuratezza del metodo.
+
+### Eulero 
+
+La derivazione dell'accuratezza per il metodo di Eulero discende direttamente dallo sviluppo in serie di Taylor di posizione $x(t)$ e velocità $v(t)$ attorno all'istante $t_n$:
+
+$$
+\begin{align}
+x(t_{n+1}) & = x(t_n) + \Delta t \, v(t_n) + \frac{\Delta t^2}{2} \, a(t_n) + O(\Delta t^3)\\
+v(t_{n+1}) & = v(t_n) + \Delta t \, a(t_n) + \frac{\Delta t^2}{2} \, \frac{da(t_n)}{dt} + O(\Delta t^3).
+\end{align}
+$$
+
+Confrontando queste espressioni con le equazioni di aggiornamento dello schema di Eulero, eq. [](#eq:eulero), si nota immediatamente che lo schema numerico recide i termini di Taylor a partire dal secondo ordine. Definendo l'errore come la differenza tra il dato locale esatto e quello ottenuto numericamente, l'errore locale di troncamento risulta:
+
+$$
+\begin{align}
+x(t_{n+1}) - x_{n+1} &= \frac{\Delta t^2}{2} \, a(t_n) + O(\Delta t^3) = O(\Delta t^2)\\
+v(t_{n+1}) - v_{n+1} &= \frac{\Delta t^2}{2} \, \frac{da}{dt}(t_n) + O(\Delta t^3) = O(\Delta t^2).
+\end{align}
+$$
+
+Poiché l'errore locale è $O(\Delta t^2)$, l'accumulo globale su $N \propto 1/\Delta t$ passi produce un errore complessivo di ordine $O(\Delta t)$. Eulero Esplicito è pertanto un metodo del primo ordine.
+
+## Eulero-Cromer
+
+Nel caso di Eulero-Cromer, lo schema definito in eq. [](#eq:eulero_cromer) fa uso della velocità aggiornata al tempo successivo per calcolare la nuova posizione. Mentre la relazione per l'aggiornamento di $v_{n+1}$ è identica a quella di Eulero Esplicito, e di conseguenza preserva un errore locale pari a $O(\Delta t^2)$, l'analisi della posizione richiede cautela. Sostituendo $v_{n+1}$ nella definizione di $x_{n+1}$, possiamo scrivere l'espressione per la variabile $x_{n+1}$ in funzione delle sole quantità al tempo $t_n$:
+
+$$
+x_{n+1} = x_n + \Delta t \, (v_n + \Delta t \, a_n) = x_n + \Delta t \, v_n + \Delta t^2 a_n.
+$$
+
+Confrontiamo ora questa equazione dello schema con lo sviluppo esatto di Taylor di $x(t_{n+1})$ ricavato in precedenza. Calcolando la differenza, si ottiene l'errore di troncamento locale sulla posizione:
+
+$$
+x(t_{n+1}) - x_{n+1} = & x(t_n) + \Delta t \, v(t_n) + \frac{\Delta t^2}{2} \, a(t_n) + O(\Delta t^3) - x_n + \Delta t \, v_n + \Delta t^2 a_n.
+$$
+
+Imponendo l'esattezza dei dati al passo $n$, i termini di ordine zero e primo si cancellano, lasciando la discrepanza unicamente sul coefficiente del secondo ordine:
+
+$$
+x(t_{n+1}) - x_{n+1} = -\frac{1}{2} \Delta t^2 a(t_n) + O(\Delta t^3) = -\frac{\Delta t^2}{2} \, a(t_n) + O(\Delta t^3) = O(\Delta t^2).
+$$
+
+Essendo l'errore locale di troncamento pari a $O(\Delta t^2)$ sia per la velocità che per la posizione, l'integrazione accumula un errore globale proporzionale a $O(\Delta t)$, esattamente come per il metodo di Eulero. Quindi, nonostante l'utilizzo di informazioni temporalmente più avanzate per la coordinata spaziale, il metodo di Eulero-Cromer rimane un metodo del primo ordine. L'errore locale sulla posizione ha lo stesso modulo di quello di Eulero Esplicito, ma segno opposto.
 
 # Velocity Verlet
 
