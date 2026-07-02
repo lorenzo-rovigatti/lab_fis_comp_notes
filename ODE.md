@@ -464,8 +464,6 @@ $$
 
 cioè il modulo di entrambi gli autovalori deve essere esattamente pari a 1. Possiamo quindi scrivere gli autovalori in forma polare come $\lambda_{1,2} = e^{\pm i \theta}$, che mostra esplicitamente come l'evoluzione temporale rappresenti una *pura rotazione periodica* nel piano complesso. Le traiettorie rimangono limitate e la simulazione è numericamente stabile: gli errori di arrotondamento non vengono amplificati, ma si limitano a oscillare insieme al sistema.
 
-### La stabilità dei metodi di Eulero ed Eulero-Cromer
-
 Per visualizzare concretamente il legame profondo tra la conservazione dell'area e la stabilità numerica, analizziamo ora l'animazione mostrata in Figura [](#fig:euler_volume_conservation), che confronta l'evoluzione di una regione dello spazio delle fasi secondo i metodi di Eulero ed Eulero-Cromer.
 
 ```{figure} #cell:euler_volume_conservation
@@ -476,6 +474,8 @@ L'evoluzione di un volume di spazio delle fasi (che per l'oscillatore armonico �
 ```
 
 L'animazione mostra come nelle condizioni di simulazione (cioè per i valori di $\omega$ e $\Delta t$ utilizzati), l'algoritmo di Eulero mostra un'espansione dell'area dello spazio delle fasi, che invece non si verifica con Eulero-Cromer. Verifichiamo questi comportamenti calcolando esplicitamente determinanti ed autovalori associati all'oscillatore armonico integrato con i due metodi.
+
+### Eulero
 
 La matrice di propagazione per il metodo di Eulero è
 
@@ -512,7 +512,9 @@ cioè un numero maggiore di 1, indipendentemente dal passo di integrazione. Come
 
 [^lambda2_equal_det]: Questo risultato si può ottenere immediatamente ricordando che $\det(\hat{M}) = \lambda_1 \lambda_2$.
 
-Passiamo ora a studiare il metodo di Eulero-Cromer. In questo caso, la matrice di propagazione del metodo nello spazio delle fasi è
+### Eulero-Cromer
+
+Nel caso di Eulero-Cromer, la matrice di propagazione del metodo nello spazio delle fasi è
 
 $$
 M_{EC} = 
@@ -571,7 +573,7 @@ $$
 
 Poiché l'errore locale è $O(\Delta t^2)$, l'accumulo globale su $N \propto 1/\Delta t$ passi produce un errore complessivo di ordine $O(\Delta t)$. Eulero Esplicito è pertanto un metodo del primo ordine.
 
-## Eulero-Cromer
+### Eulero-Cromer
 
 Nel caso di Eulero-Cromer, lo schema definito in eq. [](#eq:eulero_cromer) fa uso della velocità aggiornata al tempo successivo per calcolare la nuova posizione. Mentre la relazione per l'aggiornamento di $v_{n+1}$ è identica a quella di Eulero Esplicito, e di conseguenza preserva un errore locale pari a $O(\Delta t^2)$, l'analisi della posizione richiede cautela. Sostituendo $v_{n+1}$ nella definizione di $x_{n+1}$, possiamo scrivere l'espressione per la variabile $x_{n+1}$ in funzione delle sole quantità al tempo $t_n$:
 
