@@ -530,7 +530,14 @@ $$
 \det(M_{EC}) = (1 - \omega_0^2 \Delta t^2)(1) - (\Delta t)(-\omega_0^2 \Delta t) = 1 - \omega_0^2 \Delta t^2 + \omega_0^2 \Delta t^2 = 1
 $$
 
-Poiché $\det(M_{EC}) = 1$, il metodo conserva l'area nello spazio delle fasi, che per sistemi unidimensionali come l'oscillatore armonico implica simpletticità. Questo garantisce l'assenza di derive energetiche artificiali a lungo termine. In questo caso, il polinomio caratteristico è $\lambda^2 - (2 - \omega_0^2 \Delta t^2)\lambda + 1 = 0$, da cui si ottengono gli autovalori 
+Poiché $\det(M_{EC}) = 1$, il metodo conserva l'area nello spazio delle fasi, che per sistemi unidimensionali come l'oscillatore armonico implica simpletticità. Questo garantisce l'assenza di derive energetiche artificiali a lungo termine. In questo caso, il polinomio caratteristico è 
+
+$$
+\label{eq:characteristic_pol_ec}
+\lambda^2 - (2 - \omega_0^2 \Delta t^2)\lambda + 1 = 0,
+$$
+
+da cui si ottengono gli autovalori 
 
 $$
 \lambda_{1,2} = \frac{(2-\omega_0^2 \Delta t^2) \pm \sqrt{(2-\omega_0^2 \Delta t^2)^2 - 4}}{2} = \frac{(2-\omega_0^2 \Delta t^2) \pm \omega_0 \Delta t \sqrt{\omega_0^2 \Delta t^2 - 4}}{2}.
@@ -541,6 +548,7 @@ Il comportamento del sistema dipende dal segno del radicando ($\omega_0^2 \Delta
 1. $\omega_0 \Delta t < 2$. Il radicando è negativo, producendo autovalori complessi coniugati. Poiché il determinante è unitario, e in forza all'equazione [](#eq:det_eigenvalues), i due autovalori devono avere anche modulo 1, e quindi trovarsi sulla circonferenza unitaria. In questo regime il metodo è stabile e genera orbite ellittiche chiuse nello spazio delle fasi.
 2. $\omega_0 \Delta t > 2$. Il radicando è positivo, quindi i due autovalori sono reali e distinti. Poiché il loro prodotto deve rimanere pari a $1$, uno dei due autovalori sarà necessariamente maggiore di 1 in modulo: il sistema diventa instabile e l'errore diverge esponenzialmente. Questa dipendenza della stabilità dai parametri del sistema (e dell'integrazione numerica) fa sì che il metodo di Eulero-Cromer sia **condizionatamente stabile**. Nel caso in esame, la condizione di stabilità matematica, che richiede che gli autovalori abbiano modulo 1, impone infatti un limite superiore rigoroso al passo temporale:
 $$
+\label{eq:stability_eulero_cromer}
 \Delta t < \frac{2}{\omega_0}.
 $$
 
@@ -557,8 +565,8 @@ La derivazione dell'accuratezza per il metodo di Eulero discende direttamente da
 
 $$
 \begin{align}
-x(t_{n+1}) & = x(t_n) + \Delta t \, v(t_n) + \frac{\Delta t^2}{2} \, a(t_n) + O(\Delta t^3)\\
-v(t_{n+1}) & = v(t_n) + \Delta t \, a(t_n) + \frac{\Delta t^2}{2} \, \frac{da(t_n)}{dt} + O(\Delta t^3).
+x(t_{n+1}) & = x(t_n) + v(t_n) \Delta t + \frac{1}{2} a(t_n)  \Delta t^2+ O(\Delta t^3)\\
+v(t_{n+1}) & = v(t_n) + a(t_n)  \Delta t+ \frac{1}{2} \frac{da(t_n)}{dt} \Delta t^2 + O(\Delta t^3).
 \end{align}
 $$
 
@@ -566,8 +574,8 @@ Confrontando queste espressioni con le equazioni di aggiornamento dello schema d
 
 $$
 \begin{align}
-x(t_{n+1}) - x_{n+1} &= \frac{\Delta t^2}{2} \, a(t_n) + O(\Delta t^3) = O(\Delta t^2)\\
-v(t_{n+1}) - v_{n+1} &= \frac{\Delta t^2}{2} \, \frac{da}{dt}(t_n) + O(\Delta t^3) = O(\Delta t^2).
+x(t_{n+1}) - x_{n+1} &= \frac{1}{2} a(t_n) + O(\Delta t^3) \Delta t^2 = O(\Delta t^2)\\
+v(t_{n+1}) - v_{n+1} &= \frac{1}{2} \frac{da}{dt}(t_n) \Delta t^2 + O(\Delta t^3) = O(\Delta t^2).
 \end{align}
 $$
 
@@ -578,26 +586,41 @@ Poiché l'errore locale è $O(\Delta t^2)$, l'accumulo globale su $N \propto 1/\
 Nel caso di Eulero-Cromer, lo schema definito in eq. [](#eq:eulero_cromer) fa uso della velocità aggiornata al tempo successivo per calcolare la nuova posizione. Mentre la relazione per l'aggiornamento di $v_{n+1}$ è identica a quella di Eulero Esplicito, e di conseguenza preserva un errore locale pari a $O(\Delta t^2)$, l'analisi della posizione richiede cautela. Sostituendo $v_{n+1}$ nella definizione di $x_{n+1}$, possiamo scrivere l'espressione per la variabile $x_{n+1}$ in funzione delle sole quantità al tempo $t_n$:
 
 $$
-x_{n+1} = x_n + \Delta t \, (v_n + \Delta t \, a_n) = x_n + \Delta t \, v_n + \Delta t^2 a_n.
+x_{n+1} = x_n + \Delta t (v_n + \Delta t a_n) = x_n + \Delta t v_n + \Delta t^2 a_n.
 $$
 
 Confrontiamo ora questa equazione dello schema con lo sviluppo esatto di Taylor di $x(t_{n+1})$ ricavato in precedenza. Calcolando la differenza, si ottiene l'errore di troncamento locale sulla posizione:
 
 $$
-x(t_{n+1}) - x_{n+1} = & x(t_n) + \Delta t \, v(t_n) + \frac{\Delta t^2}{2} \, a(t_n) + O(\Delta t^3) - x_n + \Delta t \, v_n + \Delta t^2 a_n.
+x(t_{n+1}) - x_{n+1} = x(t_n) + \Delta t v(t_n) + \frac{\Delta t^2}{2} a(t_n) + O(\Delta t^3) - x_n + \Delta t v_n + \Delta t^2 a_n.
 $$
 
 Imponendo l'esattezza dei dati al passo $n$, i termini di ordine zero e primo si cancellano, lasciando la discrepanza unicamente sul coefficiente del secondo ordine:
 
 $$
-x(t_{n+1}) - x_{n+1} = -\frac{1}{2} \Delta t^2 a(t_n) + O(\Delta t^3) = -\frac{\Delta t^2}{2} \, a(t_n) + O(\Delta t^3) = O(\Delta t^2).
+x(t_{n+1}) - x_{n+1} = -\frac{1}{2} \Delta t^2 a(t_n) + O(\Delta t^3) = -\frac{\Delta t^2}{2} a(t_n) + O(\Delta t^3) = O(\Delta t^2).
 $$
 
-Essendo l'errore locale di troncamento pari a $O(\Delta t^2)$ sia per la velocità che per la posizione, l'integrazione accumula un errore globale proporzionale a $O(\Delta t)$, esattamente come per il metodo di Eulero. Quindi, nonostante l'utilizzo di informazioni temporalmente più avanzate per la coordinata spaziale, il metodo di Eulero-Cromer rimane un metodo del primo ordine. L'errore locale sulla posizione ha lo stesso modulo di quello di Eulero Esplicito, ma segno opposto.
+Poiché l'errore locale di troncamento è pari a $O(\Delta t^2)$ sia per la velocità che per la posizione, l'integrazione accumula un errore globale proporzionale a $O(\Delta t)$, esattamente come per il metodo di Eulero. Quindi, nonostante l'utilizzo di informazioni temporalmente più avanzate per la coordinata spaziale, il metodo di Eulero-Cromer rimane un metodo del primo ordine. L'errore locale sulla posizione ha lo stesso modulo di quello di Eulero Esplicito, ma segno opposto.
+
+```{figure} #cell:error_eulero
+:label: fig:error_eulero
+:align: center
+
+La differenza tra la posizione finale teorica e quella ottenuta tramite i due algoritmi di Eulero ed Eulero-Cromer. Il tempo totale di simulazione è $t_f = 20$, mentre i parametri utilizzati sono $\omega_0 = 1$, $x_0 = 2$, $v_0 = 1$.
+```
+
+Se la soluzione teorica è nota (come in questo caso), l'errore si può anche calcolare direttamente dai risultati numerici. Possiamo infatti definire l'errore globale come 
+
+$$
+\epsilon_G = |x_f - x(t_f)|,
+$$
+
+dove $t_f$ è il tempo finale, mentre $x_f$ e $x(t_f)$ sono le posizioni ottenute numericamente e teoricamente. La [](fig:error_eulero) mostra $\epsilon_G$ per sistemi con $\omega_0 = 1$, $x_0 = 2$ e $v_0 = 1$, simulati per $t_f = 20$ (in unità adimensionali) con Eulero ed Eulero-Cromer. La figura mostra come l'errore che commette Eulero-Cromer sia, in questo caso, di più di un ordine di grandezza minore rispetto a quello che si ottiene con Eulero, ma la dipendenza da $\Delta t$ è la stessa. Per grandi valori di $\Delta t$ l'errore di Eulero sembra crescere più che linearmente, per via dell'instabilità del metodo. Questo comportamento non si verifica con Eulero-Cromer dato che tutti i valori di $\Delta t$ considerati rispecchiano la relazione di stabilità condizionata, eq. [](#eq:stability_eulero_cromer).
 
 # Velocity Verlet
 
-Sviluppiamo la posizione $x(t)$ in serie di Taylor attorno a $t$:
+Introduciamo ora uno dei metodi simplettici, cioè che conserva l'energia e il volume nello spazio delle fasi, migliori e più utilizzati. Sviluppiamo la posizione $x(t)$ in serie di Taylor attorno a $t$:
 
 $$
 \begin{aligned}
@@ -624,13 +647,14 @@ $$
 v_n = \frac{x_{n+1} - x_{n-1}}{2\Delta t} + \mathcal{O}(\Delta t^2),
 $$
 
-dove è importante la differenza di accuratezza ($\mathcal{O}(\Delta t^2)$ *vs* $\mathcal{O}(\Delta t^4)$) rispetto a $x$. Possiamo modificare questo metodo (che è raramente usato in questa forma) per includere un aggiornamento esplicito per la velocità, ottenendo il ben più comune metodo "velocity Verlet". Invece di basarsi sulle posizioni dei passi temporali precedente e corrente, l'algoritmo Velocity Verlet aggiorna la posizione e la velocità in un processo a due fasi.
+dove è importante la differenza di accuratezza ($\mathcal{O}(\Delta t^2)$ *vs* $\mathcal{O}(\Delta t^4)$) rispetto a $x$. Inoltre, per $\Delta t$ sufficientemente piccolo, $x_{n+1}$ e $x_{n-1}$ saranno molto simili, quindi la loro differenza può dare problemi quando i numeri vengono rappresentanti sul calcolatore. Per questo motivo il metodo è raramente usato in questa forma, ma si modifica per includere un aggiornamento esplicito per la velocità, ottenendo il ben più comune metodo "Velocity Verlet". Invece di basarsi sulle posizioni dei passi temporali precedente e corrente, l'algoritmo Velocity Verlet aggiorna la posizione e la velocità in un processo a due fasi.
 
 In primo luogo, utilizziamo la velocità e l'accelerazione correnti per aggiornare la posizione al tempo $t + \Delta t$. Questo viene fatto in modo simile al metodo Verlet di base, ma con il termine della velocità esplicitamente incluso:
 
 $$
+\label{eq:velocity_verlet_x}
 x_{n+1} = x_n + v_n \Delta t + \frac{1}{2} a_n \Delta t^2
-$$ (eq:velocity_verlet_x)
+$$
 
 Questa equazione utilizza la posizione corrente $x_n$, la velocità corrente $v_n$ e l'accelerazione corrente $a_n$ per calcolare la nuova posizione $x_{n+1}$. Successivamente, dopo aver aggiornato la posizione, dobbiamo calcolare la nuova accelerazione al tempo $t_{n+1}$ perché la forza (e quindi l'accelerazione) è cambiata a causa della posizione aggiornata. La nuova accelerazione è data da:
 
@@ -644,12 +668,141 @@ $$
 v_{n+1} = v_n + \frac{1}{2} (a_n + a_{n+1}) \Delta t
 $$ (eq:velocity_verlet_v)
 
-Questa equazione di aggiornamento della velocità tiene conto della variazione dell'accelerazione nell'intervallo di tempo, fornendo un aggiornamento della velocità più accurato rispetto al semplice utilizzo dell'accelerazione corrente. Il metodo Velocity Verlet è lo standard *de facto* per i codici di Dinamica Molecolare (MD), una tecnica utilizzata per studiare la dinamica e la termodinamica di atomi, molecole, *ecc*. Il modo comune per implementarlo consiste nel suddividere la fase di integrazione della velocità in due, in modo che un passo di integrazione completo diventi:
+Questa equazione di aggiornamento della velocità tiene conto della variazione dell'accelerazione nell'intervallo di tempo, fornendo un aggiornamento della velocità più accurato rispetto al semplice utilizzo dell'accelerazione corrente. Il metodo Velocity Verlet è lo standard *de facto* per i codici di [Dinamica Molecolare](https://it.wikipedia.org/wiki/Dinamica_molecolare) (MD), una tecnica utilizzata per studiare la dinamica e la termodinamica di atomi, molecole, colloidi, *ecc*. Il modo comune per implementarlo consiste nel suddividere la fase di integrazione della velocità in due, in modo che un passo di integrazione completo diventi:
 
 1. Aggiornamento della velocità, prima fase: $v_{n+1/2} = v_n + \frac{1}{2} a_n \Delta t$.
 2. Aggiornamento della posizione: $x_{n+1} = x_n + v_{n+1/2}\Delta t = x(t) + v_n \Delta t + \frac{1}{2} a_n \Delta t^2$ (cioè l'eq. [](#eq:velocity_verlet_x)).
 3. Calcolo della forza (e quindi dell'accelerazione) utilizzando la nuova posizione: $x_{n+1} \to a_{n+1} = F_{n+1} / m$.
 4. Aggiornamento della velocità, seconda fase: $v_{n+1} = v_{n+1/2} + \frac{1}{2} a_{n+1}\Delta t = v_n + \frac{1}{2} (a_n + a_{n+1}) \Delta t$ (cioè l'eq. [](#eq:velocity_verlet_v)).
+
+### Stabilità ed accuratezza
+
+Consideriamo le equazioni di aggiornamento del metodo Velocity Verlet:
+
+$$
+\label{eq:velocity_verlet}
+\begin{cases}
+x_{n+1} &= x_n + v_n \Delta t + \frac{1}{2} a_n \Delta t^2\\
+v_{n+1} &= v_n + \frac{1}{2} (a_n + a_{n+1}) \Delta t.
+\end{cases}
+$$
+
+Nel caso dell'oscillatore armonico, $a_n = -\omega_0 x_n$ e $a_{n+1} = -\omega_0 x_{n+1}$, quindi
+
+$$
+\begin{cases}
+x_{n+1} &= x_n + v_n \Delta t - \frac{1}{2} \omega_0 x_n \Delta t^2\\
+v_{n+1} &= v_n - \frac{1}{2} \omega_0(x_n + x_{n+1}) \Delta t.
+\end{cases}
+$$
+
+Sostituendo la prima equazione nella seconda otteniamo
+
+$$
+v_{n+1} = v_n - \frac{1}{2} \omega_0^2 \Delta t x_n - \frac{1}{2} \omega_0^2 \Delta t \left[ \left(1 - \frac{1}{2} \omega_0^2 \Delta t^2\right) x_n + \Delta t v_n \right]$$
+
+che, raccogliendo i termini associati a $x_n$ e $v_n$, diventa:
+
+$$
+v_{n+1} = -\omega_0^2 \Delta t \left(1 - \frac{1}{4} \omega_0^2 \Delta t^2\right) x_n + \left(1 - \frac{1}{2} \omega_0^2 \Delta t^2\right) v_n.
+$$
+
+La matrice di propagazione è quindi
+
+$$
+\label{eq:verlet_matrix}
+\hat{M}_{VV} = 
+\begin{pmatrix}
+1 - \frac{1}{2} \omega^2 \Delta t^2 & \Delta t \\
+-\omega^2 \Delta t \left(1 - \frac{1}{4} \omega^2 \Delta t^2\right) & 1 - \frac{1}{2} \omega^2 \Delta t^2.
+\end{pmatrix}
+$$
+
+Calcoliamo il determinante della matrice:
+
+$$
+\begin{align}
+\det(\hat{M}_{\text{VV}}) &= \left(1 - \frac{1}{2} \omega^2 \Delta t^2\right)^2 - \left[ -\omega^2 \Delta t^2 \left(1 - \frac{1}{4} \omega^2 \Delta t^2\right) \right] = \\
+&= \left( 1 - \omega^2 \Delta t^2 + \frac{1}{4} \omega^4 \Delta t^4 \right) + \omega^2 \Delta t^2 - \frac{1}{4} \omega^4 \Delta t^4
+\\
+&= 1
+\end{align}
+$$
+
+Quindi, il determinante è esattamente pari a 1, indipendentemente dal valore del passo temporale $\Delta t$: Velocity Verlet è un algoritmo simplettico (conserva l'area nello spazio delle fasi) per qualsiasi parametro di discretizzazione scelto. Non introduce alcuna dissipazione o amplificazione artificiale dell'area di stati iniziali. 
+
+Studiato ora gli autovalori. Il polinomio caratteristico di Velocity Verlet è:
+
+$$
+\label{eq:char_verlet}
+\lambda^2 - \left(2 - \omega_0^2 \Delta t^2\right)\lambda + 1 = 0.
+$$
+
+Questa equazione vi ricorda qualcosa? Questa equazione è assolutamente identica a quella ottenuta con il metodo di Eulero-Cromer, eq. [](#eq:characteristic_pol_ec)!
+
+Sebbene le due matrici di evoluzione siano diverse (Velocity Verlet ha coefficienti simmetrici sulla diagonale ed è un metodo del secondo ordine, mentre Eulero-Cromer è asimmetrico ed è del primo ordine), esse condividono lo stesso polinomio caratteristico e di conseguenza hanno gli stessi identici autovalori e quindi la stessa condizione di stabilità, eq. [](#eq:stability_eulero_cromer). La differenza maggiore tra i due metodi è nella loro accuratezza. Utilizzando la stessa logica applicata a Eulero ed Eulero-Cromer, definiamo l'errore di troncamento locale come la differenza tra la soluzione numerica e quella teorica dopo un passo di integrazione. Sviluppando posizione e velocità fino al quarto ordine, scriviamo le soluzioni esatte come
+
+$$
+\begin{cases}
+x(t_{n+1}) & = x(t_n) + v(t_n) \Delta t + \frac{1}{2} a(t_n) \Delta t^2 + \frac{}{6} \frac{da(t_n)}{dt} \Delta t^3 + O(\Delta t^4)\\
+v(t_{n+1}) & = v(t_n) + a(t_n) \Delta t + \frac{1}{2} \frac{da(t_n)}{dt} \Delta t^2 + \frac{1}{6} \frac{d^2a(t_n)}{dt^2} \Delta t^3 + O(\Delta t^4).
+\end{cases}
+$$
+
+Se ora sottriamo queste quantità da quelle numeriche, eq. [](#eq:velocity_verlet), e sostituiamo a $a_{n+1}$ il suo sviluppo di Taylor, $a_{n+1} = a(t_n) + \dot{a}(t_n) \Delta t + \frac{1}{2} \ddot{a}(t_n) \Delta t^2 + \mathcal{O}(\Delta t^3)$[^box_an1], otteniamo
+
+$$
+\begin{cases}
+x_{n+1} - x(t_n + \Delta t) &= -\frac{1}{6} \frac{d^3 x}{dt^3}(t_n) \Delta t^3 + \mathcal{O}(\Delta t^4)\\
+v_{n+1} - v(t_n + \Delta t) &= \frac{1}{12} \ddot{a}(t_n) \Delta t^3 + \mathcal{O}(\Delta t^4),
+\end{cases}
+$$
+
+e quindi sia per la posizione che per la velocità, l'errore locale dell'algoritmo di Verlet (e quindi, equivalentemente, quello di Velocity Verlet) è di ordine $\mathcal{O}(\Delta t^3)$, che implica come per l'errore globale scali come $\mathcal{O}(\Delta t^2)$.
+
+```{note} Perché possiamo sviluppare $a_{n+1}$?
+:label: box:an1
+:class: dropdown
+
+Potrebbe sorgere un legittimo dubbio teorico: l'accelerazione futura $a_{n+1}$ è calcolata dall'algoritmo e quindi, per definizione, valutata sulla posizione numerica approssimata ($a_{n+1} = a(x_{n+1})$) e non sulla posizione reale lungo la traiettoria fisica ($a(x(t_n + \Delta t))$). Com'è possibile allora sviluppare $a_{n+1}$ in serie di Taylor nel tempo come se ci trovassimo sulla traiettoria esatta?
+
+La giustificazione formale risiede nell'ordine dell'errore locale spaziale. Abbiamo appena dimostrato che l'errore sulla posizione al passo $n+1$ è di terzo ordine:
+
+$$
+x_{n+1} = x(t_n + \Delta t) + \mathcal{O}(\Delta t^3).
+$$
+
+Se effettuiamo uno sviluppo spaziale in serie di Taylor della funzione continua $a(x)$ attorno al punto esatto $x(t_n + \Delta t)$, otteniamo:
+
+$$
+a(x_{n+1}) = a\left( x(t_n + \Delta t) + \mathcal{O}(\Delta t^3) \right) = a(x(t_n + \Delta t)) + a'(x(t_n + \Delta t)) \cdot \mathcal{O}(\Delta t^3) + \dots
+$$
+
+Poiché la differenza tra la coordinata numerica e quella reale è già di ordine $\mathcal{O}(\Delta t^3)$, l'errore derivante dal non valutare l'accelerazione sulla traiettoria esatta è di ordine superiore e finisce interamente nel termine di errore generico:
+
+$$
+a(x_{n+1}) = a(x(t_n + \Delta t)) + \mathcal{O}(\Delta t^3)
+$$
+
+Di conseguenza, per ricavare i termini d'errore fino all'ordine $\Delta t^2$ necessari alla nostra dimostrazione, è perfettamente lecito sostituire ad $a_{n+1}$ lo sviluppo temporale esatto dell'accelerazione fisica:
+
+$$
+a(x(t_n + \Delta t)) = a_n + \dot{a}_n \Delta t + \frac{1}{2} \ddot{a}_n \Delta t^2 + \mathcal{O}(\Delta t^3).
+$$
+
+L'approssimazione numerica spaziale non altera i coefficienti dei termini di ordine inferiore dello sviluppo.
+```
+
+[^box_an1]: Si veda il [box più in basso](#box:an1) sul perché possiamo farlo.
+
+```{figure} #cell:error_velocity_verlet
+:label: fig:error_velocity_verlet
+:align: center
+
+Come in [](#fig:error_eulero), con, in aggiunta, l'errore ottenuto applicando l'algoritmo di Velocity Verlet.
+```
+
+La [](#fig:error_velocity_verlet) illustra vividamente l'enorme impatto del passaggio da un errore globale di ordine $\mathcal{O}(\Delta t)$ a uno di ordine $\mathcal{O}(\Delta t^2)$. Per apprezzare concretamente questa differenza, si consideri un passo temporale tipico delle simulazioni reali, ad esempio $\Delta t = 10^{-3}$: in questo scenario, l'accuratezza di Velocity Verlet supera quella di Eulero-Cromer di ben tre ordini di grandezza, riducendo drasticamente l'errore sistematico accumulato sulla traiettoria.
 
 # Runge-Kutta
 
