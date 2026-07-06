@@ -616,7 +616,7 @@ $$
 \epsilon_G = |x_f - x(t_f)|,
 $$
 
-dove $t_f$ è il tempo finale, mentre $x_f$ e $x(t_f)$ sono le posizioni ottenute numericamente e teoricamente. La [](fig:error_eulero) mostra $\epsilon_G$ per sistemi con $\omega_0 = 1$, $x_0 = 2$ e $v_0 = 1$, simulati per $t_f = 20$ (in unità adimensionali) con Eulero ed Eulero-Cromer. La figura mostra come l'errore che commette Eulero-Cromer sia, in questo caso, di più di un ordine di grandezza minore rispetto a quello che si ottiene con Eulero, ma la dipendenza da $\Delta t$ è la stessa. Per grandi valori di $\Delta t$ l'errore di Eulero sembra crescere più che linearmente, per via dell'instabilità del metodo. Questo comportamento non si verifica con Eulero-Cromer dato che tutti i valori di $\Delta t$ considerati rispecchiano la relazione di stabilità condizionata, eq. [](#eq:stability_eulero_cromer).
+dove $t_f$ è il tempo finale, mentre $x_f$ e $x(t_f)$ sono le posizioni ottenute numericamente e teoricamente. La [](#fig:error_eulero) mostra $\epsilon_G$ per sistemi con $\omega_0 = 1$, $x_0 = 2$ e $v_0 = 1$, simulati per $t_f = 20$ (in unità adimensionali) con Eulero ed Eulero-Cromer. La figura mostra come l'errore che commette Eulero-Cromer sia, in questo caso, di più di un ordine di grandezza minore rispetto a quello che si ottiene con Eulero, ma la dipendenza da $\Delta t$ è la stessa. Per grandi valori di $\Delta t$ l'errore di Eulero sembra crescere più che linearmente, per via dell'instabilità del metodo. Questo comportamento non si verifica con Eulero-Cromer dato che tutti i valori di $\Delta t$ considerati rispecchiano la relazione di stabilità condizionata, eq. [](#eq:stability_eulero_cromer).
 
 # Velocity Verlet
 
@@ -713,8 +713,8 @@ $$
 \label{eq:verlet_matrix}
 \hat{M}_{VV} = 
 \begin{pmatrix}
-1 - \frac{1}{2} \omega^2 \Delta t^2 & \Delta t \\
--\omega^2 \Delta t \left(1 - \frac{1}{4} \omega^2 \Delta t^2\right) & 1 - \frac{1}{2} \omega^2 \Delta t^2.
+1 - \frac{1}{2} \omega_0^2 \Delta t^2 & \Delta t \\
+-\omega_0^2 \Delta t \left(1 - \frac{1}{4} \omega_0^2 \Delta t^2\right) & 1 - \frac{1}{2} \omega_0^2 \Delta t^2.
 \end{pmatrix}
 $$
 
@@ -722,8 +722,8 @@ Calcoliamo il determinante della matrice:
 
 $$
 \begin{align}
-\det(\hat{M}_{\text{VV}}) &= \left(1 - \frac{1}{2} \omega^2 \Delta t^2\right)^2 - \left[ -\omega^2 \Delta t^2 \left(1 - \frac{1}{4} \omega^2 \Delta t^2\right) \right] = \\
-&= \left( 1 - \omega^2 \Delta t^2 + \frac{1}{4} \omega^4 \Delta t^4 \right) + \omega^2 \Delta t^2 - \frac{1}{4} \omega^4 \Delta t^4
+\det(\hat{M}_{\text{VV}}) &= \left(1 - \frac{1}{2} \omega_0^2 \Delta t^2\right)^2 - \left[ -\omega_0^2 \Delta t^2 \left(1 - \frac{1}{4} \omega_0^2 \Delta t^2\right) \right] = \\
+&= \left( 1 - \omega_0^2 \Delta t^2 + \frac{1}{4} \omega_0^4 \Delta t^4 \right) + \omega_0^2 \Delta t^2 - \frac{1}{4} \omega_0^4 \Delta t^4
 \\
 &= 1
 \end{align}
@@ -743,6 +743,7 @@ Questa equazione vi ricorda qualcosa? Questa equazione è assolutamente identica
 Sebbene le due matrici di evoluzione siano diverse (Velocity Verlet ha coefficienti simmetrici sulla diagonale ed è un metodo del secondo ordine, mentre Eulero-Cromer è asimmetrico ed è del primo ordine), esse condividono lo stesso polinomio caratteristico e di conseguenza hanno gli stessi identici autovalori e quindi la stessa condizione di stabilità, eq. [](#eq:stability_eulero_cromer). La differenza maggiore tra i due metodi è nella loro accuratezza. Utilizzando la stessa logica applicata a Eulero ed Eulero-Cromer, definiamo l'errore di troncamento locale come la differenza tra la soluzione numerica e quella teorica dopo un passo di integrazione. Sviluppando posizione e velocità fino al quarto ordine, scriviamo le soluzioni esatte come
 
 $$
+\label{eq:sviluppo_xv_4}
 \begin{cases}
 x(t_{n+1}) & = x(t_n) + v(t_n) \Delta t + \frac{1}{2} a(t_n) \Delta t^2 + \frac{}{6} \frac{da(t_n)}{dt} \Delta t^3 + O(\Delta t^4)\\
 v(t_{n+1}) & = v(t_n) + a(t_n) \Delta t + \frac{1}{2} \frac{da(t_n)}{dt} \Delta t^2 + \frac{1}{6} \frac{d^2a(t_n)}{dt^2} \Delta t^3 + O(\Delta t^4).
@@ -760,7 +761,7 @@ $$
 
 e quindi sia per la posizione che per la velocità, l'errore locale dell'algoritmo di Verlet (e quindi, equivalentemente, quello di Velocity Verlet) è di ordine $\mathcal{O}(\Delta t^3)$, che implica come per l'errore globale scali come $\mathcal{O}(\Delta t^2)$.
 
-```{note} Perché possiamo sviluppare $a_{n+1}$?
+```{note} Perché possiamo sviluppare l'accelerazione numerica?
 :label: box:an1
 :class: dropdown
 
@@ -834,13 +835,68 @@ $$
 Ricordando che, nel nostro caso, $x'(t) = v(t)$, applicando il metodo al nostro sistema di equazioni otteniamo
 
 $$
+\label{eq:rk2}
 \begin{cases}
-x_{n+1} = x_n + \left(v_n + a_n \frac{\Delta t}{2}\right) \Delta t\\
+x_{n+1} = x_n + \left(v_n + a_n \frac{\Delta t}{2}\right) \Delta t = x_n + v_n \Delta t + \frac{1}{2} a_n \Delta t^2\\
 v_{n+1} = v_n + a_{n+1/2} \Delta t,
 \end{cases}
 $$
 
 dove $a_{n+1/2} = a(x_{n+1/2}, v_{v+1/2}, t_{n+1/2})$ è l'accelerazione calcolata nel punto medio dell'intervallo, ottenuta integrando di mezzo passo $x_n$ e $v_n$. Calcolare due volte l'accelerazione (in $n$ e in $n + 1/2$) è il prezzo computazionale che si paga per migliorare l'accuratezza rispetto al metodo di Eulero. Questo è un prezzo che molte volte (ma non necessariamente sempre) vale la pena di pagare.
+
+### Stabilità ed accuratezza
+
+Considerando che, per l'oscillatore armonico, $a_{n+1/2} = -\omega_0 x_{n+1/2} =-\omega_0(x_n + v_n \Delta t/2)$, le equazioni di aggiornamento [](#eq:rk2) si possono scrivere come
+
+$$
+\begin{cases}
+x_{n+1} = x_n + \left(v_n - \omega_0 x_n \frac{\Delta t}{2}\right) \Delta t\\
+v_{n+1} = v_n + \left(-\omega_0^2 x_n - \frac{1}{2}\omega_0^2 \Delta t v_n\right) \Delta t,
+\end{cases}
+$$
+
+che permette di scrivere la matrice di propagazione per il metodo di RK2:
+
+$$
+\label{eq:RK2_matrix}
+\hat{M}_{RK2} = 
+\begin{pmatrix}
+1 - \frac{1}{2} \omega_0^2 \Delta t^2 & \Delta t \\
+-\omega_0^2 \Delta t & 1 - \frac{1}{2} \omega_0^2 \Delta t^2,
+\end{pmatrix}
+$$
+
+il cui determinante vale
+
+$$
+\det(\hat{M}_{RK2}) = \left(1 - \frac{1}{2} \omega_0^2 \Delta t^2\right)^2 + \omega_0^2 \Delta t^2 = 1 + \frac{1}{4} \omega_0^4 \Delta t^4 \geq 1.
+$$
+
+Poiché il determinante della matrice è sempre maggiore di uno, il metodo non conserva l'energia e quindi non può essere simplettico, e le traiettorie  generate nello spazio delle fasi spiraleggiano verso l'esterno. Come fatto in precedenza, utilizziamo il polinomio caratteristico per calcolare gli autovalori, che valgono
+
+$$
+\lambda_{1,2} = \left(1 - \frac{1}{2} \omega_0^2 \Delta t^2\right) \pm i \omega_0 \Delta t.
+$$
+
+I due autovalori sono sempre complessi coniugati e quindi hanno lo stesso modulo, che vale $\sqrt{1 + \frac{1}{4}\omega_0^4 \Delta t^4} \geq 1$: il metodo è, come quello di Eulero, incondizionatamente instabile, ma in questo caso la differenza tra il modulo al quadrato degli autovalori e 1 è più piccola ($\frac{1}{4}\omega_0^4 \Delta t^4$ *vs.* $\omega_0^2 \Delta t^2$)[^omega_deltat]. Di conseguenza, l'instabilità diventa evidente dopo tempi di integrazione molto più lunghi rispetto ad Eulero.
+
+[^omega_deltat]: Se $\omega_0 \Delta t < 1$, come si dovrebbe sempre avere.
+
+Per quanto riguarda l'accuratezza, notiamo prima di tutto che l'aggiornamento delle posizioni, cioè la prima delle equazioni [](#eq:rk2), è lo stesso del metodo di Velocity Verlet, eq. [](#eq:velocity_verlet). Di conseguenza, i due algoritmi condividono l'errore di troncamento locale per le posizioni, che va come $\mathcal{O}(\Delta t^3)$. Per le velocità applichiamo lo stesso procedimento visto per Velocity Verlet [espandendo $a_{n+1/2}$](#box:an1) per ottenere
+
+$$
+v_{n+1} = v_n + a(t_n) \Delta t + \frac{1}{2} \frac{da(t_n)}{dt} \Delta t^2 + \mathcal{O}(\Delta t^3).
+$$
+
+Se ora sottraiamo questa quantità da quella teorica, eq. [](#eq:sviluppo_xv_4), e assumiamo come al solito che al tempo $t_n$ lo stato numerico coincida con quello esatto ($x_n = x(t_n)$, $v_n = v(t_n)$, $a_n = a(t_n)$), otteniamo:
+
+$$
+v_{n+1} - v(t_n + \Delta t) = -\frac{1}{6} \frac{d^2a(t_n)}{dt^2} \Delta t^3 + \mathcal{O}(\Delta t^4),
+$$
+
+e quindi anche per la velocità l'errore locale dell'algoritmo RK2 è di ordine $\mathcal{O}(\Delta t^3)$.
+
+Quindi, sia per le posizioni che per le velocità l'errore globale scala come $\mathcal{O}(\Delta t^2)$: RK2 è un algoritmo del secondo ordine nel tempo. La figura che mostra questo andamento è mostrata e discussa [più sotto](#fig:error_rk).
 
 ## Metodo Runge-Kutta del quarto ordine (RK4)
 
@@ -892,7 +948,87 @@ $$
 x_{n+1} = x_n + \frac{\Delta t}{6} (k_1 + 2k_2 + 2k_3 + k_4).
 $$
 
+Se siamo interessato a un sistema dinamico unidimensionale come l'oscillatore armonico, il metodo RK4 va applicato simultaneamente alle due variabili $x$ e $v$. In altre parole, a ogni passo temporale dobbiamo costruire quattro stime sia per la derivata della posizione, cioè la velocità, sia per la derivata della velocità, cioè l'accelerazione.
+
+Partendo dallo stato noto $(x_n,v_n)$ al tempo $t_n$, definiamo innanzitutto
+
+$$
+\begin{cases}
+k_{1,x} = v_n\\
+k_{1,v} = a(x_n,v_n,t_n).
+\end{cases}
+$$
+
+Queste sono le derivate valutate all'inizio dell'intervallo. Usiamo poi queste quantità per stimare lo stato del sistema a metà passo:
+
+$$
+\begin{cases}
+x_{n+\frac12}^{(1)} = x_n + k_{1,x}\frac{\Delta t}{2}\\
+v_{n+\frac12}^{(1)} = v_n + k_{1,v}\frac{\Delta t}{2},
+\end{cases}
+$$
+
+e calcoliamo le derivate in questo punto intermedio:
+
+$$
+\begin{cases}
+k_{2,x} = v_{n+\frac12}^{(1)}\\
+k_{2,v} = a\left(x_{n+\frac12}^{(1)},v_{n+\frac12}^{(1)},t_n+\frac{\Delta t}{2}\right).
+\end{cases}
+$$
+
+Ripetiamo ora la stessa procedura, ma usando $k_2$ per ottenere una stima migliorata dello stato a metà passo:
+
+$$
+\begin{cases}
+x_{n+\frac12}^{(2)} = x_n + k_{2,x}\frac{\Delta t}{2}\\
+v_{n+\frac12}^{(2)} = v_n + k_{2,v}\frac{\Delta t}{2},
+\end{cases}
+$$
+
+da cui
+
+$$
+\begin{cases}
+k_{3,x} = v_{n+\frac12}^{(2)}\\
+k_{3,v} = a\left(x_{n+\frac12}^{(2)},v_{n+\frac12}^{(2)},t_n+\frac{\Delta t}{2}\right).
+\end{cases}
+$$
+
+Infine, usiamo $k_3$ per stimare lo stato alla fine dell'intervallo:
+
+$$
+\begin{cases}
+x_{n+1}^{(3)} = x_n + k_{3,x}\Delta t\\
+v_{n+1}^{(3)} = v_n + k_{3,v}\Delta t,
+\end{cases}
+$$
+
+e calcoliamo l'ultima coppia di derivate:
+
+$$
+\begin{cases}
+k_{4,x} = v_{n+1}^{(3)}\\
+k_{4,v} = a\left(x_{n+1}^{(3)},v_{n+1}^{(3)},t_n+\Delta t\right).
+\end{cases}
+$$
+
+L'aggiornamento completo si ottiene quindi combinando le quattro stime con gli stessi pesi già ricavati per il caso generale:
+
+$$
+\label{eq:RK4_dynamical_system}
+\begin{cases}
+x_{n+1} = x_n + \frac{\Delta t}{6}
+\left(k_{1,x}+2k_{2,x}+2k_{3,x}+k_{4,x}\right)\\
+v_{n+1} = v_n + \frac{\Delta t}{6}
+\left(k_{1,v}+2k_{2,v}+2k_{3,v}+k_{4,v}\right).
+\end{cases}
+$$
+
+**Nota Bene:** per l'oscillatore armonico l'accelerazione dipende solo dalla velocità,e quindi le quantità $k_{i,v}$ si ottengono semplicemente valutando $-\omega_0^2 x$ nei diversi punti intermedi costruiti dall'algoritmo. Nel caso più generale (ad esempio quello dell'oscillatore smorzato o forzato), l'accelerazione dipende anche da $v$ e da $t$, e quindi è importante aggiornare correttamente entrambe le variabili nei passi intermedi.
+
 ```{tip}  Approfondimento: determinazione dei coefficienti $b_i$
+:label: box:coeff_rk4
 
 Vogliamo capire in modo più preciso da dove provengono i pesi
 
@@ -1004,6 +1140,296 @@ $$
 $$
 
 La somiglianza di questa relazione con quella del metodo di RK4 fornisce un'intuizione utile: il metodo RK4 può essere visto come una versione della regola di Simpson adattata al caso in cui la derivata dipenda dalla soluzione stessa e debba quindi essere stimata durante il processo di integrazione.
+```
+
+### Stabilità ed accuratezza
+
+Come per gli algoritmi visti, studiamo la stabilità di RK4 applicandolo all'oscillatore armonico. Poiché in questo caso i calcoli sono piuttosto lunghi e non fondamentali per quello che ci interessa, li riporto in un box [più in basso](#box:rk4). Discutiamo invece i risultati principali:
+
+Il determinante della matrice di propagazione è
+
+$$
+\det(\hat{M}_{RK4}) = 1 - \frac{\omega_0^6\Delta t^6}{72} + \frac{z^6}{576}.
+$$
+
+Gli autovalori invece valgono 
+
+$$
+\lambda_{1,2} = 1 - \frac{\omega_0^2\Delta t^2}{2} + \frac{\omega_0^4\Delta t^4}{24} \pm i\left(\omega_0\Delta t - \frac{\omega_0^3\Delta t^3}{6}\right).
+$$
+
+Poiché gli autovalori sono complessi coniugati, il loro modulo è uguale al determinante:
+
+$$
+|\lambda_1|^2 = |\lambda_2|^2 = \det(\hat{M}_{RK4}) = 1 - \frac{\omega_0^6\Delta t^6}{72} + \frac{\omega_0^8\Delta t^8}{576}.
+$$
+
+Questo risultato mostra che, come RK2, anche RK4 non è simplettico. Tuttavia la deviazione da 1 compare soltanto a partire dall'ordine $z^6 = (\omega_0\Delta t)^6$, cioè è molto piccola per passi temporali sufficientemente piccoli. A differenza di RK2, l'espressione del determinante ha un termine negativo e uno positivo, e quindi può cambiare segno a seconda dei parametri. La condizione per cui la dinamica non esplode è $\det(\hat{M}_{RK4}) \leq 1$, cioè 
+
+$$
+\omega_0^6\Delta t^6\left(-\frac{1}{72} + \frac{\omega_0^2\Delta t^2}{576} \right) \leq 0,
+$$
+
+che, per $\omega_0\Delta t > 0$, equivale a
+
+$$
+-\frac{1}{72} + \frac{\omega_0^2\Delta t^2}{576} \leq 0,
+$$
+
+da cui otteniamo la condizione di stabilità
+
+$$
+\label{eq:stability_RK4}
+\omega_0\Delta t \leq 2\sqrt{2}, \implies \Delta t \leq \frac{2\sqrt{2}}{\omega_0}.
+$$
+
+Il metodo RK4 è dunque **condizionatamente stabile** per l'oscillatore armonico. Il limite di stabilità è meno restrittivo di quello trovato per Eulero-Cromer e Velocity Verlet, eq. [](#eq:stability_eulero_cromer), ma questo non significa che RK4 sia sempre preferibile. Infatti, RK4 non è simplettico: anche quando è stabile, non conserva esattamente l'area nello spazio delle fasi. Per $z < 2\sqrt{2}$ il determinante è leggermente minore di 1, quindi lo schema introduce una piccola dissipazione numerica: le orbite nello spazio delle fasi tendono a spiraleggiare molto lentamente verso l'interno. Per $z > 2\sqrt{2}$, invece, il determinante (e quindi il modulo di entrambi gli autovalori) diventa maggiore di 1 e la soluzione numerica diverge.
+
+Discutiamo ora l'accuratezza dell'algoritmo. Come viene dimostrato formalmente nel box sotto, ma si può anche inferire notando che i coefficienti numerici sono scelti in maniera da [eguagliare al quarto ordine](#box:coeff_rk4) lo sviluppo di Taylor della soluzione analitica, l'errore di troncamento locale è $\mathcal{O}(\Delta t^5)$. L'errore globale accumulato scala quindi come
+
+$$
+\frac{1}{\Delta t}\mathcal{O}(\Delta t^5) = \mathcal{O}(\Delta t^4).
+$$
+
+```{figure} #cell:error_rk
+:label: fig:error_rk
+:align: center
+
+Come in [](#fig:error_eulero), con, in aggiunta, l'errore ottenuto applicando gli algoritmi Runge-Kutta del secondo e quarto ordine.
+```
+
+La figura [](#fig:error_rk) mostra l'andamento degli errori globali di RK2 ed RK4 insieme a quelli degli altri algoritmi visti finora in questa sezione. È evidente che l'errore di RK4 diminuisce molto più rapidamente di quello di RK2 o, equivalentemente, Velocity Verlet, quando si riduce il passo temporale. Il grafico mostra addirittura una saturazione per piccoli valori di $\Delta t$: per questi valori del passo di integrazione, l'errore dovuto alla precisione numerica delle operazioni in virgola mobile comincia a dominare l'errore totale, e l'errore di troncamento diventa trascurabile.
+
+Riassumendo, RK4 è molto accurato su intervalli di tempo finiti, ma non rispetta esattamente la struttura geometrica dei sistemi conservativi, e la mancata simpletticità può produrre una lenta deriva artificiale dell'energia. Per simulazioni molto lunghe di sistemi conservativi, un metodo simplettico come Velocity Verlet può quindi produrre un comportamento qualitativamente migliore, anche se l'ordine formale di accuratezza è più basso.
+
+
+```{tip} Dimostrazione della stabilità e accuratezza di RK4
+:label: box:rk4
+
+Per evitare calcoli troppo lunghi, conviene prima scrivere il sistema in forma vettoriale. In questa forma, l'equazione dell'oscillatore armonico si scrive
+
+$$
+\mathbf{y}' = \hat{A}\mathbf{y},
+$$
+
+dove
+
+$$
+\hat{A} =
+\begin{pmatrix}
+0 & 1\\
+-\omega_0^2 & 0
+\end{pmatrix}.
+$$
+
+Formalmente, l'evoluzione *esatta* di questo sistema lineare per un passo di integrazione si può scrivere come
+
+$$
+\label{eq:ODE_exp}
+\mathbf{y}_{n+1} = e^{\hat{A}\Delta t}\mathbf{y}_n.
+$$
+
+Applichiamo ora il metodo RK4. La prima stima della derivata è
+
+$$
+\mathbf{k}_1 = \hat{A}\mathbf{y}_n.
+$$
+
+La seconda stima viene calcolata a metà passo, usando $\mathbf{k}_1$:
+
+$$
+\mathbf{k}_2 = \hat{A}\left(\mathbf{y}_n+\frac{\Delta t}{2}\mathbf{k}_1\right).
+$$
+
+Sostituendo l'espressione di $\mathbf{k}_1$, otteniamo
+
+$$
+\mathbf{k}_2 =
+\hat{A}\left(\mathbf{y}_n+\frac{\Delta t}{2}\hat{A}\mathbf{y}_n\right) =
+\hat{A}\mathbf{y}_n + \frac{\Delta t}{2}\hat{A}^2\mathbf{y}_n.
+$$
+
+La terza stima è ancora una stima a metà passo, ma costruita usando $\mathbf{k}_2$:
+
+$$
+\mathbf{k}_3 = \hat{A}\left(\mathbf{y}_n+\frac{\Delta t}{2}\mathbf{k}_2\right).
+$$
+
+Sostituendo l'espressione appena trovata per $\mathbf{k}_2$ si ha
+
+$$
+\mathbf{k}_3 = \hat{A}\left[ \mathbf{y}_n + \frac{\Delta t}{2} \left( \hat{A}\mathbf{y}_n + \frac{\Delta t}{2}\hat{A}^2\mathbf{y}_n \right) \right]
+=
+\hat{A}\mathbf{y}_n + \frac{\Delta t}{2}\hat{A}^2\mathbf{y}_n + \frac{\Delta t^2}{4}\hat{A}^3\mathbf{y}_n.
+$$
+
+Infine, la quarta stima viene calcolata alla fine dell'intervallo usando $\mathbf{k}_3$:
+
+$$
+\mathbf{k}_4
+=
+\hat{A}\left(\mathbf{y}_n+\Delta t\,\mathbf{k}_3\right).
+$$
+
+Sostituendo $\mathbf{k}_3$ otteniamo
+
+$$
+\begin{split}
+\mathbf{k}_4 &= \hat{A}\left[ \mathbf{y}_n + \Delta t \left( \hat{A}\mathbf{y}_n + \frac{\Delta t}{2}\hat{A}^2\mathbf{y}_n + \frac{\Delta t^2}{4}\hat{A}^3\mathbf{y}_n \right) \right]\\
+&=
+\hat{A}\mathbf{y}_n + \Delta t\,\hat{A}^2\mathbf{y}_n + \frac{\Delta t^2}{2}\hat{A}^3\mathbf{y}_n + \frac{\Delta t^3}{4}\hat{A}^4\mathbf{y}_n.
+\end{split}
+$$
+
+L'aggiornamento RK4 è
+
+$$
+\mathbf{y}_{n+1} = \mathbf{y}_n + \frac{\Delta t}{6} \left( \mathbf{k}_1 + 2\mathbf{k}_2 + 2\mathbf{k}_3 + \mathbf{k}_4 \right).
+$$
+
+Sommiamo ora i quattro contributi. Usando le espressioni trovate sopra,
+
+$$
+\mathbf{k}_1 + 2\mathbf{k}_2 + 2\mathbf{k}_3 + \mathbf{k}_4 = \ 6\hat{A}\mathbf{y}_n + 3\Delta t\,\hat{A}^2\mathbf{y}_n
++ \Delta t^2\hat{A}^3\mathbf{y}_n + \frac{\Delta t^3}{4}\hat{A}^4\mathbf{y}_n.
+$$
+
+Moltiplicando per $\Delta t/6$ si ottiene
+
+$$
+\Delta t\,\hat{A}\mathbf{y}_n + \frac{\Delta t^2}{2}\hat{A}^2\mathbf{y}_n + \frac{\Delta t^3}{6}\hat{A}^3\mathbf{y}_n + \frac{\Delta t^4}{24}\hat{A}^4\mathbf{y}_n.
+$$
+
+Quindi
+
+$$
+\mathbf{y}_{n+1} = \mathbf{y}_n + \Delta t\,\hat{A}\mathbf{y}_n + \frac{\Delta t^2}{2}\hat{A}^2\mathbf{y}_n +
+\frac{\Delta t^3}{6}\hat{A}^3\mathbf{y}_n + \frac{\Delta t^4}{24}\hat{A}^4\mathbf{y}_n.
+$$
+
+Raccogliendo $\mathbf{y}_n$, otteniamo infine
+
+$$
+\label{eq:aggiornamento_RK4_matriciale}
+\mathbf{y}_{n+1}
+=
+\left[\hat{I} + \Delta t \hat{A} + \frac{\Delta t^2}{2}\hat{A}^2 + \frac{\Delta t^3}{6}\hat{A}^3 + \frac{\Delta t^4}{24}\hat{A}^4 \right] \mathbf{y}_n.
+$$
+
+Quindi, per un sistema lineare autonomo, RK4 coincide con lo sviluppo di Taylor al quarto ordine dell'operatore esatto di evoluzione $e^{\hat{A}\Delta t}$. Questa espressione è molto istruttiva: RK4 applicato a un sistema lineare equivale a sostituire l'operatore esatto di evoluzione $\exp(\hat{A}\Delta t)$ con il suo sviluppo di Taylor troncato al quarto ordine,
+
+$$
+e^{\hat{A}\Delta t} = \hat{I} + \Delta t \hat{A} + \frac{\Delta t^2}{2}\hat{A}^2 + \frac{\Delta t^3}{6}\hat{A}^3 + \frac{\Delta t^4}{24}\hat{A}^4 + \mathcal{O}(\Delta t^5).
+$$
+
+Nel caso dell'oscillatore armonico la matrice $\hat{A}$ soddisfa
+
+$$
+\hat{A}^2 = -\omega_0^2 \hat{I}.
+$$
+
+Da questa relazione seguono immediatamente
+
+$$
+\hat{A}^3 = -\omega_0^2 \hat{A}, \qquad \hat{A}^4 = \omega_0^4 \hat{I}.
+$$
+
+Sostituendo questi risultati nell'espressione dell'aggiornamento RK4 otteniamo
+
+$$
+\mathbf{y}_{n+1} = \left[ \left(1 - \frac{1}{2}\omega_0^2\Delta t^2 + \frac{1}{24}\omega_0^4\Delta t^4\right)\hat{I}
++
+\left(\Delta t - \frac{1}{6}\omega_0^2\Delta t^3\right)\hat{A}
+\right]\mathbf{y}_n.
+$$
+
+La matrice di propagazione è quindi
+
+$$
+\label{eq:RK4_matrix}
+\hat{M}_{RK4} =
+\begin{pmatrix}
+1 - \frac{1}{2}\omega_0^2\Delta t^2 + \frac{1}{24}\omega_0^4\Delta t^4 & \Delta t - \frac{1}{6}\omega_0^2\Delta t^3\\
+-\omega_0^2\left(\Delta t - \frac{1}{6}\omega_0^2\Delta t^3\right) & 1 - \frac{1}{2}\omega_0^2\Delta t^2 + \frac{1}{24}\omega_0^4\Delta t^4
+\end{pmatrix}.
+$$
+
+Per alleggerire la notazione, introduciamo
+
+$$
+z \equiv \omega_0 \Delta t.
+$$
+
+La matrice precedente ha la forma
+
+$$
+\hat{M}_{RK4} =
+\begin{pmatrix}
+a & b\\
+-\omega_0^2 b & a
+\end{pmatrix},
+$$
+
+con
+
+$$
+a = 1 - \frac{z^2}{2} + \frac{z^4}{24},
+\qquad
+b = \Delta t\left(1 - \frac{z^2}{6}\right).
+$$
+
+Il determinante vale quindi
+
+$$
+\begin{split}
+\det(\hat{M}_{RK4})
+&= a^2 + \omega_0^2 b^2\\
+&=
+\left(1 - \frac{z^2}{2} + \frac{z^4}{24}\right)^2
++
+z^2\left(1 - \frac{z^2}{6}\right)^2.
+\end{split}
+$$
+
+Sviluppando i prodotti si trova
+
+$$
+\det(\hat{M}_{RK4}) = 1 - \frac{z^6}{72} + \frac{z^8}{576}.
+$$
+
+Calcoliamo ora gli autovalori. Poiché la matrice ha la forma
+
+$$
+\begin{pmatrix}
+a & b\\
+-\omega_0^2 b & a
+\end{pmatrix},
+$$
+
+gli autovalori sono
+
+$$
+\lambda_{1,2} = a \pm i\omega_0 b = 1 - \frac{z^2}{2} + \frac{z^4}{24} \pm i\left(z - \frac{z^3}{6}\right).
+$$
+
+Passiamo ora all'accuratezza. L'errore di troncamento locale si può calcolare come differenza tra l'opereatore esatto, eq. [](#eq:ODE_exp) e lo sviluppo troncato di RK4, eq. [](#eq:aggiornamento_RK4_matriciale), cioè
+
+$$
+e^{\hat{A}\Delta t} - \left[ \hat{I} + \Delta t \hat{A} + \frac{\Delta t^2}{2}\hat{A}^2 + \frac{\Delta t^3}{6}\hat{A}^3 + 
+\frac{\Delta t^4}{24}\hat{A}^4 \right] = \frac{\Delta t^5}{120}\hat{A}^5 + \mathcal{O}(\Delta t^6).
+$$
+
+Di conseguenza, dopo un singolo passo,
+
+$$
+\mathbf{y}(t_{n+1}) - \mathbf{y}_{n+1} = \frac{\Delta t^5}{120}\hat{A}^5\mathbf{y}(t_n) + \mathcal{O}(\Delta t^6),
+$$
+
+e quindi l'errore locale è
+
+$$
+\mathcal{O}(\Delta t^5).
+$$
 ```
 
 # Altri metodi: punto centrale e mezzo passo
