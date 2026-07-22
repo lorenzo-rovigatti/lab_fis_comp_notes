@@ -610,7 +610,7 @@ function createExportWrapper(name, func, nargs) {
 var wasmBinaryFile;
 
 function findWasmBinary() {
-  return locateFile('eulero.wasm');
+  return locateFile('double_pendulum.wasm');
 }
 
 function getBinarySync(file) {
@@ -7548,6 +7548,10 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _glBindBuffer = _emscripten_glBindBuffer;
 
+  var _glBindFramebuffer = _emscripten_glBindFramebuffer;
+
+  var _glBindRenderbuffer = _emscripten_glBindRenderbuffer;
+
   var _glBindTexture = _emscripten_glBindTexture;
 
   var _glBlendFunc = _emscripten_glBlendFunc;
@@ -7555,6 +7559,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var _glBufferData = _emscripten_glBufferData;
 
   var _glBufferSubData = _emscripten_glBufferSubData;
+
+  var _glCheckFramebufferStatus = _emscripten_glCheckFramebufferStatus;
 
   var _glClear = _emscripten_glClear;
 
@@ -7572,21 +7578,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _glCullFace = _emscripten_glCullFace;
 
-  var _glDeleteBuffers = _emscripten_glDeleteBuffers;
-
   var _glDeleteProgram = _emscripten_glDeleteProgram;
 
   var _glDeleteShader = _emscripten_glDeleteShader;
 
-  var _glDeleteTextures = _emscripten_glDeleteTextures;
-
   var _glDepthFunc = _emscripten_glDepthFunc;
 
-  var _glDetachShader = _emscripten_glDetachShader;
-
   var _glDisable = _emscripten_glDisable;
-
-  var _glDisableVertexAttribArray = _emscripten_glDisableVertexAttribArray;
 
   var _glDrawArrays = _emscripten_glDrawArrays;
 
@@ -7596,9 +7594,17 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _glEnableVertexAttribArray = _emscripten_glEnableVertexAttribArray;
 
+  var _glFramebufferRenderbuffer = _emscripten_glFramebufferRenderbuffer;
+
+  var _glFramebufferTexture2D = _emscripten_glFramebufferTexture2D;
+
   var _glFrontFace = _emscripten_glFrontFace;
 
   var _glGenBuffers = _emscripten_glGenBuffers;
+
+  var _glGenFramebuffers = _emscripten_glGenFramebuffers;
+
+  var _glGenRenderbuffers = _emscripten_glGenRenderbuffers;
 
   var _glGenTextures = _emscripten_glGenTextures;
 
@@ -7624,9 +7630,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _glReadPixels = _emscripten_glReadPixels;
 
+  var _glRenderbufferStorage = _emscripten_glRenderbufferStorage;
+
   var _glShaderSource = _emscripten_glShaderSource;
 
   var _glTexImage2D = _emscripten_glTexImage2D;
+
+  var _glTexParameterf = _emscripten_glTexParameterf;
 
   var _glTexParameteri = _emscripten_glTexParameteri;
 
@@ -8803,8 +8813,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   var _glfwDefaultWindowHints = () => GLFW.defaultWindowHints();
 
-  var _glfwDestroyWindow = (winid) => GLFW.destroyWindow(winid);
-
   var _glfwGetPrimaryMonitor = () => 1;
 
   var _glfwGetTime = () => GLFW.getTime() - GLFW.initialTime;
@@ -9481,49 +9489,49 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('wasmBinary');
 }
 var ASM_CONSTS = {
-  89094: () => { if (document.fullscreenElement) return 1; },  
- 89140: () => { return Module.canvas.width; },  
- 89172: () => { return parseInt(Module.canvas.style.width); },  
- 89220: () => { document.exitFullscreen(); },  
- 89247: () => { setTimeout(function(){ Module.requestFullscreen(false, false); }, 100); },  
- 89319: () => { if (document.fullscreenElement) return 1; },  
- 89365: () => { return Module.canvas.width; },  
- 89397: () => { return screen.width; },  
- 89422: () => { document.exitFullscreen(); },  
- 89449: ($0) => { const canvasId = UTF8ToString($0); setTimeout(function() { Module.requestFullscreen(false, true); setTimeout(function() { document.querySelector(canvasId).style.width="unset"; }, 100); }, 100); },  
- 89643: () => { return window.innerWidth; },  
- 89669: () => { return window.innerHeight; },  
- 89696: () => { if (document.fullscreenElement) return 1; },  
- 89742: () => { return Module.canvas.width; },  
- 89774: () => { return parseInt(Module.canvas.style.width); },  
- 89822: () => { if (document.fullscreenElement) return 1; },  
- 89868: () => { return Module.canvas.width; },  
- 89900: () => { return screen.width; },  
- 89925: () => { return window.innerWidth; },  
- 89951: () => { return window.innerHeight; },  
- 89978: () => { if (document.fullscreenElement) return 1; },  
- 90024: () => { return Module.canvas.width; },  
- 90056: () => { return screen.width; },  
- 90081: () => { document.exitFullscreen(); },  
- 90108: () => { if (document.fullscreenElement) return 1; },  
- 90154: () => { return Module.canvas.width; },  
- 90186: () => { return parseInt(Module.canvas.style.width); },  
- 90234: () => { document.exitFullscreen(); },  
- 90261: ($0) => { Module.canvas.style.opacity = $0; },  
- 90299: () => { return screen.width; },  
- 90324: () => { return screen.height; },  
- 90350: () => { return window.screenX; },  
- 90377: () => { return window.screenY; },  
- 90404: () => { return window.devicePixelRatio; },  
- 90440: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 90493: ($0) => { Module.canvas.style.cursor = UTF8ToString($0); },  
- 90544: () => { Module.canvas.style.cursor = 'none'; },  
- 90581: ($0, $1, $2, $3) => { try { navigator.getGamepads()[$0].vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: $3, weakMagnitude: $1, strongMagnitude: $2 }); } catch (e) { try { navigator.getGamepads()[$0].hapticActuators[0].pulse($2, $3); } catch (e) { } } },  
- 90837: ($0) => { Module.canvas.style.cursor = UTF8ToString($0); },  
- 90888: () => { if (document.pointerLockElement) return 1; },  
- 90935: () => { if (document.fullscreenElement) return 1; },  
- 90981: () => { return window.innerWidth; },  
- 91007: () => { return window.innerHeight; }
+  89670: () => { if (document.fullscreenElement) return 1; },  
+ 89716: () => { return Module.canvas.width; },  
+ 89748: () => { return parseInt(Module.canvas.style.width); },  
+ 89796: () => { document.exitFullscreen(); },  
+ 89823: () => { setTimeout(function(){ Module.requestFullscreen(false, false); }, 100); },  
+ 89895: () => { if (document.fullscreenElement) return 1; },  
+ 89941: () => { return Module.canvas.width; },  
+ 89973: () => { return screen.width; },  
+ 89998: () => { document.exitFullscreen(); },  
+ 90025: ($0) => { const canvasId = UTF8ToString($0); setTimeout(function() { Module.requestFullscreen(false, true); setTimeout(function() { document.querySelector(canvasId).style.width="unset"; }, 100); }, 100); },  
+ 90219: () => { return window.innerWidth; },  
+ 90245: () => { return window.innerHeight; },  
+ 90272: () => { if (document.fullscreenElement) return 1; },  
+ 90318: () => { return Module.canvas.width; },  
+ 90350: () => { return parseInt(Module.canvas.style.width); },  
+ 90398: () => { if (document.fullscreenElement) return 1; },  
+ 90444: () => { return Module.canvas.width; },  
+ 90476: () => { return screen.width; },  
+ 90501: () => { return window.innerWidth; },  
+ 90527: () => { return window.innerHeight; },  
+ 90554: () => { if (document.fullscreenElement) return 1; },  
+ 90600: () => { return Module.canvas.width; },  
+ 90632: () => { return screen.width; },  
+ 90657: () => { document.exitFullscreen(); },  
+ 90684: () => { if (document.fullscreenElement) return 1; },  
+ 90730: () => { return Module.canvas.width; },  
+ 90762: () => { return parseInt(Module.canvas.style.width); },  
+ 90810: () => { document.exitFullscreen(); },  
+ 90837: ($0) => { Module.canvas.style.opacity = $0; },  
+ 90875: () => { return screen.width; },  
+ 90900: () => { return screen.height; },  
+ 90926: () => { return window.screenX; },  
+ 90953: () => { return window.screenY; },  
+ 90980: () => { return window.devicePixelRatio; },  
+ 91016: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 91069: ($0) => { Module.canvas.style.cursor = UTF8ToString($0); },  
+ 91120: () => { Module.canvas.style.cursor = 'none'; },  
+ 91157: ($0, $1, $2, $3) => { try { navigator.getGamepads()[$0].vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: $3, weakMagnitude: $1, strongMagnitude: $2 }); } catch (e) { try { navigator.getGamepads()[$0].hapticActuators[0].pulse($2, $3); } catch (e) { } } },  
+ 91413: ($0) => { Module.canvas.style.cursor = UTF8ToString($0); },  
+ 91464: () => { if (document.pointerLockElement) return 1; },  
+ 91511: () => { if (document.fullscreenElement) return 1; },  
+ 91557: () => { return window.innerWidth; },  
+ 91583: () => { return window.innerHeight; }
 };
 function SetCanvasIdJs(out,outSize) { var canvasId = "#" + Module.canvas.id; stringToUTF8(canvasId, out, outSize); }
 function __asyncjs__RequestClipboardData() { return Asyncify.handleAsync(async () => { if (navigator.clipboard && window.isSecureContext) { let items = await navigator.clipboard.read(); for (const item of items) { if (item.types.includes("text/plain")) { const blob = await item.getType("text/plain"); const text = await blob.text(); window._lastClipboardString = text; } else if (item.types.find(t => t.startsWith("image/"))) { const blob = await item.getType(item.types.find(t => t.startsWith("image/"))); const bitmap = await createImageBitmap(blob); const canvas = document.createElement('canvas'); canvas.width = bitmap.width; canvas.height = bitmap.height; const ctx = canvas.getContext('2d'); ctx.drawImage(bitmap, 0, 0); const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data; window._lastImgWidth = canvas.width; window._lastImgHeight = canvas.height; window._lastImgData = imgData; } } } else console.warn("Clipboard read() requires HTTPS/Localhost"); }); }
@@ -9531,10 +9539,10 @@ function GetLastPastedText() { var str = window._lastClipboardString || ""; var 
 function GetLastPastedImage(width,height) { if (window._lastImgData) { const data = window._lastImgData; if (data.length > 0) { const ptr = _malloc(data.length); HEAPU8.set(data, ptr); if (width) setValue(width, window._lastImgWidth, 'i32'); if (height) setValue(height, window._lastImgHeight, 'i32'); window._lastImgData = null; return ptr; } } return 0; }
 
 // Imports from the Wasm binary.
-var _free = makeInvalidEarlyAccess('_free');
-var _malloc = makeInvalidEarlyAccess('_malloc');
 var _main = Module['_main'] = makeInvalidEarlyAccess('_main');
 var _fflush = makeInvalidEarlyAccess('_fflush');
+var _free = makeInvalidEarlyAccess('_free');
+var _malloc = makeInvalidEarlyAccess('_malloc');
 var _emscripten_stack_get_end = makeInvalidEarlyAccess('_emscripten_stack_get_end');
 var _emscripten_stack_get_base = makeInvalidEarlyAccess('_emscripten_stack_get_base');
 var _strerror = makeInvalidEarlyAccess('_strerror');
@@ -9549,10 +9557,10 @@ var wasmMemory = makeInvalidEarlyAccess('wasmMemory');
 var wasmTable = makeInvalidEarlyAccess('wasmTable');
 
 function assignWasmExports(wasmExports) {
-  assert(typeof wasmExports['free'] != 'undefined', 'missing Wasm export: free');
-  assert(typeof wasmExports['malloc'] != 'undefined', 'missing Wasm export: malloc');
   assert(typeof wasmExports['main'] != 'undefined', 'missing Wasm export: main');
   assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');
+  assert(typeof wasmExports['free'] != 'undefined', 'missing Wasm export: free');
+  assert(typeof wasmExports['malloc'] != 'undefined', 'missing Wasm export: malloc');
   assert(typeof wasmExports['emscripten_stack_get_end'] != 'undefined', 'missing Wasm export: emscripten_stack_get_end');
   assert(typeof wasmExports['emscripten_stack_get_base'] != 'undefined', 'missing Wasm export: emscripten_stack_get_base');
   assert(typeof wasmExports['strerror'] != 'undefined', 'missing Wasm export: strerror');
@@ -9563,10 +9571,10 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['emscripten_stack_get_current'] != 'undefined', 'missing Wasm export: emscripten_stack_get_current');
   assert(typeof wasmExports['memory'] != 'undefined', 'missing Wasm export: memory');
   assert(typeof wasmExports['__indirect_function_table'] != 'undefined', 'missing Wasm export: __indirect_function_table');
-  _free = createExportWrapper('free', wasmExports['free'], 1);
-  _malloc = createExportWrapper('malloc', wasmExports['malloc'], 1);
   _main = Module['_main'] = createExportWrapper('main', wasmExports['main'], 2);
   _fflush = createExportWrapper('fflush', wasmExports['fflush'], 1);
+  _free = createExportWrapper('free', wasmExports['free'], 1);
+  _malloc = createExportWrapper('malloc', wasmExports['malloc'], 1);
   _emscripten_stack_get_end = wasmExports['emscripten_stack_get_end'];
   _emscripten_stack_get_base = wasmExports['emscripten_stack_get_base'];
   _strerror = createExportWrapper('strerror', wasmExports['strerror'], 1);
@@ -9997,6 +10005,10 @@ var wasmImports = {
   /** @export */
   glBindBuffer: _glBindBuffer,
   /** @export */
+  glBindFramebuffer: _glBindFramebuffer,
+  /** @export */
+  glBindRenderbuffer: _glBindRenderbuffer,
+  /** @export */
   glBindTexture: _glBindTexture,
   /** @export */
   glBlendFunc: _glBlendFunc,
@@ -10004,6 +10016,8 @@ var wasmImports = {
   glBufferData: _glBufferData,
   /** @export */
   glBufferSubData: _glBufferSubData,
+  /** @export */
+  glCheckFramebufferStatus: _glCheckFramebufferStatus,
   /** @export */
   glClear: _glClear,
   /** @export */
@@ -10021,21 +10035,13 @@ var wasmImports = {
   /** @export */
   glCullFace: _glCullFace,
   /** @export */
-  glDeleteBuffers: _glDeleteBuffers,
-  /** @export */
   glDeleteProgram: _glDeleteProgram,
   /** @export */
   glDeleteShader: _glDeleteShader,
   /** @export */
-  glDeleteTextures: _glDeleteTextures,
-  /** @export */
   glDepthFunc: _glDepthFunc,
   /** @export */
-  glDetachShader: _glDetachShader,
-  /** @export */
   glDisable: _glDisable,
-  /** @export */
-  glDisableVertexAttribArray: _glDisableVertexAttribArray,
   /** @export */
   glDrawArrays: _glDrawArrays,
   /** @export */
@@ -10045,9 +10051,17 @@ var wasmImports = {
   /** @export */
   glEnableVertexAttribArray: _glEnableVertexAttribArray,
   /** @export */
+  glFramebufferRenderbuffer: _glFramebufferRenderbuffer,
+  /** @export */
+  glFramebufferTexture2D: _glFramebufferTexture2D,
+  /** @export */
   glFrontFace: _glFrontFace,
   /** @export */
   glGenBuffers: _glGenBuffers,
+  /** @export */
+  glGenFramebuffers: _glGenFramebuffers,
+  /** @export */
+  glGenRenderbuffers: _glGenRenderbuffers,
   /** @export */
   glGenTextures: _glGenTextures,
   /** @export */
@@ -10073,9 +10087,13 @@ var wasmImports = {
   /** @export */
   glReadPixels: _glReadPixels,
   /** @export */
+  glRenderbufferStorage: _glRenderbufferStorage,
+  /** @export */
   glShaderSource: _glShaderSource,
   /** @export */
   glTexImage2D: _glTexImage2D,
+  /** @export */
+  glTexParameterf: _glTexParameterf,
   /** @export */
   glTexParameteri: _glTexParameteri,
   /** @export */
@@ -10094,8 +10112,6 @@ var wasmImports = {
   glfwCreateWindow: _glfwCreateWindow,
   /** @export */
   glfwDefaultWindowHints: _glfwDefaultWindowHints,
-  /** @export */
-  glfwDestroyWindow: _glfwDestroyWindow,
   /** @export */
   glfwGetPrimaryMonitor: _glfwGetPrimaryMonitor,
   /** @export */

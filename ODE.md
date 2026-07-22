@@ -4,6 +4,12 @@ exports:
    - format: pdf
 ---
 
+# Introduzione
+
+Per affrontare la complessità dei problemi che caratterizzano la fisica moderna esistono diverse strategie, distribuite lungo uno spettro continuo che unisce la formalizzazione puramente analitica alla risoluzione numerica di forza bruta. Molto spesso la ricerca si colloca in una posizione intermedia, adottando approcci teorico-computazionali ibridi: il modello fisico viene inizialmente semplificato attraverso opportune ipotesi teoriche, per poi validare la soluzione analitica tramite il calcolo numerico. Ma come si traduce, concretamente, un problema fisico in termini computazionali? Sebbene la risposta dipenda strettamente dalla natura del sistema in esame, la fisica computazionale ha sviluppato metodologie di carattere generale applicabili a vastissime classi di fenomeni, dalla meccanica quantistica all'astrofisica. In questa sezione, in particolare, analizzeremo i metodi per l'*integrazione numerica di equazioni differenziali*, uno strumento pilastro per l'indagine scientifica in ogni ambito della fisica contemporanea[^in_generale].
+
+[^in_generale]: E non solo: le equazioni differenziali appaiono in praticamente ogni ambito scientifico, o comunque in cui analisi e modelli quantitativi sono possibili.
+
 # Equazioni differenziali ordinarie
 
 Moltissimi problemi di fisica si possono formalizzare in termini di equazioni differenziali, cioè relazioni che connettono una funzione incognita alle sue derivate. La maggior parte delle equazioni differenziali di interesse non possono essere risolte analiticamente, e richiedono quindi di essere affrontate con metodi numerici. In questo corso ci occuperemo principalmente delle cosiddette equazioni differenziali ordinarie (spesso chiamate ODE, per *ordinary differential equations*), in cui la funzione incognita è di una sola variabile.
@@ -37,9 +43,81 @@ cui di solito si affiancano le condizioni iniziali $\vec{v}(t_0) = \vec{v}_0$ e 
 
 [^3D]: La notazione $\vec{a}$ indica che $a$ è una quantità vettoriale, quindi [](#eq:ODE_second_order) è un *sistema* di equazioni del secondo ordine.
 
-## Richiamo: l'oscillatore armonico
+## Qualche esempio di sistemi non risolvibili analiticamente
 
-Come esempio di sistema dinamico utilizzeremo frequentemente l'oscillatore armonico unidimensionale, uno dei modelli più importanti della fisica. Oltre a descrivere direttamente numerosi fenomeni fisici, esso presenta il vantaggio di possedere una soluzione analitica semplice, che potrà essere utilizzata per valutare l'accuratezza dei diversi algoritmi di integrazione numerica.
+Quando si inizia lo studio della fisica teorica, si ha spesso l'illusione che ogni sistema fisico descrivibile tramite equazioni di Newton o di Lagrange possa essere risolto "con carta e penna", trovando una formula esatta per la traiettoria nel tempo. La realtà, purtroppo, è ben diversa: i sistemi integrabili analiticamente rappresentano una piccolissima eccezione in un oceano di problemi matematicamente intrattabili.
+
+Per capire quanto sia facile imbattersi in equazioni prive di soluzioni analitiche, proviamo a scendere dal complesso al semplice, partendo da un sistema apparentemente elementare: il doppio pendolo.
+
+### Il doppio pendolo: il regno del caos
+
+Immaginiamo di appendere un pendolo rigido (la cui lunghezza, cioè, rimane costante) all'estremità di un altro. Questo sistema, composto da due aste rigide di lunghezza $l_1, l_2$ e due masse $m_1, m_2$ vincolate a muoversi su un piano verticale, ha solo due gradi di libertà, rappresentati dagli angoli $\theta_1(t)$ e $\theta_2(t)$ che le aste formano con la verticale.
+
+Nonostante l'apparente semplicità costruttiva, la dinamica del sistema è determinata da un sistema di due equazioni differenziali del secondo ordine fortemente accoppiate e non lineari:
+
+$$
+\begin{cases} \odd{\theta_1}{t} = \frac{-g (2m_1 + m_2) \sin\theta_1 - m_2 g \sin(\theta_1 - 2\theta_2) - 2 m_2 \sin(\Delta \theta) \left[ \left(\od{\theta_2}{t}\right)^2 l_2 + \left(\od{\theta_1}{t}\right)^2 l_1 \cos(\Delta \theta) \right]}{l_1 \left[ 2m_1 + m_2 - m_2 \cos(2\theta_1 - 2\theta_2) \right]} \\
+\odd{\theta_2}{t} = \frac{2 \sin(\Delta \theta) \left[ \left(\od{\theta_1}{t}\right)^2 l_1 M + g M \cos\theta_1 + \left(\od{\theta_2}{t}\right)^2 l_2 m_2 \cos(\Delta \theta) \right]}{l_2 \left[ 2m_1 + m_2 - m_2 \cos(2\theta_1 - 2\theta_2) \right]} \end{cases}
+$$
+
+dove $\Delta \theta = \theta_1 - \theta_2$ e $M = m_1 + m_2$. Queste equazioni sono impossibili da risolvere in forma chiusa. Non solo: il doppio pendolo è uno dei più celebri esempi di sistema caotico, una proprietà che discuteremo meglio più avanti. Qui basti sapere che con "sistema caotico" si intende un sistema per cui una piccolissima variazione nelle condizioni iniziali $\theta_1(0)$ o $\theta_2(0)$ (anche solo dovuta alla precisione finita con cui un computer immagazzina i numeri decimali) produce traiettorie che divergono completamente[^definizione_caos]. Per studiarne la dinamica, l'integrazione numerica al computer non è un'opzione comoda, è l'unica via percorribile. Un esempio di simulazione è mostrato in [](#sim:pendolo_doppio).
+
+```{iframe} ../simulations/double_pendulum.html
+:label: sim:pendolo_doppio
+:width: 100%
+
+Simulazione di un pendolo doppio di parametri $l_1 = l_2 = 1$ m, $m_1 = 0.2$ Kg e $m_2 = 0.1$ Kg e condizioni iniziali $\theta_{1,0} = 170^\circ$, $\theta_{2,0} = 0^\circ$, $\omega_{1,0} = \omega_{2,0} = 0$.
+```
+
+[^definizione_caos]: È possibile rendere questa definizione, che qui sembra piuttosto generica, formale e non ambigua.
+
+### Il pendolo semplice
+
+Si potrebbe pensare che il caos e l'intrattabilità analitica siano dovuti alla presenza dei due corpi accoppiati. Semplifichiamo allora il sistema eliminando il secondo pendolo (ponendo formalmente $m_2 = 0$). Otteniamo il classico pendolo semplice: una massa $m$ appesa a un filo di lunghezza $L$.
+
+La sua equazione del moto, derivata proiettando la seconda legge di Newton lungo la direzione tangente alla traiettoria,identificata dall'angolo $\theta$, è:
+
+$$\label{eq:simple_pendulum} \odd{\theta}{t} + \frac{g}{L} \sin\theta = 0$$
+
+Questa equazione descrive un sistema con un solo grado di libertà, senza accoppiamenti. Eppure, a causa del termine non lineare $\sin\theta$, neanche questo sistema è risolvibile analiticamente in termini di funzioni elementari.
+
+Per vederlo, possiamo provare a integrarla una volta sfruttando la conservazione dell'energia meccanica totale $E$. Moltiplicando l'equazione  per la velocità angolare $\od{\theta}{t}$ e integrando rispetto al tempo, si ottiene:
+
+$$\frac{1}{2} \left(\od{\theta}{t}\right)^2 - \frac{g}{L} \cos\theta = \text{costante}$$
+
+Se indichiamo con $\theta_0$ l'angolo di massima ampiezza (dove il pendolo si ferma e la velocità è nulla, $\od{\theta}{t} = 0$), la costante di integrazione è pari a $-\frac{g}{L}\cos\theta_0$. Possiamo quindi separare le variabili per esprimere il tempo $t$ necessario a raggiungere un generico angolo $\theta$:
+
+$$t(\theta) = \sqrt{\frac{L}{2g}} \int_{\theta_0}^{\theta} \frac{d\phi}{\sqrt{\cos\phi - \cos\theta_0}}$$
+
+L'integrale a destra è un [integrale ellittico di prima specie](https://it.wikipedia.org/wiki/Integrale_ellittico). Non esiste alcuna manipolazione algebrica o sostituzione trigonometrica in grado di risolverlo usando le funzioni standard (come logaritmi, esponenziali, seni o coseni). Di fatto, le cosiddette funzioni ellittiche usate in matematica avanzata sono definite proprio a partire da questo tipo di integrali, il che equivale a dire che dobbiamo "inventarci" delle nuove funzioni per descrivere la soluzione.
+
+### Le piccole oscillazioni
+
+Com'è possibile, allora, che in tutti i corsi di fisica scolastici e universitari di base si impari a risolvere il pendolo con una semplice funzione trigonometrica?
+
+Ciò è possibile solo introducendo un'approssimazione fisica cruciale: l'ipotesi di piccole oscillazioni. Se limitiamo lo studio a angoli molto piccoli ($\theta \ll 1$ radiante, indicativamente sotto i $10^\circ$), possiamo sviluppare in serie di Taylor la funzione seno attorno a zero, arrestandoci al primo ordine:
+
+$$
+\sin\theta \approx \theta
+$$
+
+Sotto questa assunzione, l'equazione del moto  perde la sua natura non lineare e si trasforma in un'equazione differenziale lineare a coefficienti costanti:
+
+$$
+\odd{\theta}{t} + \frac{g}{L} \theta = 0
+$$
+
+Questa equazione è finalmente risolvibile con carta e penna, e la sua soluzione generale è una semplice oscillazione armonica di frequenza $\omega_0 = \sqrt{g/L}$:
+
+$$
+\theta(t) = \theta_0 \cos(\omega_0 t + \phi).
+$$
+
+Questo modello lineare, noto come oscillatore armonico, è uno dei pilastri della fisica proprio perché rappresenta il "porto sicuro" in cui i fisici rifugiano ogni volta che un sistema non lineare diventa matematicamente inaffrontabile. Ed è proprio dall'oscillatore armonico che partiremo per testare e confrontare i nostri algoritmi di integrazione numerica.
+
+## Il sistema modello per definizione: l'oscillatore armonico
+
+Abbiamo appena visto come il pendolo in regime di piccole oscillazioni possa essere approssimato con un oscillatore armonico unidimensionale. Nel seguito, come esempio di sistema dinamico utilizzeremo proprio questo modello che, oltre a descrivere direttamente numerosi fenomeni fisici, presenta il vantaggio di possedere una soluzione analitica semplice, che potrà essere utilizzata per valutare l'accuratezza dei diversi algoritmi di integrazione numerica.
 
 Consideriamo una particella di massa $m$ soggetta a una forza elastica proporzionale allo spostamento dalla posizione di equilibrio,
 
@@ -247,10 +325,13 @@ Passiamo ad analizzare i risultati ottenuti con Eulero-Cromer e mostrati in [](#
 [^occhio]: Se avete un occhio attento potete notare qualche discrepanza tra la posizione teorica e quella ottenuta con $\Delta t = 10^{-1}$ in prossimità di massimi e minimi
 
 ```{iframe} ../simulations/eulero.html
+:label: sim:eulero
 :width: 100%
 
-Simulazione di un oscillatore armonico integrato con Eulero (pallina rossa) ed Eulero-Cromer (pallina blu).
+Simulazione di un oscillatore armonico integrato con Eulero (pallina rossa) ed Eulero-Cromer (pallina blu). I parametri della simulazione sono $\omega_0^2 = k / m = 10$ s$^{-2}$, $x_0 = 2$ m, $v_0 = 1$ m/s e $\Delta t = 0.01$ s.
 ```
+
+La [](#sim:eulero) contiene una simulazione interattiva che mostra come Eulero, a differenza di Eulero-Cromer, non riesca a riprodurre la periodicità dell'oscillatore armonico: si vede chiaramente come l'energia del sistema aumenti via via che il tempo passa, mostrando un comportamento evidentemente non fisico.
 
 Il confronto fatto tra i risultati ottenuti con Eulero ed Eulero-Cromer ci permette di introdurre due proprietà fondamentali degli algoritmi per l'integrazione numerica: *stabilità* e *accuratezza*. Questi due concetti non sono necessariamente legati: un algoritmo può essere poco stabile ma molto accurato, un altro molto stabile ma poco accurato.
 
@@ -470,7 +551,7 @@ Per visualizzare concretamente il legame profondo tra la conservazione dell'area
 :label: fig:euler_volume_conservation
 :align: center
 
-L'evoluzione di un volume di spazio delle fasi (che per l'oscillatore armonico è un piano) delimitato da un rettangolo ottenuto con i metodi di Eulero (in rosso) ed Eulero-Cromer (in blue). I parametri della simulazione sono $k = 1$, $m = 1$ (quindi $\omega = 1$) e $\Delta t = 0.1$.
+L'evoluzione di un volume di spazio delle fasi (che per l'oscillatore armonico è un piano) delimitato da un rettangolo ottenuto con i metodi di Eulero (in rosso) ed Eulero-Cromer (in blu). I parametri della simulazione sono $k = 1$, $m = 1$ (quindi $\omega = 1$) e $\Delta t = 0.1$.
 ```
 
 L'animazione mostra come nelle condizioni di simulazione (cioè per i valori di $\omega$ e $\Delta t$ utilizzati), l'algoritmo di Eulero mostra un'espansione dell'area dello spazio delle fasi, che invece non si verifica con Eulero-Cromer. Verifichiamo questi comportamenti calcolando esplicitamente determinanti ed autovalori associati all'oscillatore armonico integrato con i due metodi.
@@ -607,7 +688,7 @@ Poiché l'errore locale di troncamento è pari a $O(\Delta t^2)$ sia per la velo
 :label: fig:error_eulero
 :align: center
 
-La differenza tra la posizione finale teorica e quella ottenuta tramite i due algoritmi di Eulero ed Eulero-Cromer. Il tempo totale di simulazione è $t_f = 20$, mentre i parametri utilizzati sono $\omega_0 = 1$, $x_0 = 2$, $v_0 = 1$.
+La differenza tra la posizione finale teorica e quella ottenuta tramite i due algoritmi di Eulero ed Eulero-Cromer. Il tempo totale di simulazione è $t_f = 20$, mentre i parametri utilizzati sono $k = 1$, $m = 1$ (e quindi $\omega_0 = 1$), $x_0 = 2$, $v_0 = 1$.
 ```
 
 Se la soluzione teorica è nota (come in questo caso), l'errore si può anche calcolare direttamente dai risultati numerici. Possiamo infatti definire l'errore globale come 
@@ -806,6 +887,69 @@ Come in [](#fig:error_eulero), con, in aggiunta, l'errore ottenuto applicando l'
 La [](#fig:error_velocity_verlet) illustra vividamente l'enorme impatto del passaggio da un errore globale di ordine $\mathcal{O}(\Delta t)$ a uno di ordine $\mathcal{O}(\Delta t^2)$. Per apprezzare concretamente questa differenza, si consideri un passo temporale tipico delle simulazioni reali, ad esempio $\Delta t = 10^{-3}$: in questo scenario, l'accuratezza di Velocity Verlet supera quella di Eulero-Cromer di ben tre ordini di grandezza, riducendo drasticamente l'errore sistematico accumulato sulla traiettoria.
 
 # Runge-Kutta
+
+Molti dei problemi complessi da risolvere con metodi numerici non riguardano sistemi in cui l'energia si conserva. La simpletticità non è quindi sempre un requisito necessario. Vediamo subito un esempio.
+
+## L'oscillatore armonico smorzato
+
+Un oggetto che si muove lentamente in un fluido viscoso è sottoposto, in opportune condizioni, a una forza di attrito proporzionale e opposta alla sua velocità[^fluido_viscoso]. Nel caso di un oscillatore armonico, la dinamica del sistema è descritta dalla seguente equazione differenziale:
+
+$$
+\label{eq:oscillatore_armonico_smorzato}
+x''(t) = -\omega_0^2 x(t) - \frac{\gamma}{m} x'(t),
+$$
+
+dove $\gamma \geq 0$ è il coefficiente di attrito, che determina l'intensità della dissipazione di energia. Introducendo la quantità
+
+$$
+\omega^2 = \omega_0^2 - \frac{\gamma^2}{4m^2},
+$$
+
+Introducendo la quantità
+
+$$
+\omega^2 = \omega_0^2 - \frac{\gamma^2}{4m^2},
+$$
+
+si possono distinguere tre diversi regimi dinamici, a seconda del segno di $\omega^2$.
+
+1. $\omega^2>0$: smorzamento sottocritico. La soluzione può essere scritta nella forma
+$$
+x(t)=C e^{-\frac{\gamma}{2m}t}\cos(\omega t+\phi),
+$$
+dove $C$ e $\phi$ sono costanti determinate dalle condizioni iniziali. Il sistema oscilla con pulsazione $\omega$, mentre l'ampiezza delle oscillazioni si riduce esponenzialmente nel tempo.
+2. $\omega^2=0$: smorzamento critico. La soluzione ha la forma
+$$
+x(t)=(c_1+c_2t)e^{-\frac{\gamma}{2m}t}.
+$$
+Il sistema non oscilla e ritorna all'equilibrio nel minor tempo possibile senza oltrepassarlo.
+3. $\omega^2<0$: smorzamento sovracritico. Ponendo
+$$
+\Omega=\sqrt{\frac{\gamma^2}{4m^2}-\omega_0^2},
+$$
+la soluzione può essere scritta come una combinazione di due esponenziali decrescenti e non presenta oscillazioni:
+$$
+x(t)=c_1e^{\left(-\frac{\gamma}{2m}+\Omega\right)t}
++c_2e^{\left(-\frac{\gamma}{2m}-\Omega\right)t}.
+$$
+
+Per $\gamma>0$, in tutti e tre i regimi si ha $x(t)\to 0$ e $x'(t) = v(t) \to 0$ per $t\to\infty$. L'energia meccanica
+
+$$
+E(t)=\frac{1}{2}m[v(t)]^2+\frac{1}{2}m\omega_0^2[x(t)]^2
+$$
+
+decresce infatti secondo
+
+$$
+\frac{dE}{dt}=-\gamma[v(t)]^2\leq 0,
+$$
+
+e tende a zero a tempi lunghi.
+
+Questo sarà il sistema modello che utilizzeremo alla fine della sezione per confrontare gli algoritmi già esaminati con quelli che introdurremo qui. Per rendere invece la trattazione della stabilità e dell'accuratezza direttamente confrontabile con quella dei capitoli precedenti, presenteremo inizialmente i nuovi metodi utilizzando l'oscillatore armonico non smorzato, eq. [](#eq:ODE_harmonic_oscillator).
+
+[^fluido_viscoso]: Il regime in cui la forza di attrito è proporzionale alla velocità si può quantificare introducendo il *numero di Reynolds* $Re = \rho v L / \eta$, dove $\rho$ è la densità del fluido, $\eta$ la sua viscosità dinamica, $v$ la velocità caratteristica e $L$ la dimensione caratteristica dell'oggetto. La legge di attrito lineare è valida per $Re \ll 1$. Questa condizione si realizza tipicamente per oggetti molto piccoli, velocità ridotte o fluidi con elevata viscosità cinematica. A numeri di Reynolds elevati, in molti regimi il contributo dominante alla resistenza del fluido è invece approssimativamente proporzionale al quadrato della velocità.
 
 ## Metodo Runge-Kutta del secondo ordine (RK2)
 
@@ -1202,8 +1346,7 @@ La figura [](#fig:error_rk) mostra l'andamento degli errori globali di RK2 ed RK
 
 Riassumendo, RK4 è molto accurato su intervalli di tempo finiti, ma non rispetta esattamente la struttura geometrica dei sistemi conservativi, e la mancata simpletticità può produrre una lenta deriva artificiale dell'energia. Per simulazioni molto lunghe di sistemi conservativi, un metodo simplettico come Velocity Verlet può quindi produrre un comportamento qualitativamente migliore, anche se l'ordine formale di accuratezza è più basso.
 
-
-```{tip} Dimostrazione della stabilità e accuratezza di RK4
+```{tip} Dimostrazione di stabilità e accuratezza di RK4
 :label: box:rk4
 
 Per evitare calcoli troppo lunghi, conviene prima scrivere il sistema in forma vettoriale. In questa forma, l'equazione dell'oscillatore armonico si scrive
@@ -1381,14 +1524,7 @@ $$
 Il determinante vale quindi
 
 $$
-\begin{split}
-\det(\hat{M}_{RK4})
-&= a^2 + \omega_0^2 b^2\\
-&=
-\left(1 - \frac{z^2}{2} + \frac{z^4}{24}\right)^2
-+
-z^2\left(1 - \frac{z^2}{6}\right)^2.
-\end{split}
+\det(\hat{M}_{RK4}) = a^2 + \omega_0^2 b^2 = \left(1 - \frac{z^2}{2} + \frac{z^4}{24}\right)^2 + z^2\left(1 - \frac{z^2}{6}\right)^2.
 $$
 
 Sviluppando i prodotti si trova
@@ -1412,7 +1548,7 @@ $$
 \lambda_{1,2} = a \pm i\omega_0 b = 1 - \frac{z^2}{2} + \frac{z^4}{24} \pm i\left(z - \frac{z^3}{6}\right).
 $$
 
-Passiamo ora all'accuratezza. L'errore di troncamento locale si può calcolare come differenza tra l'opereatore esatto, eq. [](#eq:ODE_exp) e lo sviluppo troncato di RK4, eq. [](#eq:aggiornamento_RK4_matriciale), cioè
+Passiamo ora all'accuratezza. L'errore di troncamento locale si può calcolare come differenza tra l'operatore esatto, eq. [](#eq:ODE_exp) e lo sviluppo troncato di RK4, eq. [](#eq:aggiornamento_RK4_matriciale), cioè
 
 $$
 e^{\hat{A}\Delta t} - \left[ \hat{I} + \Delta t \hat{A} + \frac{\Delta t^2}{2}\hat{A}^2 + \frac{\Delta t^3}{6}\hat{A}^3 + 
@@ -1432,5 +1568,21 @@ $$
 $$
 ```
 
-# Altri metodi: punto centrale e mezzo passo
+## Confronto tra algoritmi: l'oscillatore armonico smorzato
 
+```{figure} #cell:damped_errors
+:label: fig:damped_errors
+:align: center
+
+Come in [](#fig:error_rk) per per l'oscillatore armonico smorzato. Il tempo totale di simulazione è $t_f = 20$, mentre i parametri utilizzati sono $k = 1$, $m = 1$ (e quindi $\omega_0 = 1$), $\gamma = 0.5$, $x_0 = 2$, $v_0 = 1$.
+```
+
+La [](#fig:damped_errors) mostra l'andamento degli errori globali ottenuti risolvendo numericamente l'equazione dell'oscillatore armonico smorzato, eq. [](#eq:oscillatore_armonico_smorzato), con i diversi metodi di integrazione introdotti in questa sezione. Qualitativamente, i risultati sono simili a quelli ottenuti per l'oscillatore armonico non smorzato e mostrati nella [](#fig:error_rk), con una differenza importante: il metodo di Velocity Verlet, pur risultando quantitativamente più accurato dei metodi di Eulero e di Eulero-Cromer, presenta in questo caso un errore globale che scala come $\mathcal{O}(\Delta t)$.
+
+Questa perdita di accuratezza è dovuta al fatto che la formulazione standard del Velocity Verlet è costruita per sistemi nei quali l'accelerazione dipende dalla posizione, ma non dalla velocità. Nell'oscillatore smorzato, invece,
+
+$$
+a(x,v)=-\omega_0^2x(t) - \frac{\gamma}{m}v(t),
+$$
+
+e il calcolo dell'accelerazione al passo successivo richiede quindi anche una stima della nuova velocità. Se il metodo viene applicato senza modificarne la struttura per trattare esplicitamente questa dipendenza, l'accelerazione viene valutata utilizzando una velocità non ancora aggiornata in modo pienamente consistente. L'errore introdotto da questa approssimazione è di ordine $\mathcal{O}(\Delta t^2)$ per ogni singolo passo e si accumula nel corso dell'integrazione, producendo un errore globale di ordine $\mathcal{O}(\Delta t)$. Il Velocity Verlet standard perde pertanto, in presenza di forze dipendenti dalla velocità, la convergenza del secondo ordine che possiede per sistemi conservativi con accelerazione dipendente dalla sola posizione.
