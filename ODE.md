@@ -947,7 +947,24 @@ $$
 
 e tende a zero a tempi lunghi.
 
-Questo sarà il sistema modello che utilizzeremo alla fine della sezione per confrontare gli algoritmi già esaminati con quelli che introdurremo qui. Per rendere invece la trattazione della stabilità e dell'accuratezza direttamente confrontabile con quella dei capitoli precedenti, presenteremo inizialmente i nuovi metodi utilizzando l'oscillatore armonico non smorzato, eq. [](#eq:ODE_harmonic_oscillator).
+```{figure} #cell:damped_nork_errors
+:label: fig:damped_nork_errors
+:align: center
+
+Come in [](#fig:error_velocity_verlet) per per l'oscillatore armonico smorzato. Il tempo totale di simulazione è $t_f = 20$, mentre i parametri utilizzati sono $k = 1$, $m = 1$ (e quindi $\omega_0 = 1$), $\gamma = 0.5$, $x_0 = 2$, $v_0 = 1$.
+```
+
+La [](#fig:damped_nork_errors) mostra l'errore globale che i tre algoritmi che abbiamo studiato compiono nel caso di un oscillatore armonico smorzato. Qualitativamente, i risultati sono simili a quelli ottenuti per l'oscillatore armonico non smorzato e mostrati nella [](#fig:error_velocity_verlet), con una differenza importante: il metodo di Velocity Verlet, pur risultando quantitativamente più accurato dei metodi di Eulero e di Eulero-Cromer, presenta in questo caso un errore globale che scala come $\mathcal{O}(\Delta t)$.
+
+Questa perdita di accuratezza è dovuta al fatto che la formulazione standard del Velocity Verlet è costruita per sistemi nei quali l'accelerazione dipende dalla posizione, ma non dalla velocità. Nell'oscillatore smorzato, invece,
+
+$$
+a(x,v)=-\omega_0^2x(t) - \frac{\gamma}{m}v(t),
+$$
+
+e il calcolo dell'accelerazione al passo successivo richiede quindi anche una stima della nuova velocità. Se il metodo viene applicato senza modificarne la struttura per trattare esplicitamente questa dipendenza, l'accelerazione viene valutata utilizzando una velocità non ancora aggiornata in modo pienamente consistente. L'errore introdotto da questa approssimazione è di ordine $\mathcal{O}(\Delta t^2)$ per ogni singolo passo e si accumula nel corso dell'integrazione, producendo un errore globale di ordine $\mathcal{O}(\Delta t)$. Il Velocity Verlet standard perde pertanto, in presenza di forze dipendenti dalla velocità, la convergenza del secondo ordine che possiede per sistemi conservativi con accelerazione dipendente dalla sola posizione. 
+
+Per ovviare a questo problema si può estendere il metodo Velocity Verlet al caso in cui la forza dipenda esplicitamente dalla velocità, oppure utilizzare un metodo non simplettico che non soffre di questi problemi. In questa sezione presenteremo il più famoso di questi metodi, noto come Runge-Kutta, discutendo la sua implementazione al secondo (RK2) e al quarto (RK4) ordine. Per rendere la trattazione della stabilità e dell'accuratezza direttamente confrontabile con quella dei capitoli precedenti, presenteremo inizialmente i nuovi metodi utilizzando l'oscillatore armonico non smorzato, eq. [](#eq:ODE_harmonic_oscillator). L'oscillatore armonico smorzato sarà invece il sistema modello che utilizzeremo alla fine della sezione per confrontare gli algoritmi già esaminati con i due RK che introdurremo qui.
 
 [^fluido_viscoso]: Il regime in cui la forza di attrito è proporzionale alla velocità si può quantificare introducendo il *numero di Reynolds* $Re = \rho v L / \eta$, dove $\rho$ è la densità del fluido, $\eta$ la sua viscosità dinamica, $v$ la velocità caratteristica e $L$ la dimensione caratteristica dell'oggetto. La legge di attrito lineare è valida per $Re \ll 1$. Questa condizione si realizza tipicamente per oggetti molto piccoli, velocità ridotte o fluidi con elevata viscosità cinematica. A numeri di Reynolds elevati, in molti regimi il contributo dominante alla resistenza del fluido è invece approssimativamente proporzionale al quadrato della velocità.
 
@@ -1574,15 +1591,7 @@ $$
 :label: fig:damped_errors
 :align: center
 
-Come in [](#fig:error_rk) per per l'oscillatore armonico smorzato. Il tempo totale di simulazione è $t_f = 20$, mentre i parametri utilizzati sono $k = 1$, $m = 1$ (e quindi $\omega_0 = 1$), $\gamma = 0.5$, $x_0 = 2$, $v_0 = 1$.
+Come in [](#fig:error_rk) per l'oscillatore armonico smorzato. Il tempo totale di simulazione è $t_f = 20$, mentre i parametri utilizzati sono $k = 1$, $m = 1$ (e quindi $\omega_0 = 1$), $\gamma = 0.5$, $x_0 = 2$, $v_0 = 1$.
 ```
 
-La [](#fig:damped_errors) mostra l'andamento degli errori globali ottenuti risolvendo numericamente l'equazione dell'oscillatore armonico smorzato, eq. [](#eq:oscillatore_armonico_smorzato), con i diversi metodi di integrazione introdotti in questa sezione. Qualitativamente, i risultati sono simili a quelli ottenuti per l'oscillatore armonico non smorzato e mostrati nella [](#fig:error_rk), con una differenza importante: il metodo di Velocity Verlet, pur risultando quantitativamente più accurato dei metodi di Eulero e di Eulero-Cromer, presenta in questo caso un errore globale che scala come $\mathcal{O}(\Delta t)$.
-
-Questa perdita di accuratezza è dovuta al fatto che la formulazione standard del Velocity Verlet è costruita per sistemi nei quali l'accelerazione dipende dalla posizione, ma non dalla velocità. Nell'oscillatore smorzato, invece,
-
-$$
-a(x,v)=-\omega_0^2x(t) - \frac{\gamma}{m}v(t),
-$$
-
-e il calcolo dell'accelerazione al passo successivo richiede quindi anche una stima della nuova velocità. Se il metodo viene applicato senza modificarne la struttura per trattare esplicitamente questa dipendenza, l'accelerazione viene valutata utilizzando una velocità non ancora aggiornata in modo pienamente consistente. L'errore introdotto da questa approssimazione è di ordine $\mathcal{O}(\Delta t^2)$ per ogni singolo passo e si accumula nel corso dell'integrazione, producendo un errore globale di ordine $\mathcal{O}(\Delta t)$. Il Velocity Verlet standard perde pertanto, in presenza di forze dipendenti dalla velocità, la convergenza del secondo ordine che possiede per sistemi conservativi con accelerazione dipendente dalla sola posizione.
+La [](#fig:damped_errors) mostra l'andamento degli errori globali ottenuti risolvendo numericamente l'equazione dell'oscillatore armonico smorzato, eq. [](#eq:oscillatore_armonico_smorzato), con i diversi metodi di integrazione introdotti in questa sezione. Si vede bene il comportamento di scala dell'errore globale degli algoritmi RK2 e RK4 rimanga invariato anche in sistemi in cui, come in questo caso, la forza dipende esplicitamente dalla velocità. Questo fa sì che RK4 (che è marginalmente più complesso da implementare e, per un calcolatore, da eseguire) sia il metodo più comune per risolvere equazioni (o sistemi di equazioni) differenziali che non richiedono la proprietà di simpletticità.
