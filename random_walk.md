@@ -555,7 +555,9 @@ $$
 \langle(\Delta W)^2\rangle=\Delta t.
 $$
 
-```{note} La relazione tra il random walk discreto e il processo di Wiener Il collegamento con il random walk discreto è immediato. Se dividiamo l'intervallo $[0,t]$ in $n$ sottointervalli di durata $\Delta t$, allora
+```{note} La relazione tra il random walk discreto e il processo di Wiener 
+
+Il collegamento con il random walk discreto è immediato. Se dividiamo l'intervallo $[0,t]$ in $n$ sottointervalli di durata $\Delta t$, allora
 
 $$
 W(t)-W(0)=\sum_{i=1}^n \Delta W_i,
