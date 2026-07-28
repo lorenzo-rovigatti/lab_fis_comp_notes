@@ -220,6 +220,24 @@ $$
 
 Questa relazione lineare tra spostamento quadratico medio e tempo rappresenta la caratteristica principale (la firma) del **moto diffusivo**.
 
+```{note} Il limite al continuo
+Immaginiamo di descrivere lo stesso processo usando passi temporali e spaziali, $\Delta t$ e $\Delta x$, sempre più piccoli. Poiché stiamo descrivendo lo stesso sistema fisico, le quantità osservabili devono rimanere le stesse, indipendentemente dal valore di $\Delta t$ e $\Delta x$. In particolare, la varianza osservata dopo lo stesso tempo $t$, eq. [](#eq:D), non deve cambiare quando scegliamo una discretizzazione più fine. Per questo, nel limite continuo, il rapporto
+
+$$
+\frac{\Delta x^2}{\Delta t}
+$$
+
+deve rimanere costante.
+
+In una dimensione si definisce convenzionalmente
+
+$$
+D=\frac{\Delta x^2}{2\Delta t},
+$$
+
+così che la relazione precedente assuma la forma standard $\left\langle [x(t)-x_0]^2 \right\rangle=2Dt$. Il fattore $2$ fa quindi parte della definizione convenzionale di $D$; la condizione fisica importante è che $\Delta x^2/\Delta t$ rimanga costante.
+```
+
 Confrontiamo il moto diffusivo con quello di una particella che si muove con velocità costante (*moto balistico*). In questo caso la posizione evolve con la legge
 
 $$
