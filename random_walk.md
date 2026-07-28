@@ -95,9 +95,16 @@ $$
 \end{cases}
 $$
 
-Assumeremo inoltre che gli spostamenti compiuti in intervalli temporali diversi siano statisticamente indipendenti, cioè che $\langle \xi_i \xi_j \rangle = 0$ per $i \neq j$.
+Ne discende che gli spostamenti compiuti in intervalli temporali diversi sono statisticamente indipendenti, cioè che $\langle \xi_i \xi_j \rangle = 0$ per $i \neq j$.
 
-Dopo $n$ passi,
+```{figure} #cell:res_random_walk_traj
+:label: fig:res_random_walk_traj
+:align: center
+
+Quattro diverse realizzazioni di un random walk unidimensionale simulato per $10^5$ passi.
+```
+
+La [](#fig:res_random_walk_traj) mostra quattro diverse realizzazioni numeriche di un random walk unidimensionale. Si vede come le traiettorie siano molto frastagliate e diverse tra loro. Qualitativamente, sembra anche che il camminatore non si sposti molto: se ci si muove di $N$ passi lungo una direzione, lo spostamento totale coinciderà con $N$, mentre in queste traiettorie il camminatore non si è allontanato per più di qualche centinaio di passi dall'origine, nonostante i $10^5$ passi compiuti. Questa osservazione qualitativa si può circostanziare come segue. Dopo $n$ passi,
 
 $$
 x_n=x_0+\sum_{i=1}^{n}\xi_i,
@@ -219,6 +226,15 @@ D\equiv\frac{\Delta x^2}{2\Delta t}.
 $$
 
 Questa relazione lineare tra spostamento quadratico medio e tempo rappresenta la caratteristica principale (la firma) del **moto diffusivo**.
+
+```{figure} #cell:res_random_walk_msd
+:label: fig:res_random_walk_msd
+:align: center
+
+Lo spostamento quadratico $\left\langle(x(t)-x_0)^2\right\rangle$ per un random-walk unidimensionale mediato su una o più traiettorie (vedi legenda), insieme alla curva teorica di pendenza unitaria (linea tratteggiata viola). **Nota Bene:** la linea rossa è quasi completamente nascosta dalla curva teorica.
+```
+
+La [](#fig:res_random_walk_msd) mostra come lo spostamento quadratico medio tenda al valore teorico, purché il numero di traiettorie su cui è mediato sia sufficientemente grande. Il grafico è in scala doppio logaritmica (o log-log): questa scelta è la migliore quando le quantità di interesse variano di diversi ordini di grandezza. Inoltre, se $A(t) = B t^\alpha$, allora $\log(A(t)) = \alpha \log(Bt) = \alpha \log(t) + \alpha \log B$: quantità che dipendono dall'ascissa con una legge a potenza appariranno rette di coefficiente angolare pari all'esponente della potenza.
 
 ```{note} Il limite al continuo
 Immaginiamo di descrivere lo stesso processo usando passi temporali e spaziali, $\Delta t$ e $\Delta x$, sempre più piccoli. Poiché stiamo descrivendo lo stesso sistema fisico, le quantità osservabili devono rimanere le stesse, indipendentemente dal valore di $\Delta t$ e $\Delta x$. In particolare, la varianza osservata dopo lo stesso tempo $t$, eq. [](#eq:D), non deve cambiare quando scegliamo una discretizzazione più fine. Per questo, nel limite continuo, il rapporto
@@ -367,6 +383,15 @@ Nel limite continuo la distribuzione binomiale del random walk viene dunque sost
 :::{note} Sul teorema del limite centrale
 Il teorema del limite centrale non afferma che i singoli passi siano gaussiani. La distribuzione gaussiana emerge perché lo spostamento totale è la somma di un gran numero di contributi indipendenti.
 :::
+
+```{figure} #cell:res_random_walk_prob
+:label: fig:res_random_walk_prob
+:align: center
+
+Distribuzioni di probabilità delle posizioni $x - x_0$ per un random walk unidimensionale a tre diversi istanti di tempo (da sinistra a destra, $n = 10, 100, 1000$), mediate su $10^5$ traiettorie. Gli istogrammi sono i valori numerici, mentre le righe continue sono le distribuzioni continue teoriche, eq. [](#eq:diff_gaussian).
+```
+
+La [](#fig:res_random_walk_prob) mostra come l'approssimazione continua funzioni piuttosto bene già a tempi corti ($n = 10$).
 
 (sec:diffusion-equation)=
 ## Dalla dinamica discreta all'equazione di diffusione
@@ -670,6 +695,13 @@ $$
 
 Come per il random walk discreto, ogni esecuzione dell'algoritmo produce una diversa traiettoria. Le proprietà fisiche si ottengono mediando su molte realizzazioni oppure, sotto opportune condizioni, studiando una singola traiettoria sufficientemente lunga.
 
+```{figure} #cell:res_langevin
+:label: fig:res_random_langevin
+:align: center
+
+A sinistra: lo spostamento quadratico medio ottenuto risolvendo l'equazione di Langevin di parametri $\gamma = 1$, $m = 1$, $k_B T = 1$ integrata con il metodo di Eulero con $\Delta t = 0.01$. Le linee tratteggiate sono gli andamenti teorici balistico e diffusivo nei rispettivi regimi di validità. A destra: le distribuzioni degli spostamenti numeriche (linee continue) e teoriche (eq [](#eq:diff_gaussian), linee tratteggiate) a $t = 10$ e $t = 100$.
+```
+
 Come abbiamo ampiamente dimostrato in passato, il metodo di Eulero è semplice, ma soffre di problemi strutturali che possono spesso portare a comportamenti non fisici, indipendentemente dal valore id $\Delta t$. Nel caso dell'equazione di Langevin, dimostriamo che la dinamica di Eulero non riproduce esattamente la distribuzione di equilibrio della velocità.
 
 Considerando l'aggiornamento [](#eq:langevin_euler) e definendo $q=1-\frac{\Delta t}{\tau_v}$, possiamo calcolare la varianza della velocità, che evolve secondo
@@ -696,9 +728,7 @@ $$
 \Delta t\to0,
 $$
 
-ma è sempre presente, e può diventare visibile se il passo temporale non è sufficientemente piccolo.
-
-Questo fornisce un utile test numerico: variando $\Delta t$, si può verificare se e come $m\langle v^2\rangle$ converga a $k_{\mathrm B}T$.
+ma è sempre presente, e può diventare visibile se il passo temporale non è sufficientemente piccolo. Questo fornisce un utile test numerico: variando $\Delta t$, si può verificare se e come $m\langle v^2\rangle$ converga a $k_{\mathrm B}T$.
 
 ````{note} Approfondimento: un aggiornamento migliore per la velocità
 

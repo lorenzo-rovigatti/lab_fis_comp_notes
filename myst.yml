@@ -30,6 +30,8 @@ project:
     - file: cluster.md
     - file: notebooks/ODEs.ipynb
       hidden: true
+    - file: notebooks/random_walk.ipynb
+      hidden: true
     
 site:
   template: book-theme
