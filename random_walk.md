@@ -268,7 +268,7 @@ $$
 
 Nel moto balistico gli spostamenti successivi sono tutti coerenti: la particella mantiene memoria della direzione del moto. Nel random walk, invece, la direzione di ogni passo è indipendente da quella dei passi precedenti e la memoria della direzione viene persa immediatamente.
 
-:::{important} Distinguere il tipo di moto
+:::{note} Distinguere il tipo di moto
 Una quantità molto utile per studiare il moto di oggetti (che siano particelle, colloidi, persone, *ecc*) è lo spostamento quadratico medio (*mean-square displacement* o MSD) in funzione del tempo:
 
 $$
@@ -393,6 +393,168 @@ Distribuzioni di probabilità delle posizioni $x - x_0$ per un random walk unidi
 
 La [](#fig:res_random_walk_prob) mostra come l'approssimazione continua funzioni piuttosto bene già a tempi corti ($n = 10$).
 
+````{note} Oltre il random walk destra/sinistra
+
+Il teorema del limite centrale mostra che il comportamento diffusivo non dipende dalla scelta particolare di passi discreti verso destra o verso sinistra. Le ipotesi essenziali sono che gli incrementi $\xi_i$ siano indipendenti e identicamente distribuiti, con media nulla e varianza finita. Se queste condizioni sono verificate, per $n$ grande la distribuzione dello spostamento tenderà a una gaussiana, indipendentemente dalla forma dettagliata della distribuzione dei singoli passi. Il random walk destra/sinistra è quindi soltanto il più semplice esempio di una classe molto più generale di processi diffusivi.
+
+:::{warning}
+La finitezza della varianza è essenziale. Distribuzioni con code molto larghe e varianza infinita non soddisfano il teorema del limite centrale nella sua forma usuale e possono dare origine a dinamiche non diffusive.
+:::
+
+Una scelta comune, e utile anche per altre applicazioni, consiste nell'estrarre direttamente gli incrementi da una distribuzione gaussiana. Supponiamo di voler generare due variabili indipendenti $Z_1$ e $Z_2$, entrambe distribuite secondo una normale standard,
+
+$$
+Z_1,Z_2\sim\mathcal{N}(0,1).
+$$
+
+Poiché sono indipendenti, la loro densità congiunta è il prodotto delle due densità gaussiane:
+
+$$
+\frac{1}{2\pi}\exp\left[-\frac{z_1^2+z_2^2}{2}\right].
+$$
+
+Introduciamo le coordinate polari, $z_1=r\cos\theta$ e $z_2=r\sin\theta$, per cui $z_1^2+z_2^2=r^2$. Nel cambio di variabili bisogna inoltre includere lo Jacobiano, $dz_1,dz_2=r,dr,d\theta$. La densità congiunta di $R$ e $\Theta$ diventa quindi
+
+$$
+p_{R, \Theta}(r, \theta) = \frac{1}{2\pi}r e^{-r^2/2},
+$$
+
+con
+
+$$
+r\geq 0,\qquad0\leq\theta<2\pi.
+$$
+
+Questa densità si fattorizza:
+
+$$
+p_{R, \Theta}(r, \theta) = \underbrace{r e^{-r^2/2}}{p_R(r)}\underbrace{\frac{1}{2\pi}}{p_\Theta(\theta)}.
+$$
+
+Di conseguenza, $R$ e $\Theta$ sono indipendenti. In particolare, l'angolo è uniformemente distribuito nell'intervallo $[0,2\pi)$. Se $U_2$ è una variabile uniforme in $(0,1)$, possiamo quindi porre
+
+$$
+\Theta=2\pi U_2.
+$$
+
+Resta da generare la variabile radiale $R$, la cui densità è
+
+$$
+p_R(r)=r e^{-r^2/2}.
+$$
+
+La sua funzione di distribuzione cumulativa è
+
+$$
+F_R(r) = P(R\leq r) = \int_0^r s e^{-s^2/2},ds.
+$$
+
+Poiché
+
+$$
+\od{}{dx} e^{-s^2/2} = -s e^{-s^2/2},
+$$
+
+si ottiene
+
+$$
+F_R(r)=1-e^{-r^2/2}.
+$$
+
+Usiamo ora il metodo della trasformazione inversa. Se $U_1$ è uniforme in $[0,1)$, imponiamo
+
+$$
+U_1=F_R(r)=1-e^{-r^2/2}.
+$$
+
+Da questa relazione segue
+
+$$
+e^{-r^2/2}=1-U_1,
+$$
+
+e quindi $-\frac{r^2}{2}=\log(1-U_1)$, pertanto,
+
+$$
+r=\sqrt{-2\log(1-U_1)}.
+$$
+
+Poiché anche $1-U_1$ è uniforme (in $(0,1]$ piuttosto che in $[0, 1)$, ma questo non cambia le sue proprietà statistiche), possiamo rinominarlo semplicemente $U_1$ e scrivere[^U1]
+
+$$
+R=\sqrt{-2\log U_1}.
+$$
+
+Tornando infine alle coordinate cartesiane,
+
+$$
+Z_1=R\cos\Theta,\qquad Z_2=R\sin\Theta.
+$$
+
+Sostituendo le espressioni trovate per $R$ e $\Theta$, otteniamo la trasformazione di Box-Muller:
+
+$$
+\begin{align}
+Z_1 &= \sqrt{-2\log U_1}\cos(2\pi U_2)\\
+Z_2 &= \sqrt{-2\log U_1}\sin(2\pi U_2),
+\end{align}
+$$
+
+dove $U_1$ e $U_2$ sono variabili uniformi indipendenti in $(0,1)$. Le variabili $Z_1$ e $Z_2$ così generate sono indipendenti e distribuite secondo una normale standard. Un incremento gaussiano di varianza $\sigma^2$ si ottiene quindi ponendo
+
+Poiché ogni applicazione della trasformazione produce due numeri gaussiani, in una simulazione efficiente conviene usare $Z_1$ per un passo e conservare $Z_2$ per quello successivo. In C questo si può fare in modo naturale utilizzando variabili statiche, come nell'esempio qui riportato:
+
+```c
+double gaussian() {
+    static int use_next = 0;
+    static double next_gaussian = 0.0;
+
+    if(use_next) {
+        use_next = 0;
+        return next_gaussian;
+    }
+
+    double u1 = 1.0 - drand48(); // [0, 1) -> (0, 1] per evitare log(0)
+    double u2 = drand48();
+
+    double r = sqrt(-2.0 * log(u1));
+    double theta = 2.0 * M_PI * u2;
+
+    double z1 = r * cos(theta);
+    double z2 = r * sin(theta);
+
+    next_gaussian = z2;
+    use_next = 1;
+
+    return z1;
+}
+```
+
+```{note} Una versione più veloce
+:class: dropdown
+
+Valutare funzioni trigonometriche, quali `sin` e `cos`, è un'operazione relativamente costosa. Esiste quindi una variante della trasformazione di Box-Muller, attribuita a Marsaglia, che non ne fa uso.
+
+Si estraggono due variabili indipendenti $U$ e $V$, uniformi nell'intervallo $(-1,1)$, e si calcola $S=U^2+V^2$. Se $S\geq 1$ oppure $S=0$, la coppia viene scartata e si ripete l'estrazione. Quando invece $0<S<1$, si definisce
+
+$$
+F=\sqrt{\frac{-2\log S}{S}}.
+$$
+
+Le due quantità
+
+$$
+Z_1=UF,
+\qquad
+Z_2=VF
+$$
+
+sono variabili gaussiane indipendenti con media nulla e varianza unitaria.
+```
+
+[^U1]: Oppure possiamo mantenere il numero distribuito in $(0, 1]$ per evitare divergenze nel logaritmo, come viene fatto nella funzione di esempio riportata più in basso
+````
+
 (sec:diffusion-equation)=
 ## Dalla dinamica discreta all'equazione di diffusione
 
@@ -484,7 +646,7 @@ stessa fisica su scale differenti:
 $$
 P(x,0)=\delta(x-x_0),
 $$
-dove $\delta$ è la [delta di Dirac](https://it.wikipedia.org/wiki/Delta_di_Dirac), un oggetto matematico che verrà introdotto durante il corso di Modelli e Metodi Matematici della Fisica.
+dove $\delta(x)$ è la [delta di Dirac](https://it.wikipedia.org/wiki/Delta_di_Dirac), un oggetto matematico che verrà introdotto durante il corso di Modelli e Metodi Matematici della Fisica.
 
 (sec:langevin-equation)=
 # L'equazione di Langevin
@@ -695,13 +857,6 @@ $$
 
 Come per il random walk discreto, ogni esecuzione dell'algoritmo produce una diversa traiettoria. Le proprietà fisiche si ottengono mediando su molte realizzazioni oppure, sotto opportune condizioni, studiando una singola traiettoria sufficientemente lunga.
 
-```{figure} #cell:res_langevin
-:label: fig:res_random_langevin
-:align: center
-
-A sinistra: lo spostamento quadratico medio ottenuto risolvendo l'equazione di Langevin di parametri $\gamma = 1$, $m = 1$, $k_B T = 1$ integrata con il metodo di Eulero con $\Delta t = 0.01$. Le linee tratteggiate sono gli andamenti teorici balistico e diffusivo nei rispettivi regimi di validità. A destra: le distribuzioni degli spostamenti numeriche (linee continue) e teoriche (eq [](#eq:diff_gaussian), linee tratteggiate) a $t = 10$ e $t = 100$.
-```
-
 Come abbiamo ampiamente dimostrato in passato, il metodo di Eulero è semplice, ma soffre di problemi strutturali che possono spesso portare a comportamenti non fisici, indipendentemente dal valore id $\Delta t$. Nel caso dell'equazione di Langevin, dimostriamo che la dinamica di Eulero non riproduce esattamente la distribuzione di equilibrio della velocità.
 
 Considerando l'aggiornamento [](#eq:langevin_euler) e definendo $q=1-\frac{\Delta t}{\tau_v}$, possiamo calcolare la varianza della velocità, che evolve secondo
@@ -802,7 +957,14 @@ Utilizzando la soluzione esatta otteniamo un'espressione per l'aggiornamento del
 (sec:langevin-diffusion)=
 ## Dalla dinamica di Langevin alla diffusione
 
-L'equazione di Langevin contiene sia il regime balistico sia quello diffusivo. Per tempi molto brevi rispetto a $\tau_v$, la velocità non ha ancora perso memoria del suo valore iniziale e
+```{figure} #cell:res_langevin
+:label: fig:res_langevin
+:align: center
+
+A sinistra: lo spostamento quadratico medio ottenuto risolvendo l'equazione di Langevin di parametri $\gamma = 1$, $m = 1$, $k_B T = 1$ integrata con il metodo di Eulero con $\Delta t = 0.01$. I risultati sono stati ottenuti mediando su 10000 traiettorie. Le linee tratteggiate sono gli andamenti teorici balistico e diffusivo nei rispettivi regimi di validità. A destra: le distribuzioni degli spostamenti numeriche (linee continue) e teoriche (eq [](#eq:diff_gaussian), linee tratteggiate) a $t = 10$ e $t = 100$.
+```
+
+La [](#fig:res_langevin) mostra alcuni risultati di simulazione ottenuti mediando molte traiettorie. Nel pannello di sinistra, che mostra lo spostamento quadratico medio, si può vedere come l'equazione di Langevin contenga sia il regime balistico sia quello diffusivo. Infatti, per tempi molto brevi rispetto a $\tau_v$, la velocità non ha ancora perso memoria del suo valore iniziale e
 
 $$
 x(t)-x_0\simeq v_0t.

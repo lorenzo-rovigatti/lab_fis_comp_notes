@@ -24,7 +24,9 @@ project:
   static_files:
     - simulations
   toc:
+    - file: index.md
     - file: richiami.md
+    - file: strumenti.md
     - file: ODE.md
     - file: random_walk.md
     - file: cluster.md

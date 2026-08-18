@@ -73,23 +73,94 @@ Simulazione di un pendolo doppio di parametri $l_1 = l_2 = 1$ m, $m_1 = 0.2$ Kg 
 
 ### Il pendolo semplice
 
-Si potrebbe pensare che il caos e l'intrattabilità analitica siano dovuti alla presenza dei due corpi accoppiati. Semplifichiamo allora il sistema eliminando il secondo pendolo (ponendo formalmente $m_2 = 0$). Otteniamo il classico pendolo semplice: una massa $m$ appesa a un filo di lunghezza $L$.
+Si potrebbe pensare che la difficoltà del doppio pendolo derivi esclusivamente dall'accoppiamento tra i suoi due gradi di libertà. Eliminiamo allora il secondo pendolo, ponendo formalmente $m_2=0$. Rimane il pendolo semplice: una massa $m$ vincolata a muoversi lungo un arco di circonferenza di raggio $L$. L'equazione del moto è
 
-La sua equazione del moto, derivata proiettando la seconda legge di Newton lungo la direzione tangente alla traiettoria,identificata dall'angolo $\theta$, è:
+$$
+\label{eq:simple_pendulum}
+\odd{\theta}{t} + \frac{g}{L}\sin\theta=0.
+$$
 
-$$\label{eq:simple_pendulum} \odd{\theta}{t} + \frac{g}{L} \sin\theta = 0$$
+Il sistema possiede un solo grado di libertà e non presenta alcun accoppiamento. Tuttavia, l'equazione è ancora non lineare a causa del termine $\sin\theta$. Questa non linearità non rende il problema caotico ma impedisce in generale di esprimere il moto mediante le sole funzioni elementari.
 
-Questa equazione descrive un sistema con un solo grado di libertà, senza accoppiamenti. Eppure, a causa del termine non lineare $\sin\theta$, neanche questo sistema è risolvibile analiticamente in termini di funzioni elementari.
+Per comprenderne l'origine, moltiplichiamo l'equazione per $\dot{\theta}$:
 
-Per vederlo, possiamo provare a integrarla una volta sfruttando la conservazione dell'energia meccanica totale $E$. Moltiplicando l'equazione  per la velocità angolare $\od{\theta}{t}$ e integrando rispetto al tempo, si ottiene:
+$$
+\od{\theta}{t}\odd{\theta}{t} +\frac{g}{L}\sin\theta \od{\theta}{t} = 0.
+$$
 
-$$\frac{1}{2} \left(\od{\theta}{t}\right)^2 - \frac{g}{L} \cos\theta = \text{costante}$$
+Integrando rispetto al tempo si ottiene la conservazione dell'energia:
 
-Se indichiamo con $\theta_0$ l'angolo di massima ampiezza (dove il pendolo si ferma e la velocità è nulla, $\od{\theta}{t} = 0$), la costante di integrazione è pari a $-\frac{g}{L}\cos\theta_0$. Possiamo quindi separare le variabili per esprimere il tempo $t$ necessario a raggiungere un generico angolo $\theta$:
+$$
+\frac{1}{2}\left(\od{\theta}{t}\right)^2 - \frac{g}{L}\cos\theta=C.
+$$
 
-$$t(\theta) = \sqrt{\frac{L}{2g}} \int_{\theta_0}^{\theta} \frac{d\phi}{\sqrt{\cos\phi - \cos\theta_0}}$$
+Sia $\theta_0$ l'ampiezza massima dell'oscillazione. Nel punto di inversione il pendolo è istantaneamente fermo, quindi
+
+$$
+\theta=\theta_0, \qquad \dot{\theta}=0,
+$$
+
+e pertanto
+
+$$
+C=-\frac{g}{L}\cos\theta_0.
+$$
+
+Segue che
+
+$$
+\left(\od{\theta}{t}\right)^2 = \frac{2g}{L} \left(\cos\theta-\cos\theta_0\right).
+$$
+
+Questa relazione consente di determinare il tempo mediante un'integrazione. In particolare, il tempo necessario affinché il pendolo vada dall'ampiezza massima $\theta_0$ alla posizione di equilibrio $\theta=0$ è pari a un quarto del periodo:
+
+$$
+\label{eq:periodo_pendolo_esatto}
+\frac{T}{4} = \sqrt{\frac{L}{2g}} \int_0^{\theta_0} \frac{d\theta} {\sqrt{\cos\theta-\cos\theta_0}}.
+$$
 
 L'integrale a destra è un [integrale ellittico di prima specie](https://it.wikipedia.org/wiki/Integrale_ellittico). Non esiste alcuna manipolazione algebrica o sostituzione trigonometrica in grado di risolverlo usando le funzioni standard (come logaritmi, esponenziali, seni o coseni). Di fatto, le cosiddette funzioni ellittiche usate in matematica avanzata sono definite proprio a partire da questo tipo di integrali, il che equivale a dire che dobbiamo "inventarci" delle nuove funzioni per descrivere la soluzione.
+
+```{note} Derivazione dell'integrale ellittico
+:class:dropdown
+
+Usando l'identità[^bisezione]
+
+$$
+\cos\theta-\cos\theta_0 = 2\left(
+\sin^2\frac{\theta_0}{2} - \sin^2\frac{\theta}{2}
+\right)
+$$
+
+[^bisezione]: Che deriva dalla formula di bisezione $\cos x = 1 - 2 \sin^2 \frac{x}{2}$.
+
+introducendo la variabile
+
+$$
+\sin\frac{\theta}{2} = \sin\frac{\theta_0}{2}\sin\psi,
+$$
+
+e definendo $k=\sin\frac{\theta_0}{2}$ si ottiene
+
+$$
+T = 4\sqrt{\frac{L}{g}} \int_0^{\pi/2} \frac{d\psi} {\sqrt{1-k^2\sin^2\psi}}.
+$$
+
+L'integrale
+
+$$
+K(k) = \int_0^{\pi/2} \frac{d\psi} {\sqrt{1-k^2\sin^2\psi}}
+$$
+
+è detto integrale ellittico completo di prima specie. Il periodo esatto del pendolo è quindi
+
+$$
+\label{eq:periodo_pendolo_esatto_K}
+T(\theta_0) = 4\sqrt{\frac{L}{g}} K\left(\sin\frac{\theta_0}{2}\right),
+$$
+
+che dipende espressamente da $\theta_0$ e non può essere scritto in forma chiusa utilizzando solo funzioni elementari.
+```
 
 ### Le piccole oscillazioni
 
@@ -111,6 +182,12 @@ Questa equazione è finalmente risolvibile con carta e penna, e la sua soluzione
 
 $$
 \theta(t) = \theta_0 \cos(\omega_0 t + \phi).
+$$
+
+In questa approssimazione, l'integrale ellittico nell'equazione [](#eq:periodo_pendolo_esatto) si riduce a una costante ($\approx \pi / \sqrt{2}$), e il periodo diventa
+
+$$
+T = 2 \pi \sqrt{\frac{L}{g}}.
 $$
 
 Questo modello lineare, noto come oscillatore armonico, è uno dei pilastri della fisica proprio perché rappresenta il "porto sicuro" in cui i fisici rifugiano ogni volta che un sistema non lineare diventa matematicamente inaffrontabile. Ed è proprio dall'oscillatore armonico che partiremo per testare e confrontare i nostri algoritmi di integrazione numerica.
@@ -141,7 +218,14 @@ $$
 dove abbiamo introdotto la pulsazione naturale del sistema
 
 $$
-\omega_0 \equiv \sqrt{\frac{k}{m}}.
+\omega_0 \equiv \sqrt{\frac{k}{m}},
+$$
+
+che implica come il periodo del moto sia
+
+$$
+\label{eq:periodo_oscillatore_armonico}
+T = \frac{2\pi}{\omega_0} = 2\pi \sqrt{\frac{m}{k}}.
 $$
 
 La soluzione generale di questa equazione è
@@ -647,7 +731,7 @@ La derivazione dell'accuratezza per il metodo di Eulero discende direttamente da
 $$
 \begin{align}
 x(t_{n+1}) & = x(t_n) + v(t_n) \Delta t + \frac{1}{2} a(t_n)  \Delta t^2+ O(\Delta t^3)\\
-v(t_{n+1}) & = v(t_n) + a(t_n)  \Delta t+ \frac{1}{2} \frac{da(t_n)}{dt} \Delta t^2 + O(\Delta t^3).
+v(t_{n+1}) & = v(t_n) + a(t_n)  \Delta t+ \frac{1}{2} \od{a(t_n)}{t} \Delta t^2 + O(\Delta t^3).
 \end{align}
 $$
 
@@ -656,7 +740,7 @@ Confrontando queste espressioni con le equazioni di aggiornamento dello schema d
 $$
 \begin{align}
 x(t_{n+1}) - x_{n+1} &= \frac{1}{2} a(t_n) + O(\Delta t^3) \Delta t^2 = O(\Delta t^2)\\
-v(t_{n+1}) - v_{n+1} &= \frac{1}{2} \frac{da}{dt}(t_n) \Delta t^2 + O(\Delta t^3) = O(\Delta t^2).
+v(t_{n+1}) - v_{n+1} &= \frac{1}{2} \od{a}{t}(t_n) \Delta t^2 + O(\Delta t^3) = O(\Delta t^2).
 \end{align}
 $$
 
@@ -826,8 +910,8 @@ Sebbene le due matrici di evoluzione siano diverse (Velocity Verlet ha coefficie
 $$
 \label{eq:sviluppo_xv_4}
 \begin{cases}
-x(t_{n+1}) & = x(t_n) + v(t_n) \Delta t + \frac{1}{2} a(t_n) \Delta t^2 + \frac{}{6} \frac{da(t_n)}{dt} \Delta t^3 + O(\Delta t^4)\\
-v(t_{n+1}) & = v(t_n) + a(t_n) \Delta t + \frac{1}{2} \frac{da(t_n)}{dt} \Delta t^2 + \frac{1}{6} \frac{d^2a(t_n)}{dt^2} \Delta t^3 + O(\Delta t^4).
+x(t_{n+1}) & = x(t_n) + v(t_n) \Delta t + \frac{1}{2} a(t_n) \Delta t^2 + \frac{}{6} \od{a(t_n)}{t} \Delta t^3 + O(\Delta t^4)\\
+v(t_{n+1}) & = v(t_n) + a(t_n) \Delta t + \frac{1}{2} \od{a(t_n)}{t} \Delta t^2 + \frac{1}{6} \odd{a(t_n)}{t} \Delta t^3 + O(\Delta t^4).
 \end{cases}
 $$
 
@@ -836,11 +920,11 @@ Se ora sottriamo queste quantità da quelle numeriche, eq. [](#eq:velocity_verle
 $$
 \begin{cases}
 x_{n+1} - x(t_n + \Delta t) &= -\frac{1}{6} \frac{d^3 x}{dt^3}(t_n) \Delta t^3 + \mathcal{O}(\Delta t^4)\\
-v_{n+1} - v(t_n + \Delta t) &= \frac{1}{12} \ddot{a}(t_n) \Delta t^3 + \mathcal{O}(\Delta t^4),
+v_{n+1} - v(t_n + \Delta t) &= \frac{1}{12} \odd{a(t_n)}{t} \Delta t^3 + \mathcal{O}(\Delta t^4),
 \end{cases}
 $$
 
-e quindi sia per la posizione che per la velocità, l'errore locale dell'algoritmo di Verlet (e quindi, equivalentemente, quello di Velocity Verlet) è di ordine $\mathcal{O}(\Delta t^3)$, che implica come per l'errore globale scali come $\mathcal{O}(\Delta t^2)$.
+e quindi sia per la posizione che per la velocità, l'errore locale dell'algoritmo di Verlet (e quindi, equivalentemente, quello di Velocity Verlet) è di ordine $\mathcal{O}(\Delta t^3)$, che implica come l'errore globale scali come $\mathcal{O}(\Delta t^2)$.
 
 ```{note} Perché possiamo sviluppare l'accelerazione numerica?
 :label: box:an1
@@ -886,13 +970,19 @@ Come in [](#fig:error_eulero), con, in aggiunta, l'errore ottenuto applicando l'
 
 La [](#fig:error_velocity_verlet) illustra vividamente l'enorme impatto del passaggio da un errore globale di ordine $\mathcal{O}(\Delta t)$ a uno di ordine $\mathcal{O}(\Delta t^2)$. Per apprezzare concretamente questa differenza, si consideri un passo temporale tipico delle simulazioni reali, ad esempio $\Delta t = 10^{-3}$: in questo scenario, l'accuratezza di Velocity Verlet supera quella di Eulero-Cromer di ben tre ordini di grandezza, riducendo drasticamente l'errore sistematico accumulato sulla traiettoria.
 
+# Il moto del pendolo semplice
+
+```{warning}
+TODO
+```
+
 # Runge-Kutta
 
 Molti dei problemi complessi da risolvere con metodi numerici non riguardano sistemi in cui l'energia si conserva. La simpletticità non è quindi sempre un requisito necessario. Vediamo subito un esempio.
 
 ## L'oscillatore armonico smorzato
 
-Un oggetto che si muove lentamente in un fluido viscoso è sottoposto, in opportune condizioni, a una forza di attrito proporzionale e opposta alla sua velocità[^fluido_viscoso]. Nel caso di un oscillatore armonico, la dinamica del sistema è descritta dalla seguente equazione differenziale:
+Un oggetto che si muove lentamente in un fluido viscoso è sottoposto, sotto opportune condizioni, a una forza di attrito proporzionale e opposta alla sua velocità[^fluido_viscoso]. Nel caso di un oscillatore armonico, la dinamica del sistema è descritta dalla seguente equazione differenziale:
 
 $$
 \label{eq:oscillatore_armonico_smorzato}
@@ -900,12 +990,6 @@ x''(t) = -\omega_0^2 x(t) - \frac{\gamma}{m} x'(t),
 $$
 
 dove $\gamma \geq 0$ è il coefficiente di attrito, che determina l'intensità della dissipazione di energia. Introducendo la quantità
-
-$$
-\omega^2 = \omega_0^2 - \frac{\gamma^2}{4m^2},
-$$
-
-Introducendo la quantità
 
 $$
 \omega^2 = \omega_0^2 - \frac{\gamma^2}{4m^2},
@@ -942,7 +1026,7 @@ $$
 decresce infatti secondo
 
 $$
-\frac{dE}{dt}=-\gamma[v(t)]^2\leq 0,
+\od{E}{t}=-\gamma[v(t)]^2\leq 0,
 $$
 
 e tende a zero a tempi lunghi.
@@ -1046,13 +1130,13 @@ I due autovalori sono sempre complessi coniugati e quindi hanno lo stesso modulo
 Per quanto riguarda l'accuratezza, notiamo prima di tutto che l'aggiornamento delle posizioni, cioè la prima delle equazioni [](#eq:rk2), è lo stesso del metodo di Velocity Verlet, eq. [](#eq:velocity_verlet). Di conseguenza, i due algoritmi condividono l'errore di troncamento locale per le posizioni, che va come $\mathcal{O}(\Delta t^3)$. Per le velocità applichiamo lo stesso procedimento visto per Velocity Verlet [espandendo $a_{n+1/2}$](#box:an1) per ottenere
 
 $$
-v_{n+1} = v_n + a(t_n) \Delta t + \frac{1}{2} \frac{da(t_n)}{dt} \Delta t^2 + \mathcal{O}(\Delta t^3).
+v_{n+1} = v_n + a(t_n) \Delta t + \frac{1}{2} \od{a(t_n)}{t} \Delta t^2 + \mathcal{O}(\Delta t^3).
 $$
 
 Se ora sottraiamo questa quantità da quella teorica, eq. [](#eq:sviluppo_xv_4), e assumiamo come al solito che al tempo $t_n$ lo stato numerico coincida con quello esatto ($x_n = x(t_n)$, $v_n = v(t_n)$, $a_n = a(t_n)$), otteniamo:
 
 $$
-v_{n+1} - v(t_n + \Delta t) = -\frac{1}{6} \frac{d^2a(t_n)}{dt^2} \Delta t^3 + \mathcal{O}(\Delta t^4),
+v_{n+1} - v(t_n + \Delta t) = -\frac{1}{6} \odd{a(t_n)}{t} \Delta t^3 + \mathcal{O}(\Delta t^4),
 $$
 
 e quindi anche per la velocità l'errore locale dell'algoritmo RK2 è di ordine $\mathcal{O}(\Delta t^3)$.
@@ -1188,7 +1272,7 @@ $$
 
 **Nota Bene:** per l'oscillatore armonico l'accelerazione dipende solo dalla velocità,e quindi le quantità $k_{i,v}$ si ottengono semplicemente valutando $-\omega_0^2 x$ nei diversi punti intermedi costruiti dall'algoritmo. Nel caso più generale (ad esempio quello dell'oscillatore smorzato o forzato), l'accelerazione dipende anche da $v$ e da $t$, e quindi è importante aggiornare correttamente entrambe le variabili nei passi intermedi.
 
-```{tip}  Approfondimento: determinazione dei coefficienti $b_i$
+```{note}  Approfondimento: determinazione dei coefficienti $b_i$
 :label: box:coeff_rk4
 
 Vogliamo capire in modo più preciso da dove provengono i pesi
@@ -1363,7 +1447,7 @@ La figura [](#fig:error_rk) mostra l'andamento degli errori globali di RK2 ed RK
 
 Riassumendo, RK4 è molto accurato su intervalli di tempo finiti, ma non rispetta esattamente la struttura geometrica dei sistemi conservativi, e la mancata simpletticità può produrre una lenta deriva artificiale dell'energia. Per simulazioni molto lunghe di sistemi conservativi, un metodo simplettico come Velocity Verlet può quindi produrre un comportamento qualitativamente migliore, anche se l'ordine formale di accuratezza è più basso.
 
-```{tip} Dimostrazione di stabilità e accuratezza di RK4
+```{note} Dimostrazione di stabilità e accuratezza di RK4
 :label: box:rk4
 
 Per evitare calcoli troppo lunghi, conviene prima scrivere il sistema in forma vettoriale. In questa forma, l'equazione dell'oscillatore armonico si scrive

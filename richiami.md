@@ -1,12 +1,12 @@
 ---
-title: Richiami di Laboratorio di Calcolo e programma del corso
+title: Prerequisiti, programma del corso e materiale didattico
 exports:
    - format: pdf
 abbreviations:
    UNICODE: null
 ---
 
-# Laboratorio di calcolo
+# Prerequisiti: laboratorio di calcolo
 
 Ecco una lista degli argomenti che si studiano nel corso di Laboratorio di Calcolo, e che costituiscono quindi i prerequisiti computazionali di questo corso:
 
@@ -55,6 +55,23 @@ Sul [mio sito](https://www.roma1.infn.it/~rovigatl/labcalc/) trovate le slide ch
 * Definizione di tipi derivati tramite `typedef`
 * Allocazione dinamica della memoria (`malloc`, `calloc` e `free`)
 * Operazioni bit-a-bit (operatori `bitwise`)
+
+## Come utilizzare queste note
+
+Il testo contiene dei box di diverso tipo che sono corredati da simboli e colori che ne contraddistinguono il significato:
+
+* Approfondimenti (matematici o di concetto) sono racchiusi in box di questo tipo:
+```{note} Questo è un approfondimento
+Il contenuto non è necessario per comprendere gli argomenti del testo, ma può aiutare a capire meglio, o soddisfare una curiosità.
+```
+* I nuovi argomenti di C vengono introdotti in box di questo tipo:
+````{attention} Un nuovo argomento C!
+Una variabile statica si definisce in questa maniera
+```c
+static double gaussian;
+```
+````
+
 
 # Libri e dispense
 
