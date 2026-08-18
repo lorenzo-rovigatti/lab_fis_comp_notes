@@ -386,7 +386,7 @@ Durante il lavoro:
 
 Quando lavorate a casa ma in gruppo, è **importantissimo** ricordare di fare `git pull` prima di iniziare a lavorare e `git push` quando volete condividere i vostri nuovi commit.
 
-# Alcuni problemi comuni
+## Alcuni problemi comuni
 
 :::{dropdown} «Ho modificato un file, ma GitHub mostra ancora la vecchia versione»
 
@@ -456,3 +456,223 @@ In generale, meglio di no. Il repository può contenere file usati da Classroom 
 
 o altri file di configurazione indicati nella traccia. Salvo istruzioni esplicite, non modificateli e non cancellateli. Analogamente, non aggiungete al repository grandi quantità di file temporanei, eseguibili o dati generati se la traccia non vi chiede di farlo.
 :::
+
+# Programmi controllabili da riga di comando: `argc` e `argv`
+
+Come abbiamo visto, alcuni workflow di GitHub Actions preparati dai docenti compileranno ed eseguiranno automaticamente i vostri programmi. Perché questo sia possibile, è utile che un programma abbia un modo semplice e ben definito per ricevere dall'esterno i parametri che ne controllano il comportamento.
+
+Supponiamo, per esempio, di scrivere un programma che integra numericamente il moto di una massa collegata a una molla (capiremo bene cosa vuol dire nelle prossime lezioni!). Il risultato dipenderà da diversi parametri, come il passo temporale $\Delta t$, la massa $m$ e la costante elastica $k$.
+
+Una possibilità sarebbe fissare questi valori direttamente nel sorgente:
+
+```c
+double dt = 0.01;
+double m = 1.0;
+double k = 2.0;
+```
+
+Se volessimo cambiare uno dei parametri dovremmo però modificare il file, ricompilarlo ed eseguirlo di nuovo. Questo approccio è particolarmente scomodo per un controllo automatico, che dovrebbe poter provare lo stesso programma con molti valori diversi.
+
+È molto più comodo fornire i parametri quando il programma viene eseguito. Vorremmo, per esempio, poter scrivere
+
+```bash
+./oscillatore 0.01 1.0 2.0 1000
+```
+
+stabilendo che i tre numeri rappresentino, nell'ordine, `dt   massa   k   N_passi`. La riga di comando diventa così una semplice **interfaccia** del nostro programma: chi lo esegue non deve modificarne il sorgente, ma deve soltanto sapere quali argomenti fornire e in quale ordine.
+
+## Gli argomenti di `main`
+
+Finora abbiamo scritto la funzione `main` nella forma
+
+```c
+int main() {
+    /* ... */
+}
+```
+
+In C possiamo però scriverla anche come
+
+```c
+int main(int argc, char *argv[]) {
+    /* ... */
+}
+```
+
+I due argomenti `argc` e `argv` permettono di accedere a ciò che è stato scritto sulla riga di comando:
+
+* `argc`, da *argument count*, contiene il numero di argomenti passati dall'utente;
+* `argv`, da *argument vector*, contiene gli argomenti stessi.
+
+Consideriamo di nuovo
+
+```bash
+./oscillatore 0.01 1.0 2.0 1000
+```
+
+In questo caso il sistema operativo chiamerà la funzione `main` inizializzando gli argomenti come segue:
+
+```c
+argc = 5
+argv = { "./oscillatore", "0.01", "1.0", "2.0", "1000" };
+```
+
+:::{warning} Perché `argc` vale 5 e non 4?
+Può sembrare strano che `argc` valga 5 anche se abbiamo fornito soltanto quattro parametri. Il motivo è che `argv[0]` contiene il nome con cui è stato invocato il programma. I parametri che abbiamo scritto dopo il nome dell'eseguibile cominciano quindi da `argv[1]`.
+:::
+
+## Gli elementi di `argv` sono stringhe
+
+C'è un'altra cosa importante da osservare. Anche se abbiamo scritto
+
+```text
+0.01
+1.0
+2.0
+1000
+```
+
+gli elementi di `argv` non sono numeri ma stringhe. Per usarli nei calcoli dobbiamo quindi convertirli nel tipo appropriato. Nel nostro caso, quello che ci interesserà quasi sempre sarà di convertire una stringa in un `double`, oppure un intero in un `int`. Questo si può fare usando `atof` (*ascii to float*) e `atoi` (*ascii to integer*), dichiarate in `stdlib.h`:
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+    double dt = atof(argv[1]);
+    double m = atof(argv[2]);
+    double k = atof(argv[3]);
+    int N_passi = atoi(argv[4]);
+
+    printf("dt = %lf, m = %lf, k = %lf, N_passi = %d\n", dt, m, k, N_passi);
+
+    return 0;
+}
+```
+
+Possiamo ora compilare una sola volta il programma,
+
+```bash
+gcc -o oscillatore oscillatore.c
+```
+
+e poi eseguirlo con parametri diversi:
+
+```bash
+./oscillatore 0.01 1.0 2.0 1000
+./oscillatore 0.001 1.0 2.0 1000
+./oscillatore 0.01 2.0 5.0 2000
+```
+
+## Controllare il numero degli argomenti
+
+Il programma precedente assume che `argv[1]`, `argv[2]`, `argv[3]` e `argv[4]` esistano. Ma cosa succede se qualcuno esegue semplicemente
+
+```bash
+./oscillatore
+```
+
+oppure dimentica uno dei parametri? Prima di accedere agli elementi di `argv` dobbiamo controllare che sia stato fornito il numero corretto di argomenti, altrimenti rischiato di accedere ad elementi di `argv` che non esistono, il che, nel migliore dei casi, farà terminare il programma con un `segmentation fault`, mentre nel caso peggiore darà luogo a comportamenti inaspettati (*undefined behaviour*). Nel nostro esempio vogliamo quattro parametri oltre al nome del programma, quindi ci aspettiamo
+
+```c
+argc == 5
+```
+
+Possiamo scrivere:
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+    if (argc != 5) {
+        fprintf(stderr, "Uso: %s dt massa k N_passi\n", argv[0]);
+        return 1;
+    }
+
+    double dt = atof(argv[1]);
+    double m = atof(argv[2]);
+    double k = atof(argv[3]);
+    int N_passi = atoi(argv[4]);
+
+    /* calcolo */
+
+    return 0;
+}
+```
+
+Se il programma viene invocato in modo errato, per esempio con
+
+```bash
+./oscillatore
+```
+
+otterremo un messaggio simile a
+
+```text
+Uso: ./oscillatore dt massa k N_passi
+```
+
+e il programma terminerà senza provare ad accedere ad argomenti che non esistono.
+
+:::{warning} Validare gli argomenti
+Controllare che sia stato fornito il numero corretto di argomenti non basta: è importante verificare anche che i valori ricevuti siano compatibili con il problema che stiamo studiando. Per esempio, nel caso dell'oscillatore ci aspettiamo che tutti i parametri passati siano maggiori di zero. Se uno di questi parametri non soddisfa i requisiti del modello, il programma dovrebbe segnalarlo chiaramente e terminare.
+
+Questa operazione prende il nome di validazione degli input. È preferibile interrompere subito il programma con un messaggio esplicativo, per esempio `Errore: il valore della massa deve essere positiva`, piuttosto che proseguire con parametri privi di significato fisico e ottenere risultati apparentemente plausibili ma in realtà non validi. Un esempio ragionevole per il nostro caso potrebbe essere:
+
+```c
+if(dt <= 0.0 || dt > 0.1) {
+    fprintf(stderr, "Errore: il valore di dt (%lf) non è valido: il passo temporale deve essere compreso tra 0 e 0.1\n", dt);
+    exit(1);
+}
+if(m <= 0.0) {
+    fprintf(stderr, "Errore: il valore di m (%lf) non è valido: la massa deve essere positiva\n", m);
+    exit(1);
+}
+if(k <= 0.0) {
+    fprintf(stderr, "Errore: il valore di k (%lf) non è valido: la costante elastica deve essere positiva\n", k);
+    exit(1);
+}
+if(N_passi <= 0) {
+    fprintf(stderr, "Errore: il valore di N_passi (%d) non è valido: il numero di passi deve essere positivo\n", N_passi);
+    exit(1);
+}
+```
+:::
+
+## L'interfaccia del programma fa parte della traccia
+
+Nelle esercitazioni specificheremo, quando necessario, quali argomenti il vostro programma deve accettare e in quale ordine.
+
+Se, per esempio, la traccia dice che il programma deve essere eseguito come
+
+```bash
+./oscillatore dt massa k N_passi
+```
+
+allora dovrete interpretare gli argomenti precisamente come
+
+```text
+argv[1] -> passo temporale
+argv[2] -> massa
+argv[3] -> costante elastica
+argv[4] -> numero di passi di integrazione
+```
+
+Questa convenzione fa parte dell'**interfaccia** del programma.
+
+Un workflow di GitHub Actions potrà quindi compilare il vostro codice e provare automaticamente comandi come
+
+```bash
+./oscillatore 0.01 1.0 2.0 1000
+```
+
+e
+
+```bash
+./oscillatore 0.005 3.0 0.5 2000
+```
+
+senza modificare il codice sorgente.
+
+Questo è il motivo principale per cui useremo `argc` e `argv`: ci permettono di separare il codice che implementa il calcolo dai parametri con cui vogliamo eseguirlo, e forniscono al programma un'interfaccia semplice che può essere usata sia da voi sia dai controlli automatici.
