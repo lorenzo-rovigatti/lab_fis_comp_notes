@@ -10,7 +10,7 @@ Purtroppo il mondo del software (e quindi anche della fisica computazionale) è 
 
 # Git, GitHub e Classroom 50: il minimo indispensabile
 
-Durante questo corso useremo [Git](#git), [GitHub](#github) e [Classroom 50](#classroom-50) per organizzare le esercitazioni e tenere traccia del lavoro svolto. Alcuni controlli verranno eseguiti automaticamente; figure, analisi dei risultati e risposte alle domande verranno invece esaminate dai docenti.
+Durante questo corso useremo [Git](#sec:git), [GitHub](#sec:github) e [Classroom 50](#sec:classroom-50) per organizzare le esercitazioni e tenere traccia del lavoro svolto. Alcuni controlli verranno eseguiti automaticamente; figure, analisi dei risultati e risposte alle domande verranno invece esaminate dai docenti.
 
 Git e GitHub sono strumenti molto generali e possono essere usati in modi assai più complessi di quanto ci servirà qui. Lo scopo di questa sezione non è imparare ad usarli in modo completo, ma costruire il **modello mentale minimo** necessario per lavorare alle esercitazioni senza usare i comandi alla cieca.
 
@@ -26,6 +26,7 @@ Nel seguito descriveremo brevemente questi strumenti in un ordine che rispecchia
 2. poi **GitHub**, che permette di condividere un repository Git attraverso Internet;
 3. infine **Classroom 50**, che usa GitHub e alcuni degli strumenti che mette a disposizione degli sviluppatori (chiamati GitHub Actions) per organizzare le esercitazioni e fornire feedback automatico.
 
+(sec:git)=
 # Git
 
 Quando si lavora a un software, è naturale modificarlo molte volte. Alcune modifiche funzionano, altre introducono errori, di cui magari ci accorgiamo più avanti. In altri casi, vogliamo provare a cambiare o aggiungere funzionalità anche complesse con la certezza di poter tornare indietro, o di rivedere i cambi fatti. In questo contesto capire quando e come una certa riga è stata modificata, recuperare una versione precedente o ottenere facilmente una lista di differenze tra versioni è utilissimo. Queste funzionalità sono fornite dai cosiddetti software di controllo di versione, di cui [Git](https://it.wikipedia.org/wiki/Git_(software)) è senz'altro il più comune. Semplificando molto, un sistema di controllo di versione come Git registra la storia di un insieme di file come una lista di versioni. Ogni versione, che in Git ha un nome unico detto *hash*[^hash], è una foto scattata in un dato momento di tutti i file gestiti da Git nello spazio di lavoro considerato.
@@ -135,6 +136,7 @@ a cui si può opzionalmente passare un ulteriore argomento `-N` per limitarci ag
 
 [^git_history]: Se siete interessati potete studiare come funziona `git diff`, che permette di ottenere la lista di cambi fatti tra la versione attuale e una o più versioni specifiche, oppure tra versioni specificate, di tutto il repository o di particolari file.
 
+(sec:github)=
 # GitHub
 
 Finora tutto ciò che abbiamo descritto avviene sul vostro computer. Per lavorare in gruppo, però, è utile avere una copia del repository accessibile a tutti.
@@ -271,6 +273,7 @@ GitHub possiede anche uno strumento chiamato *pull request*, spesso abbreviato i
 
 Nel normale sviluppo software le pull request sono spesso usate per discutere modifiche prima di integrarle in un progetto. Nel nostro corso non sarà necessario imparare il workflow generale delle pull request: quando ne useremo una, servirà soprattutto come luogo in cui visualizzare il lavoro e ricevere commenti dai docenti.
 
+(sec:classroom-50)=
 # Classroom 50
 
 A questo punto abbiamo tutti gli ingredienti necessari per parlare di [Classroom 50](https://github.com/foundation50/classroom50/wiki), il sistema che useremo per organizzare le esercitazioni. Non sostituisce Git o GitHub: li usa. In particolare, Classroom 50 può preparare per un'esercitazione
@@ -433,7 +436,7 @@ Se Git riesce a combinare le modifiche, potrete poi fare `git push`. Se compare 
 
 :::{dropdown} «GitHub Actions mostra un errore»
 
-Il `push` è arrivato correttamente a GitHub; è uno dei controlli automatici ad aver trovato un problema. Aprite la scheda **Actions**, selezionate l'ultima esecuzione e leggete l'output dello step che è fallito.
+Il `push` è arrivato correttamente a GitHub; è uno dei controlli automatici ad aver trovato un problema. Aprite la scheda "Actions", selezionate l'ultima esecuzione e leggete l'output dello step che è fallito.
 :::
 
 :::{dropdown} «Ho scaricato il repository come ZIP»
@@ -469,6 +472,7 @@ Una possibilità sarebbe fissare questi valori direttamente nel sorgente:
 double dt = 0.01;
 double m = 1.0;
 double k = 2.0;
+int N_passi = 1000;
 ```
 
 Se volessimo cambiare uno dei parametri dovremmo però modificare il file, ricompilarlo ed eseguirlo di nuovo. Questo approccio è particolarmente scomodo per un controllo automatico, che dovrebbe poter provare lo stesso programma con molti valori diversi.

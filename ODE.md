@@ -972,8 +972,100 @@ La [](#fig:error_velocity_verlet) illustra vividamente l'enorme impatto del pass
 
 # Il moto del pendolo semplice
 
-```{warning}
-TODO
+Torniamo ora al pendolo semplice introdotto nell'eq. [](#eq:simple_pendulum). A differenza dell'oscillatore armonico, il pendolo è un sistema **non lineare** e rappresenta quindi un banco di prova più realistico per gli algoritmi di integrazione numerica discussi finora. Introducendo la velocità angolare $\omega(t) \equiv \dot{\theta}(t)$, l'equazione del moto può essere riscritta come il sistema di due equazioni del primo ordine
+
+$$
+\begin{cases}
+\od{\theta}{t} = \omega(t),\\
+\od{\omega}{t} = -\dfrac{g}{L}\sin\theta(t).
+\end{cases}
+$$
+
+In assenza di attrito l'energia meccanica
+
+$$
+\label{eq:E_pendulum}
+E(t) = \frac{1}{2}mL^2\omega^2(t) + mgL\left[1-\cos\theta(t)\right]
+$$
+
+è una costante del moto. Possiamo quindi utilizzare la conservazione dell'energia come ulteriore strumento per confrontare la qualità dei diversi algoritmi.
+
+```{figure} #cell:pendulum_xvE
+:label: fig:pendulum_xvE
+:align: center
+
+Dall'alto verso il basso, i tre pannelli mostrano la posizione $x(t)$, la velocità $y(t)$ e l'energia meccanica $E(t)$ in funzione del tempo per il pendolo semplice simulato utilizzando i metodi di Eulero, Eulero-Cromer e Velocity Verlet con parametri $g = 9.81$ m/s$^2$, $L = 10$ m, $m = 1$ Kg, $\theta_0 = 0.5$ rad, $\left.\od{\theta}{t}\right|_{t=t_0} = \omega_0 = 0.5$ rad/s e passo di integrazione $\Delta t = 0.01$ s.
+```
+
+La [](#fig:pendulum_xvE) mostra una differenza qualitativa già osservata nel caso dell'oscillatore armonico. Il metodo di Eulero introduce una deriva sistematica: come abbiamo visto, a ogni oscillazione il pendolo acquista una piccola quantità di energia numerica e la traiettoria si allontana progressivamente da quella fisica.
+
+Diversamente, ed esattamente come per l'oscillatore armonico, per Eulero-Cromer e Velocity Verletl'energia numerica non è esattamente costante, ma compie piccole oscillazioni attorno al valore corretto senza mostrare una deriva sistematica (nella figura questo si vede solo per Eulero-Cromer). Come già discusso, questa proprietà è legata alla simpletticità dei due algoritmi: la discretizzazione modifica leggermente la dinamica del sistema, ma ne preserva la struttura geometrica nello spazio delle fasi. In effetti, per un integratore simplettico di ordine $p$ ci aspettiamo genericamente un andamento del tipo[^backward_analysis]
+
+$$
+E_n-E_0 = \Delta t^p F(t_n) + \mathcal{O}(\Delta t^{p+1}),
+$$
+
+dove $F(t)$ è una funzione limitata. L'ampiezza delle oscillazioni dell'energia deve quindi scalare come
+
+$$
+\label{eq:symplectic_energy_scaling}
+\delta E \propto \Delta t^p.
+$$
+
+[^backward_analysis]: Questa proprietà deriva dal fatto che, per $\Delta t$ sufficientemente piccolo, una dinamica simplettica può essere interpretata come quella generata da un sistema con un'Hamiltoniana (non sapete cos'è? Lo saprete presto grazie al corso di Meccanica Analitica) leggermente modificata rispetto a quella originale,
+$$
+\widetilde{H} = H + \mathcal{O}(\Delta t^p).
+$$
+Questa proprietà, che può essere formalizzata tramite la cosiddetta [*backward error analysis*](https://en.wikipedia.org/wiki/Error_analysis_(mathematics)#Backward_error_analysis), implica che l'errore sull'energia fisica rimanga generalmente limitato anche per tempi di integrazione molto lunghi.
+
+Possiamo verificare numericamente questa previsione. Una possibile misura dell'errore energetico è il massimo scostamento dal valore iniziale,
+
+$$
+\label{eq:max_energy_error}
+\epsilon_E \equiv \max_{t} |E(t)-E_0|.
+$$
+
+In alternativa possiamo considerare le fluttuazioni dell'energia attorno al suo valor medio,
+
+$$
+\sigma_E = \sqrt{ \langle E^2\rangle - \langle E\rangle^2 }.
+$$
+
+Le due quantità non sono identiche: $\epsilon_E$ è sensibile anche a un eventuale spostamento del valor medio rispetto a $E_0$, mentre $\sigma_E$ misura soltanto le fluttuazioni attorno alla media. Tuttavia, quando l'errore energetico è limitato e oscillatorio e la forma delle oscillazioni non cambia qualitativamente al variare di $\Delta t$, entrambe presentano lo stesso comportamento asintotico,
+
+$$
+\epsilon_E,\sigma_E \propto \Delta t^p.
+$$
+
+```{figure} #cell:pendulum_errors
+:label: fig:pendulum_errors
+:align: center
+
+Massimo scostamento dell'energia dal valore iniziale, $\epsilon_E$ (in alto) e fluttuazioni dell'energia attorno al valor medio, $\sigma_E$ (in basso), in funzione del passo temporale $\Delta t$ per il pendolo semplice. Le due rette continue indicano le dipendenze $\propto\Delta t$ e $\propto\Delta t^2$. I parametri delle simulazioni sono gli stessi della [](#fig:pendulum_xvE).
+```
+
+I risultati della [](#fig:pendulum_errors) sono coerenti con quanto ci aspettiamo dall'ordine dei metodi. Eulero-Cromer è un algoritmo simplettico del primo ordine e le oscillazioni dell'energia scalano quindi come $\Delta t$. Velocity Verlet è invece simplettico e del secondo ordine, e infatti le oscillazioni dell'energia scalano come $\Delta t^2$.
+
+Il metodo di Eulero mostra anch'esso, a tempo finale fissato e nel regime di piccoli $\Delta t$, un errore energetico che diminuisce linearmente con $\Delta t$. Questo fatto, però, non implica che Eulero sia simplettico: la differenza fondamentale è il comportamento temporale dell'errore. Nel caso di Eulero l'errore tende ad accumularsi producendo una deriva dell'energia, mentre per Eulero-Cromer e Velocity Verlet esso rimane limitato e oscillatorio. La sola dipendenza di $\epsilon_E$ da $\Delta t$ non è quindi sufficiente a stabilire se un algoritmo sia simplettico. La caratteristica distintiva dei metodi simplettici è la combinazione delle due proprietà: l'ampiezza dell'errore energetico diminuisce con l'ordine previsto e, soprattutto, non presenta una deriva secolare a tempi lunghi.
+
+```{note} Ordine del metodo e ordine dell'errore sull'energia
+:class: dropdown
+
+È importante non identificare in generale l'ordine di un metodo con l'esponente osservato misurando una singola quantità fisica come l'energia.
+
+Un metodo di ordine $p$ garantisce che, a tempo fisico fissato, l'errore globale sullo **stato** del sistema (posizione e velocità) sia dell'ordine di $\mathcal{O}(\Delta t^p)$. Una particolare osservabile può però essere meno sensibile al termine dominante dell'errore e mostrare una convergenza apparentemente più rapida.
+
+Un esempio si incontra con il [metodo Runge-Kutta del secondo ordine](#sec:rk2), che introdurremo più avanti. RK2 è un metodo del secondo ordine e non è simplettico; tuttavia, per l'oscillatore armonico l'errore dominante è principalmente un errore di fase, che non modifica l'energia. Il primo contributo alla deriva energetica compare quindi a un ordine superiore e, su un intervallo temporale fissato, si trova
+
+$$
+\Delta E_{\rm RK2}\propto\Delta t^3.
+$$
+
+Questo comportamento può rimanere visibile anche per il pendolo in determinati regimi, ma non rappresenta una proprietà generale di tutti i sistemi non lineari.
+
+Analogamente, il [metodo Runge-Kutta del quarto ordine](#sec:rk4) ha un errore globale $\mathcal{O}(\Delta t^4)$ ma, per motivi simili, per il pendolo si trova $\Delta E_{\rm RK2}\propto\Delta t^5$.
+
+Il messaggio importante è quindi che l'ordine del metodo non coincide necessariamente con l'oordine dell'errore di un particolare osservabile, mentre per un integratore simplettico di ordine $p$ l'ampiezza delle oscillazioni energetiche è solitamente dell'ordine di $\mathcal{O}(\Delta t^p)$.
 ```
 
 # Runge-Kutta
@@ -1052,6 +1144,7 @@ Per ovviare a questo problema si può estendere il metodo Velocity Verlet al cas
 
 [^fluido_viscoso]: Il regime in cui la forza di attrito è proporzionale alla velocità si può quantificare introducendo il *numero di Reynolds* $Re = \rho v L / \eta$, dove $\rho$ è la densità del fluido, $\eta$ la sua viscosità dinamica, $v$ la velocità caratteristica e $L$ la dimensione caratteristica dell'oggetto. La legge di attrito lineare è valida per $Re \ll 1$. Questa condizione si realizza tipicamente per oggetti molto piccoli, velocità ridotte o fluidi con elevata viscosità cinematica. A numeri di Reynolds elevati, in molti regimi il contributo dominante alla resistenza del fluido è invece approssimativamente proporzionale al quadrato della velocità.
 
+(sec:rk2)=
 ## Metodo Runge-Kutta del secondo ordine (RK2)
 
 I metodi introdotti finora approssimano il valore medio della derivata nell'intervallo $[t_n,t_{n+1}]$ utilizzando informazioni disponibili agli estremi dell'intervallo stesso. Possiamo però ottenere una stima più accurata osservando che, per una funzione sufficientemente regolare, il valore della derivata nel punto medio dell'intervallo costituisce spesso una buona approssimazione del suo valore medio.
@@ -1143,6 +1236,7 @@ e quindi anche per la velocità l'errore locale dell'algoritmo RK2 è di ordine 
 
 Quindi, sia per le posizioni che per le velocità l'errore globale scala come $\mathcal{O}(\Delta t^2)$: RK2 è un algoritmo del secondo ordine nel tempo. La figura che mostra questo andamento è mostrata e discussa [più sotto](#fig:error_rk).
 
+(sec:rk4)=
 ## Metodo Runge-Kutta del quarto ordine (RK4)
 
 Il metodo RK2 migliora l'accuratezza dell'integrazione utilizzando una stima della derivata nel punto medio dell'intervallo. Possiamo però ottenere una stima ancora più accurata del valore medio della derivata combinando informazioni provenienti da più punti dell'intervallo stesso.
