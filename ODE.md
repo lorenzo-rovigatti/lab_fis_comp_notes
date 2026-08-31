@@ -384,7 +384,200 @@ $$
 
 Questa semplice modifica produce risultati significativamente migliori in molti problemi meccanici, in particolare nei sistemi oscillanti.
 
-## Esempio
+## C: Raggruppare i dati con `struct` e definire nuovi tipi con `typedef`
+
+Per simulare l'oscillatore armonico dobbiamo conservare diverse quantità. Alcune descrivono lo stato del sistema in un particolare istante, come posizione e
+velocità; altre rimangono costanti durante la simulazione, come la massa, la costante elastica e il passo temporale.
+
+Finora potremmo rappresentare queste quantità mediante variabili indipendenti:
+
+```c
+double x;
+double v;
+double k;
+double m;
+double dt;
+```
+
+Questo approccio funziona, ma non rende esplicito il fatto che `x` e `v` descrivono insieme lo stato di un unico punto materiale, mentre `k`, `m` e `dt` caratterizzano il sistema che stiamo simulando.
+
+Il C permette di raggruppare variabili logicamente collegate mediante una **struttura**, definita dalla parola chiave `struct`:
+
+```c
+struct Punto {
+    double x;
+    double v;
+};
+```
+
+Abbiamo così definito un nuovo tipo di struttura chiamato `struct Punto`.
+Possiamo usarlo per dichiarare una variabile che contiene contemporaneamente
+posizione e velocità:
+
+```c
+struct Punto p;
+
+p.x = 2.0;
+p.v = 1.0;
+```
+
+Le variabili contenute in una struttura prendono il nome di **membri** o **campi**. Per accedere a un campo si usa l'operatore punto (`.`): `p.x` indica la posizione e `p.v` la velocità.
+
+### Dare un nome a un tipo: `typedef`
+
+In C, `typedef` permette di assegnare un nuovo nome a un tipo già esistente.
+Per evitare di dover scrivere ogni volta `struct Punto`, possiamo definire:
+
+```c
+typedef struct Punto Punto;
+```
+
+Da questo momento `Punto` è un sinonimo di `struct Punto`, e possiamo scrivere
+più semplicemente:
+
+```c
+Punto punto;
+```
+
+È molto comune unire la definizione della struttura e il `typedef` in un'unica
+dichiarazione:
+
+```c
+typedef struct {
+    double x;
+    double v;
+} Punto;
+```
+
+La parte racchiusa tra parentesi graffe descrive la struttura del dato, mentre
+il nome dopo la parentesi graffa, `Punto`, è il nuovo tipo che stiamo
+definendo.
+
+Possiamo anche inizializzare tutti i campi al momento della dichiarazione:
+
+```c
+Punto punto = {
+    .x = 2.0,
+    .v = 1.0
+};
+```
+
+Le espressioni `.x = 2.0` e `.v = 1.0` sono dette **inizializzatori
+designati**. Rendono esplicito quale valore viene assegnato a ciascun campo.
+
+### Separare lo stato dal sistema
+
+Definiamo ora una seconda struttura che contenga i parametri necessari per
+descrivere l'oscillatore armonico e la sua integrazione numerica:
+
+```c
+typedef struct {
+   // a scelta, potremmo scrivere il problema in funzione della pulsazione
+   // e tenere in memoria omega_0 invece di k
+   double k;
+   double m;
+   double dt;
+} Sistema;
+```
+
+Possiamo quindi inizializzare l'intera simulazione nel modo seguente:
+
+```c
+Punto punto = {
+    .x = 2.0,
+    .v = 1.0
+};
+
+Sistema sistema = {
+    .k = 1.0,
+    .m = 1.0,
+    .dt = 0.01
+};
+```
+
+Le due strutture hanno ruoli diversi:
+
+- `Punto` contiene lo **stato dinamico**, che cambia a ogni passo temporale;
+- `Sistema` contiene i **parametri fisici e numerici**, che rimangono costanti
+  durante la simulazione.
+
+## Passare una struttura a una funzione
+
+Le strutture possono essere passate alle funzioni come le variabili di tipo
+fondamentale. Per esempio, possiamo scrivere una funzione che calcoli
+l'accelerazione:
+
+```c
+double accelerazione(Sistema sistema, Punto punto) {
+    return -(sistema.k / sistema.m) * punto.x;
+}
+```
+
+Questa funzione riceve però delle **copie** delle due strutture. Per evitare la copia possiamo passarne gli indirizzi:
+
+```c
+double accelerazione(Sistema *sistema, Punto *punto) {
+    return -(sistema->k / sistema->m) * punto->x;
+}
+```
+
+Quando possediamo un puntatore a una struttura, accediamo ai suoi campi tramite l'operatore freccia (`->`). Per esempio,
+
+```c
+punto->x
+```
+
+è una forma più leggibile ma del tutto equivalente a
+
+```c
+(*punto).x
+```
+
+Possiamo ora riscrivere un passo del metodo di Eulero facendo sì che la funzione
+modifichi direttamente lo stato del punto:
+
+```c
+void eulero(Sistema *sistema, Punto *punto) {
+    double a = accelerazione(punto, sistema);
+
+    punto->x += punto->v * sistema->dt;
+    punto->v += a * sistema->dt;
+}
+```
+
+Il metodo di Eulero-Cromer ha la stessa interfaccia e differisce soltanto
+nell'ordine degli aggiornamenti:
+
+```c
+void eulero_cromer(Punto *punto, const Sistema *sistema) {
+    double a = accelerazione(punto, sistema);
+
+    punto->v += a * sistema->dt;
+    punto->x += punto->v * sistema->dt;
+}
+```
+
+Il ciclo temporale diventa così particolarmente compatto:
+
+```c
+double t = 0.0;
+Punto punto;
+Sistema sistema;
+
+/* inizializzazione */
+
+while(t < t_max) {
+    printf("%g %g %g\n", t, punto.x, punto.v);
+
+    eulero_cromer(&sistema, &punto);
+    t += sistema.dt;
+}
+```
+
+Raggruppare i dati in strutture non cambia l'algoritmo, ma rende più chiaro quali quantità appartengano allo stato del sistema e quali ne definiscano le proprietà. Inoltre, per aggiungere nuove coordinate o nuovi parametri sarà sufficiente estendere la struttura corrispondente, senza modificare la firma
+di tutte le funzioni che la utilizzano.
+
+## Esempio di integrazione numerica
 
 ```{figure} #cell:res_eulero
 :label: fig:res_eulero
@@ -840,7 +1033,7 @@ Questa equazione di aggiornamento della velocità tiene conto della variazione d
 3. Calcolo della forza (e quindi dell'accelerazione) utilizzando la nuova posizione: $x_{n+1} \to a_{n+1} = F_{n+1} / m$.
 4. Aggiornamento della velocità, seconda fase: $v_{n+1} = v_{n+1/2} + \frac{1}{2} a_{n+1}\Delta t = v_n + \frac{1}{2} (a_n + a_{n+1}) \Delta t$ (cioè l'eq. [](#eq:velocity_verlet_v)).
 
-### Stabilità ed accuratezza
+## Stabilità ed accuratezza
 
 Consideriamo le equazioni di aggiornamento del metodo Velocity Verlet:
 
@@ -969,6 +1162,88 @@ Come in [](#fig:error_eulero), con, in aggiunta, l'errore ottenuto applicando l'
 ```
 
 La [](#fig:error_velocity_verlet) illustra vividamente l'enorme impatto del passaggio da un errore globale di ordine $\mathcal{O}(\Delta t)$ a uno di ordine $\mathcal{O}(\Delta t^2)$. Per apprezzare concretamente questa differenza, si consideri un passo temporale tipico delle simulazioni reali, ad esempio $\Delta t = 10^{-3}$: in questo scenario, l'accuratezza di Velocity Verlet supera quella di Eulero-Cromer di ben tre ordini di grandezza, riducendo drasticamente l'errore sistematico accumulato sulla traiettoria.
+
+## C: Puntatori a funzione, ovvero come scegliere l'algoritmo durante l'esecuzione
+
+Finora abbiamo confrontato diversi algoritmi di integrazione, come Eulero, Eulero-Cromer e Velocity Verlet. Un modo poco pratico di farlo consiste nello scrivere un programma diverso per ogni algoritmo, oppure nel disseminare il ciclo di simulazione di istruzioni `if`. Questo duplica il codice che inizializza il sistema, esegue l'evoluzione e salva i risultati.
+
+Sarebbe più comodo scrivere un solo ciclo di simulazione e scegliere l'algoritmo da usare all'inizio dell'esecuzione. In C possiamo farlo mediante un **puntatore a funzione**.
+
+Consideriamo tre funzioni che eseguono un singolo passo temporale:
+
+```c
+void eulero(Sistema *sist, Punto *p);
+void eulero_cromer(Sistema *sist, Punto *p);
+void velocity_verlet(Sistema *sist, Punto *p);
+```
+
+Le tre funzioni hanno la stessa *firma*: ricevono argomenti dello stesso tipo e restituiscono tutte `void`. Possiamo quindi definire un tipo che rappresenta un puntatore a una qualunque funzione con questa firma:
+
+```c
+typedef void (*integratore)(Sistema *sist, Punto *p);
+```
+
+La dichiarazione può essere letta dall'interno verso l'esterno: `integratore` è un puntatore (`*`) a una funzione che riceve un puntatore a un `Sistema` e uno a un `Punto` e non restituisce alcun valore.
+
+Possiamo ora dichiarare una variabile di questo tipo e farla puntare all'algoritmo scelto, per esempio utilizzando un argomento da riga di comando
+
+```c
+integratore passo;
+
+// vogliamo che il primo argomento determini l'algoritmo di integrazione
+int scelta = atoi(argv[1]);
+
+if(scelta == 1) {
+    passo = eulero;
+}
+else if(scelta == 2) {
+    passo = eulero_cromer;
+}
+else if(scelta == 3) {
+    passo = velocity_verlet;
+}
+else {
+    fprintf(stderr, "Scelta non valida, i valori supportati sono\n");
+    fprintf(stderr, "1: Eulero\n2: Eulero-Cromer\n3: Velocity Verlet\n");
+    exit(1);
+}
+```
+
+Il nome di una funzione, quando viene utilizzato senza parentesi, rappresenta il suo indirizzo. Scrivere
+
+```c
+passo = eulero;
+```
+
+fa quindi puntare `passo` alla funzione `eulero`, ma non esegue ancora la funzione. Per eseguirla usiamo invece le parentesi, esattamente come per una normale chiamata:
+
+```c
+passo(&sist, &punto);
+```
+
+Il ciclo che realizza la simulazione non deve più sapere quale algoritmo sia stato scelto:
+
+```c
+double t = 0.0;
+Sistema sistema;
+Punto punto;
+
+/* inizializzazione */
+
+while(t < t_max) {
+    printf("%g %g %g\n", t, punto.x, punto.v);
+    passo(&sistema, &punto);
+    t += sistema.dt;
+}
+```
+
+A ogni iterazione `passo` chiamerà `eulero`, `eulero_cromer` oppure `velocity_verlet`, a seconda della scelta iniziale. La decisione viene quindi presa **a runtime**, mentre il programma è in esecuzione.
+
+Il vantaggio non consiste soltanto nel risparmiare qualche riga. Tutto ciò che non dipende dall'algoritmo, come condizioni iniziali, ciclo temporale, scrittura
+dei risultati e calcolo dell'errore, rimane in un unico punto del programma. Per aggiungere un nuovo integratore sarà sufficiente scrivere una funzione con la stessa firma e assegnarne l'indirizzo a `passo`.
+
+Un puntatore a funzione svolge dunque, per le funzioni, un ruolo simile a quello che un normale puntatore svolge per i dati: permette di memorizzare e
+passare ad altre parti del programma non un valore su cui operare, ma l'**operazione da eseguire**.
 
 # Il moto del pendolo semplice
 

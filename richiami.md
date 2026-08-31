@@ -64,7 +64,11 @@ Il testo contiene dei box di diverso tipo che sono corredati da simboli e colori
 ```{note} Questo è un approfondimento
 Il contenuto non è necessario per comprendere gli argomenti del testo, ma può aiutare a capire meglio, o soddisfare una curiosità.
 ```
-* I nuovi argomenti di C vengono introdotti in box di questo tipo:
+* Concetti o questioni a cui bisogna prestare particolarmente attenzione sono evidenziati con box di questo tipo:
+```{warning} Attenzione!
+È bene prestare attenzione al contenuto di questo paragrafo!
+```
+* * I nuovi argomenti di C vengono introdotti in sezioni apposite, il cui titolo comincia con **C:**, seguito dall'argomento discusso, oppure in box di questo tipo:
 ````{attention} Un nuovo argomento C!
 Una variabile statica si definisce in questa maniera
 ```c

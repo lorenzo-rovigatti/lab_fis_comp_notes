@@ -393,7 +393,7 @@ Distribuzioni di probabilità delle posizioni $x - x_0$ per un random walk unidi
 
 La [](#fig:res_random_walk_prob) mostra come l'approssimazione continua funzioni piuttosto bene già a tempi corti ($n = 10$).
 
-````{note} Oltre il random walk destra/sinistra
+## Oltre il random walk destra/sinistra
 
 Il teorema del limite centrale mostra che il comportamento diffusivo non dipende dalla scelta particolare di passi discreti verso destra o verso sinistra. Le ipotesi essenziali sono che gli incrementi $\xi_i$ siano indipendenti e identicamente distribuiti, con media nulla e varianza finita. Se queste condizioni sono verificate, per $n$ grande la distribuzione dello spostamento tenderà a una gaussiana, indipendentemente dalla forma dettagliata della distribuzione dei singoli passi. Il random walk destra/sinistra è quindi soltanto il più semplice esempio di una classe molto più generale di processi diffusivi.
 
@@ -502,19 +502,63 @@ $$
 
 dove $U_1$ e $U_2$ sono variabili uniformi indipendenti in $(0,1)$. Le variabili $Z_1$ e $Z_2$ così generate sono indipendenti e distribuite secondo una normale standard. Un incremento gaussiano di varianza $\sigma^2$ si ottiene quindi ponendo
 
-Poiché ogni applicazione della trasformazione produce due numeri gaussiani, in una simulazione efficiente conviene usare $Z_1$ per un passo e conservare $Z_2$ per quello successivo. In C questo si può fare in modo naturale utilizzando variabili statiche, come nell'esempio qui riportato:
+### C: Variabili locali `static`, ovvero come ricordare un valore tra due chiamate
+
+La trasformazione di Box–Muller genera due numeri gaussiani indipendenti, $Z_1$ e $Z_2$, usando la stessa coppia di numeri uniformi. Se la nostra funzione restituisse soltanto $Z_1$, getteremmo via metà del risultato appena calcolato:
 
 ```c
-double gaussian() {
-    static int use_next = 0;
-    static double next_gaussian = 0.0;
+double gaussian(void) {
+    double u1 = 1.0 - drand48();
+    double u2 = drand48();
 
-    if(use_next) {
-        use_next = 0;
-        return next_gaussian;
+    double r = sqrt(-2.0 * log(u1));
+    double theta = 2.0 * M_PI * u2;
+
+    return r * cos(theta);
+}
+```
+
+Potremmo invece restituire $Z_1$ e conservare $Z_2$ per la chiamata successiva. Una normale variabile locale, tuttavia, non è adatta a questo scopo:
+
+```c
+double gaussian(void) {
+    double next_gaussian;
+
+    /* ... */
+
+    next_gaussian = z2;
+    return z1;
+}
+```
+
+La variabile `next_gaussian` viene creata ogni volta che la funzione viene chiamata e cessa di esistere quando la funzione termina. Il valore assegnato durante una chiamata non è quindi disponibile in quella successiva.
+
+Per conservare il valore possiamo dichiarare la variabile locale mediante la parola chiave `static`:
+
+```c
+static double next_gaussian = 0.0;
+```
+
+Una variabile locale `static` ha proprietà particolari:
+
+- è visibile soltanto all'interno della funzione in cui è dichiarata;
+- viene inizializzata **una sola volta**;
+- conserva il proprio valore tra chiamate successive della funzione;
+- esiste per tutta la durata del programma.
+
+Possiamo quindi implementare il generatore nel modo seguente:
+
+```c
+double gaussian(void) {
+    static int has_spare = 0;
+    static double spare = 0.0;
+
+    if(has_spare) {
+        has_spare = 0;
+        return spare;
     }
 
-    double u1 = 1.0 - drand48(); // [0, 1) -> (0, 1] per evitare log(0)
+    double u1 = 1.0 - drand48();
     double u2 = drand48();
 
     double r = sqrt(-2.0 * log(u1));
@@ -523,12 +567,33 @@ double gaussian() {
     double z1 = r * cos(theta);
     double z2 = r * sin(theta);
 
-    next_gaussian = z2;
-    use_next = 1;
+    spare = z2;
+    has_spare = 1;
 
     return z1;
 }
 ```
+
+Le due variabili statiche hanno ruoli differenti:
+
+- `spare` conserva il secondo numero gaussiano prodotto da Box–Muller;
+- `has_spare` indica se `spare` contiene un numero ancora da utilizzare.
+
+Durante la prima chiamata `has_spare` vale zero. La funzione genera quindi $Z_1$ e $Z_2$, restituisce $Z_1$ e conserva $Z_2$ in `spare`. Durante la seconda chiamata `has_spare` vale uno: la funzione restituisce immediatamente il valore conservato, senza generare nuovi numeri uniformi e senza valutare nuovamente logaritmo, seno e coseno (che sono tra le funzioni matematiche più "costose" in termini di cicli CPU). La terza chiamata genera una nuova coppia, la quarta usa nuovamente il valore conservato, e così via. Il costo della trasformazione di Box–Muller viene pertanto sostenuto una volta ogni due numeri gaussiani prodotti.
+
+Se `has_spare` e `spare` non fossero `static`, verrebbero ricreate a ogni chiamata. In particolare, `has_spare` sarebbe inizializzata ogni volta a zero
+e l'istruzione condizionale
+
+```c
+if(has_spare)
+```
+
+non sarebbe mai verificata.
+
+:::{warning}
+La funzione ora possiede uno **stato interno**: il suo risultato dipende anche da ciò che è accaduto nelle chiamate precedenti. Questa soluzione è semplice
+ed efficiente per un programma sequenziale, ma in casi più complessi applicare soluzioni del genere richiede cautela.
+:::
 
 ```{note} Una versione più veloce
 :class: dropdown
@@ -553,7 +618,6 @@ sono variabili gaussiane indipendenti con media nulla e varianza unitaria.
 ```
 
 [^U1]: Oppure possiamo mantenere il numero distribuito in $(0, 1]$ per evitare divergenze nel logaritmo, come viene fatto nella funzione di esempio riportata più in basso
-````
 
 (sec:diffusion-equation)=
 ## Dalla dinamica discreta all'equazione di diffusione
