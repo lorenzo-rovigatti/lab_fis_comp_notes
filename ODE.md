@@ -384,6 +384,7 @@ $$
 
 Questa semplice modifica produce risultati significativamente migliori in molti problemi meccanici, in particolare nei sistemi oscillanti.
 
+(sec:struct)=
 ## C: Raggruppare i dati con `struct` e definire nuovi tipi con `typedef`
 
 Per simulare l'oscillatore armonico dobbiamo conservare diverse quantità. Alcune descrivono lo stato del sistema in un particolare istante, come posizione e
@@ -2048,3 +2049,398 @@ Come in [](#fig:error_rk) per l'oscillatore armonico smorzato. Il tempo totale d
 ```
 
 La [](#fig:damped_errors) mostra l'andamento degli errori globali ottenuti risolvendo numericamente l'equazione dell'oscillatore armonico smorzato, eq. [](#eq:oscillatore_armonico_smorzato), con i diversi metodi di integrazione introdotti in questa sezione. Si vede bene il comportamento di scala dell'errore globale degli algoritmi RK2 e RK4 rimanga invariato anche in sistemi in cui, come in questo caso, la forza dipende esplicitamente dalla velocità. Questo fa sì che RK4 (che è marginalmente più complesso da implementare e, per un calcolatore, da eseguire) sia il metodo più comune per risolvere equazioni (o sistemi di equazioni) differenziali che non richiedono la proprietà di simpletticità.
+
+# Dal moto unidimensionale ai sistemi planetari
+
+Finora abbiamo applicato gli algoritmi di integrazione numerica a sistemi con un solo grado di libertà, descritti da una posizione $x(t)$ e da una velocità $v(t)$. Gli stessi metodi possono però essere utilizzati per studiare sistemi multidimensionali formati da molti corpi. In questo caso lo stato del sistema non è più rappresentato da una singola coppia $(x,v)$, ma dall'insieme delle posizioni e delle velocità di tutti i corpi.
+
+Come esempio consideriamo un sistema formato da una stella di massa $M$, mantenuta fissa nell'origine, e da $N$ pianeti vincolati a muoversi sullo stesso piano. Il pianeta $i$-esimo ha massa $m_i$, posizione
+
+$$
+\mathbf r_i(t)=
+\begin{pmatrix}
+x_i(t)\\
+y_i(t)
+\end{pmatrix}
+$$
+
+e velocità
+
+$$
+\mathbf v_i(t)=
+\begin{pmatrix}
+v_{x,i}(t)\\
+v_{y,i}(t)
+\end{pmatrix}.
+$$
+
+L'ipotesi di moto planare è appropriata quando le posizioni e le velocità iniziali appartengono allo stesso piano. Le forze gravitazionali rimangono infatti contenute in quel piano e non possono generare una componente del moto perpendicolare a esso.
+
+Mantenere la stella immobile è invece un'approssimazione: anche la stella dovrebbe accelerare per effetto dell'attrazione dei pianeti. L'approssimazione è ragionevole quando la massa della stella è molto maggiore della somma delle masse planetarie, o in altre parole
+
+$$
+\label{eq:mass_approximation}
+\frac{\sum_i m_i}{M} \ll 1,
+$$
+
+così che il suo spostamento risulti molto piccolo rispetto alle dimensioni delle orbite. Ad esempio, per il sistema solare la somma delle masse dei pianeti è $\approx 2.6675 \times 10^{27}$ kg (con Giove che da solo rappresenta più del 70% della massa planetaria), mentre la massa del Sole vale $M_\odot \approx 1.9891 \times 10^{30}$ kg. Quindi, se volessimo simulare il nostro sistema solare, dove la massa planetaria è appena lo 0.134% di quella solare, la relazione [](#eq:mass_approximation) sarebbe valida.
+
+## Pianeti non interagenti
+
+Consideriamo inizialmente pianeti che interagiscono con la stella, ma non tra loro. La forza gravitazionale esercitata dalla stella sul pianeta $i$ è
+
+$$
+\mathbf F_i =
+-\frac{GMm_i}{|\mathbf r_i|^3}\mathbf r_i,
+$$
+
+dove $G$ è la costante di gravitazione universale e
+
+$$
+|\mathbf r_i|=\sqrt{x_i^2+y_i^2}
+$$
+
+è la distanza del pianeta dalla stella. Applicando la seconda legge di Newton si ottiene
+
+$$
+\mathbf a_i = \frac{\mathbf F_i}{m_i} = - \frac{GM}{|\mathbf r_i|^3}\mathbf r_i.
+$$
+
+La massa del pianeta non compare nell'accelerazione: a parità di posizione e velocità iniziali, tutti i corpi seguono la stessa traiettoria indipendentemente dalla loro massa.
+
+In componenti, le equazioni del moto sono
+
+$$
+\begin{cases}
+x'_i=v_{x,i},\\
+y'_i=v_{y,i},\\
+v'_{x,i}=-\dfrac{GMx_i}{(x_i^2+y_i^2)^{3/2}},\\
+v'_{y,i}=-\dfrac{GMy_i}{(x_i^2+y_i^2)^{3/2}}.
+\end{cases}
+$$
+
+Per ogni pianeta dobbiamo quindi integrare quattro equazioni differenziali del primo ordine. Un sistema di $N$ pianeti è descritto complessivamente da $4N$ variabili dinamiche. Nel caso non interagente, tuttavia, le equazioni relative a pianeti diversi sono indipendenti: stiamo semplicemente risolvendo $N$ problemi di Keplero separati.
+
+## Orbite circolari
+
+Un caso particolarmente semplice è quello di un pianeta in orbita circolare di raggio $R$. In questo caso l'accelerazione gravitazionale deve coincidere con l'accelerazione centripeta:
+
+$$
+\frac{v^2}{R}=\frac{GM}{R^2}.
+$$
+
+La velocità necessaria per ottenere un'orbita circolare è quindi
+
+$$
+v_{\rm circ}=\sqrt{\frac{GM}{R}}.
+$$
+
+Se inizialmente il pianeta si trova nel punto $(R,0)$, una possibile condizione iniziale è pertanto
+
+$$
+\mathbf r(0)=(R,0),
+\qquad
+\mathbf v(0)=\left(0,\sqrt{\frac{GM}{R}}\right).
+$$
+
+Il periodo dell'orbita vale
+
+$$
+T=\frac{2\pi R}{v_{\rm circ}} = 2\pi\sqrt{\frac{R^3}{GM}},
+$$
+
+da cui segue la terza legge di Keplero,
+
+$$
+T^2=\frac{4\pi^2}{GM}R^3.
+$$
+
+Le orbite circolari sono particolarmente utili per verificare un programma: raggio, velocità ed energia devono rimanere costanti, a meno dei piccoli errori introdotti dall'integrazione numerica.
+
+## Energia e momento angolare
+
+Poiché la forza gravitazionale è conservativa, a ciascun pianeta possiamo associare l'energia meccanica
+
+$$
+E_i = \frac{1}{2}m_i|\mathbf v_i|^2 - \frac{GMm_i}{|\mathbf r_i|}.
+$$
+
+In assenza di interazioni fra i pianeti, l'energia di ciascun pianeta si conserva separatamente. Si conserva quindi anche l'energia totale
+
+$$
+E=\sum_{i=1}^N E_i.
+$$
+
+Per un'orbita circolare, sostituendo $v_{\rm circ}^2=GM/R$, si ottiene
+
+$$
+E_i=-\frac{GMm_i}{2R}.
+$$
+
+L'energia è negativa perché il pianeta è gravitazionalmente legato alla stella. Più in generale, valori negativi dell'energia corrispondono a orbite legate, mentre un corpo con energia non negativa può allontanarsi indefinitamente dalla stella.
+
+Il momento lineare dei pianeti non si conserva, perché la stella fissa esercita su di essi una forza esterna. Per descrivere un sistema completamente isolato sarebbe necessario lasciare libera anche la stella e integrare la sua equazione del moto. D'altro canto, la forza gravitazionale è una forza centrale: è sempre parallela a $\mathbf r_i$ e non esercita quindi alcun momento rispetto all'origine. Di conseguenza, il momento angolare del pianeta si conserva. Nel moto planare l'unica componente non nulla è quella perpendicolare al piano:
+
+$$
+L_i = m_i(\mathbf r_i\times\mathbf v_i)_z = m_i(x_i v_{y,i}-y_i v_{x,i}).
+$$
+
+Nel caso non interagente si conserva separatamente ogni $L_i$, e di conseguenza anche
+
+$$
+L=\sum_{i=1}^N L_i.
+$$
+
+Energia e momento angolare forniscono due strumenti fondamentali per valutare la qualità dell'integrazione numerica. Una deriva sistematica di queste quantità può segnalare un passo temporale troppo grande o un algoritmo poco adatto allo studio di sistemi conservativi.
+
+## Interazioni fra i pianeti
+
+In un sistema planetario reale ogni pianeta è attratto non soltanto dalla stella, ma anche dagli altri pianeti. La forza esercitata dal pianeta $j$ sul pianeta $i$ è
+
+$$
+\mathbf F_{ij} = Gm_i m_j
+\frac{\mathbf r_j-\mathbf r_i}
+{|\mathbf r_j-\mathbf r_i|^3}.
+$$
+
+L'accelerazione complessiva del pianeta $i$ diventa quindi
+
+$$
+\mathbf a_i = -\frac{GM}{|\mathbf r_i|^3}\mathbf r_i + G\sum_{\substack{j \ne i}}^N m_j \frac{\mathbf r_j-\mathbf r_i} {|\mathbf r_j-\mathbf r_i|^3}.
+$$
+
+Le equazioni dei diversi pianeti sono ora accoppiate: per conoscere
+l'accelerazione di un pianeta dobbiamo conoscere simultaneamente le posizioni
+di tutti gli altri. In generale il problema non può più essere scomposto in
+orbite kepleriane indipendenti e non possiede una soluzione analitica.
+
+L'interazione può produrre precessioni, scambi di energia e momento angolare, risonanze orbitali e, in opportune condizioni, dinamiche caotiche o espulsioni dal sistema. Anche quando le interazioni sono deboli, i loro effetti possono accumularsi su tempi molto lunghi e modificare sensibilmente le orbite.
+
+L'energia meccanica totale deve ora includere anche l'energia potenziale associata a ogni coppia di pianeti:
+
+$$
+E = \sum_{i=1}^N \left[ \frac{1}{2}m_i|\mathbf v_i|^2 -\frac{GMm_i}{|\mathbf r_i|} \right] -
+\sum_{i<j} \frac{Gm_i m_j}{|\mathbf r_i-\mathbf r_j|}.
+$$
+
+La condizione $i<j$ garantisce che ogni coppia venga contata una sola volta. Se sommassimo su tutti gli indici distinti $i\ne j$, conteremmo infatti due volte la stessa interazione: una come coppia $(i,j)$ e una come coppia $(j,i)$.
+
+In presenza di interazioni non si conserva più l'energia di ciascun pianeta: i pianeti possono scambiarsi energia. Si conserva invece l'energia totale del sistema. Analogamente, il momento angolare di ogni singolo pianeta può variare, mentre si conserva il momento angolare totale
+
+$$
+L = \sum_{i=1}^N m_i(x_i v_{y,i}-y_i v_{x,i}).
+$$
+
+## Integrazione numerica di un sistema di molti corpi
+
+Gli algoritmi introdotti in questo capitolo possono essere applicati senza modifiche concettuali. Posizioni e velocità non sono più singoli numeri, ma insiemi di array (o array [di strutture](#sec:struct)). Poiché le forze gravitazionali dipendono dalle posizioni ma non dalle velocità, Velocity Verlet è una scelta naturale: è un metodo del secondo ordine e, essendo simplettico, descrive generalmente meglio l'evoluzione a lungo termine dei sistemi conservativi.
+
+È però essenziale che, a ogni fase dell'algoritmo, le accelerazioni siano calcolate usando posizioni riferite allo stesso istante. Non possiamo aggiornare completamente il primo pianeta e utilizzare subito la sua nuova posizione per calcolare l'accelerazione del secondo: in questo modo il risultato dipenderebbe arbitrariamente dall'ordine con cui i pianeti sono memorizzati.
+
+Un passo di Velocity Verlet deve quindi essere organizzato collettivamente:
+
+1. si calcolano le accelerazioni di tutti i pianeti;
+2. si aggiornano tutte le posizioni;
+3. si calcolano le nuove accelerazioni usando tutte le posizioni aggiornate;
+4. si aggiornano tutte le velocità.
+
+Nel caso non interagente, il calcolo delle accelerazioni richiede un numero di operazioni proporzionale a $N$. Includendo le interazioni, per ciascuno degli $N$ pianeti dobbiamo sommare il contributo degli altri $N-1$: il costo di un passo cresce quindi come $N^2$. Questa differenza diventa fondamentale nelle simulazioni con un numero molto grande di corpi.
+
+Rimane infine un problema pratico. Finora il numero delle variabili era stabilito direttamente nel codice. In un programma generale per il moto planetario, invece, vogliamo scegliere il numero $N$ di pianeti durante l'esecuzione. Dobbiamo pertanto riservare una quantità di memoria che dipenda da un valore non noto al momento della compilazione. Nella prossima sezione vedremo come farlo in C mediante l'allocazione dinamica della memoria.
+
+## C: Allocazione dinamica della memoria con `malloc` e `free`
+
+Nel programma appena descritto vogliamo scegliere il numero $N$ di pianeti durante l'esecuzione, per esempio prendendolo come argomento dalla riga di comando. Non possiamo quindi dichiarare un array di dimensione fissata nel codice sorgente:
+
+```c
+Pianeta pianeti[2];
+```
+
+Una dichiarazione di questo tipo permette di simulare esattamente due pianeti. Se volessimo modificarne il numero dovremmo cambiare il codice e compilarlo nuovamente.
+
+Possiamo invece riservare la memoria necessaria durante l'esecuzione mediante la funzione `malloc`, dichiarata nell'header `stdlib.h`. Supponiamo che la [struttura](#sec:struct) che rappresenta un pianeta sia stata definita nel modo seguente:
+
+```c
+typedef struct {
+    double m;
+    double x, y;
+    double vx, vy;
+} Pianeta;
+```
+
+Dopo aver determinato il numero di pianeti, possiamo dichiarare un puntatore e allocare dinamicamente un array:
+
+```c
+int N = atoi(argv[1]); /* primo argomento da riga di comando */
+
+Pianeta *pianeti = malloc(N * sizeof(Pianeta));
+```
+
+La funzione `malloc` riceve come argomento il numero di *byte* da allocare. L'espressione `sizeof(Pianeta)` (o, equivalententemente, `sizeof *pianeti`), restituisce il numero di *byte* necessari per memorizzare un oggetto di tipo `Pianeta`. Il prodotto
+
+```c
+N * sizeof(Pianeta)
+```
+
+è quindi la quantità di memoria necessaria per contenere $N$ pianeti, espressa in byte[^altro_sizeof].
+
+[^altro_sizeof]: Avremmo potuto scrivere anche `malloc(N * sizeof *pianeti);`. In questo caso `sizeof` avrebbe restituito il numero di *byte* necessari per memorizzare un oggetto del tipo a cui punta `pianeti`.
+
+Il valore restituito da `malloc` è l'indirizzo iniziale della regione di memoria allocata. Possiamo quindi utilizzare `pianeti` come un normale array:
+
+```c
+pianeti[0].m = 1.0e-3;
+pianeti[0].x = 1.0;
+pianeti[0].y = 0.0;
+pianeti[0].vx = 0.0;
+pianeti[0].vy = 1.0;
+```
+
+o, più in generale,
+
+```c
+for (int i = 0; i < N; i++) {
+    /* inizializzazione del pianeta i-esimo */
+}
+```
+
+In generale, gli array dinamici sottostanno alle stesse regole degli array normali:
+
+* la memoria è contigua: `pianeti[0]`, `pianeti[1]`, $\ldots$, `pianeti[N - 1]` identificano $N$ strutture `Pianeta` consecutive.
+* accedere a zone di memoria non allocate (cioè che non fanno parte dei *byte* richiesti tramite `malloc`) dà luogo a *undefined behaviour* che, nel migliore dei casi farà crashare il programma, mentre potrebbe più insidiosamente dare luogo a comportamenti non riproducibili del codice.
+* vale l'aritmetica dei puntatori: `pianeti[i + 1]` e `*(pianeti + i + 1)` si riferiscono allo stesso elemento.
+
+:::{warning} Controllare il risultato dell'allocazione
+L'allocazione può fallire, per esempio se il programma richiede più memoria di quella disponibile. In questo caso `malloc` restituisce il puntatore speciale `NULL`.
+
+È quindi necessario controllare sempre il risultato:
+
+```c
+Pianeta *pianeti = malloc(N * sizeof(Pianeta));
+
+if(pianeti == NULL) {
+    fprintf(stderr, "Impossibile allocare la memoria\n");
+    return 1;
+}
+```
+
+Il controllo deve avvenire prima di qualsiasi accesso a `pianeti`. Dereferenziare un puntatore `NULL`, per esempio valutando `pianeti[0]`, produce un *undefined behaviour* e causa, nel migliore dei casi, la terminazione anomala del programma.
+:::
+
+Notate inoltre che in C non è necessario convertire esplicitamente il valore restituito da `malloc`. È quindi possibile scrivere sia
+
+```c
+Pianeta *pianeti = malloc(N * sizeof(Pianeta));
+```
+
+che
+
+```c
+Pianeta *pianeti = (Pianeta *) malloc(N * sizeof(Pianeta));
+```
+
+La conversione da `void *`, il tipo restituito da `malloc`, a un altro tipo di puntatore avviene infatti automaticamente.
+
+### Inizializzazione della memoria e `calloc`
+
+`malloc` riserva la memoria, ma non ne inizializza il contenuto. Immediatamente dopo l'allocazione, i campi delle strutture contengono valori indeterminati:
+
+```c
+Pianeta *pianeti = malloc(N * sizeof(Pianeta));
+
+/* pianeti[0].x non possiede ancora un valore utilizzabile */
+```
+
+Prima di leggere un campo dobbiamo quindi assegnargli esplicitamente un valore. Nel programma sui pianeti questo avverrà naturalmente leggendo le masse e le condizioni iniziali dalla riga di comando o da un file. Se vogliamo invece che la memoria venga inizialmente azzerata, possiamo usare `calloc` al posto di `malloc`:
+
+```c
+Pianeta *pianeti = calloc(N, sizeof(Pianeta));
+```
+
+A differenza di `malloc`, `calloc` riceve separatamente il numero di elementi e la dimensione di ciascun elemento, e inizializza a zero tutti i *byte* della memoria allocata. Per esempio, può essere comodo inizializzare a zero due array destinati a contenere le componenti delle accelerazioni:
+
+```c
+double *ax = calloc(N, sizeof(double));
+double *ay = calloc(N, sizeof(double));
+```
+
+Anche il risultato di `calloc` deve essere controllato:
+
+```c
+if(ax == NULL || ay == NULL) {
+    fprintf(stderr, "Impossibile allocare la memoria\n");
+    exit(1);
+}
+```
+
+D'altro canto, se dobbiamo comunque assegnare immediatamente un valore a tutti gli elementi, come nel caso delle condizioni iniziali dei pianeti, tanto vale usare `malloc`.
+
+### Liberare la memoria con `free`
+
+La memoria allocata dinamicamente rimane riservata finché non viene liberata esplicitamente. Quando un array non serve più, dobbiamo restituire la memoria al sistema mediante `free`:
+
+```c
+free(pianeti);
+```
+
+Nel nostro programma, alla fine della simulazione scriveremo per esempio:
+
+```c
+free(ax);
+free(ay);
+free(pianeti);
+
+return 0;
+```
+
+Ogni regione ottenuta mediante `malloc` o `calloc` deve essere liberata esattamente una volta. Se perdiamo il puntatore senza aver chiamato `free`, la memoria rimane occupata ma non è più accessibile: si verifica quello che viene chiamato un *memory leak*, cioè una perdita di memoria.
+
+Dopo `free`, il puntatore continua formalmente a contenere il vecchio indirizzo, ma la memoria corrispondente è stata "restituita" al sistema operativo, e quindi non appartiene più al programma. Non possiamo quindi usarlo:
+
+```c
+free(pianeti);
+
+/* Errore: la memoria è già stata liberata, probabile segmentation fault */
+pianeti[0].x = 1.0;
+```
+
+Non bisogna neppure chiamare `free` due volte sullo stesso puntatore:
+
+```c
+free(pianeti);
+free(pianeti);  /* Errore */
+```
+
+### Il ciclo di vita dell'array
+
+L'utilizzo della memoria dinamica segue quindi quattro passaggi:
+
+1. determiniamo durante l'esecuzione il numero di oggetti da memorizzare;
+2. allochiamo la memoria con `malloc` o `calloc`;
+3. controlliamo il risultato e utilizziamo l'array;
+4. liberiamo la memoria con `free` quando non serve più.
+
+Nel caso dei pianeti, lo schema complessivo assume la forma
+
+```c
+int N = atoi(argv[1]);
+
+Pianeta *pianeti = malloc(N * sizeof(Pianeta));
+
+if(pianeti == NULL) {
+    fprintf(stderr, "Impossibile allocare la memoria\n");
+    return 1;
+}
+
+/* Lettura delle condizioni iniziali */
+
+/* Integrazione delle equazioni del moto */
+
+/* Analisi o scrittura dei risultati */
+
+free(pianeti);
+
+return 0;
+```
+
+La memoria dinamica ci permette così di scrivere un solo programma capace di simulare un numero arbitrario di pianeti, limitato soltanto dalla memoria disponibile, senza conoscere $N$ quando scriviamo o compiliamo il codice.
