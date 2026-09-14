@@ -5,7 +5,7 @@ exports:
 ---
 
 ```{warning} Inglesismi
-Purtroppo il mondo del software (e quindi anche della fisica computazionale) è pieno di inglesismi. Nonostante ci si debba sforzare di usarli solo quando sono necessari (quando, cioè, lo stesso termine in italiano assume una connotazione diversa), dovremo usarli frequentemente. Questo non ci autorizza a utilizzare espressini aberranti quali "printare" o "quittare".
+Purtroppo il mondo del software (e quindi anche della fisica computazionale) è pieno di inglesismi. Nonostante ci si debba sforzare di usarli solo quando sono necessari (quando, cioè, lo stesso termine in italiano assume una connotazione diversa), dovremo usarli frequentemente. Questo non ci autorizza a utilizzare espressioni aberranti quali "printare" o "quittare".
 ```
 
 # Git, GitHub e Classroom 50: il minimo indispensabile

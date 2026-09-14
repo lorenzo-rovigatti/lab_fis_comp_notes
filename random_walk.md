@@ -949,21 +949,22 @@ $$
 
 ma è sempre presente, e può diventare visibile se il passo temporale non è sufficientemente piccolo. Questo fornisce un utile test numerico: variando $\Delta t$, si può verificare se e come $m\langle v^2\rangle$ converga a $k_{\mathrm B}T$.
 
-````{note} Approfondimento: un aggiornamento migliore per la velocità
+````{note} Approfondimento: un aggiornamento diverso per la velocità
+:class: dropdown
 
-Abbiamo visto che la parte dissipativa dell'equazione di Langevin abbia la soluzione esatta data dall'equazione [](#eq:dissipazione_esatta). Nel caso discreto, il fattore di decadimento corretto è quindi
+Abbiamo visto che la parte dissipativa dell'equazione di Langevin ha come soluzione esatta quella data dall'equazione [](#eq:dissipazione_esatta). Nel caso discreto, il fattore di decadimento esatto si può quindi scrivere come
 
 $$
 a=e^{-\Delta t/\tau_v},
 $$
 
-anziché il fattore di Eulero
+da cui possiamo derivare, espandendo al primo ordine per piccoli valori di $\Delta t$, il fattore di Eulero:
 
 $$
 1-\frac{\Delta t}{\tau_v}.
 $$
 
-Utilizzando la soluzione analitica e il principio di equipartizione, possiamo tener conto esattamente sia della dissipazione sia della varianza del rumore durante il passo. L'aggiornamento della velocità diventa così
+Utilizzando la soluzione analitica e il principio di equipartizione, possiamo tener conto sia della dissipazione sia della varianza del rumore durante il passo. L'aggiornamento della velocità diventa così
 
 $$
 v_{n+1} = a v_n + \sqrt{\frac{k_{\mathrm B}T}{m} \left(1-a^2\right)}R_n.
@@ -1001,20 +1002,13 @@ $$
 L'aggiornamento esatto si riduce allora al metodo di Eulero:
 
 $$
-v_{n+1}
-\simeq
-v_n
--\frac{\Delta t}{\tau_v}v_n
-+
-\sqrt{
-\frac{2k_{\mathrm B}T}{m\tau_v}\Delta t
-}\,R_n.
+v_{n+1} \simeq v_n -\frac{\Delta t}{\tau_v}v_n + \sqrt{ \frac{2k_{\mathrm B}T}{m\tau_v}\Delta t }\,R_n.
 $$
 
 Questa forma mostra con chiarezza quale sia il peso corretto da attribuire alla parte dissipativa e quale debba essere, di conseguenza, l'ampiezza delle fluttuazioni.
 
 :::{warning} La scelta di $\Delta t$
-Utilizzando la soluzione esatta otteniamo un'espressione per l'aggiornamento della velocità che è esatta per il sistema considerato qui (problema lineare a forza esterna nulla). L'aggiornamento della posizione rimane invece un'approssimazione di Eulero. Quindi, l'uso del decadimento esponenziale non rende irrilevante la scelta di $\Delta t$. Infatti, un passo troppo grande può ancora descrivere male la posizione e non permette di risolvere la dinamica alle scale temporali più brevi.
+Utilizzando la soluzione esatta otteniamo un'espressione per l'aggiornamento della velocità che è esatta per il sistema considerato qui (problema lineare a forza esterna nulla). L'aggiornamento della posizione rimane invece un'approssimazione di Eulero. Quindi, l'uso del decadimento esponenziale non rende irrilevante la scelta di $\Delta t$. Infatti, un passo troppo grande può ancora descrivere male la posizione e non permette di risolvere la dinamica alle scale temporali più brevi. In effetti, il vantaggio che si ottiene con questo metodo è spesso piccolo o addirittura irrisorio rispetto al metodo di Eulero, che in questi casi è ancora l'algoritmo più utilizzato per integrare le equazioni di Langevin.
 :::
 ````
 
