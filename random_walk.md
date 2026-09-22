@@ -1050,10 +1050,9 @@ $$
 La dinamica di Langevin fornisce quindi un collegamento tra la descrizione microscopica in termini di velocità, attrito e fluttuazioni e la descrizione macroscopica in termini di diffusione.
 
 (sec:langevin-exercises)=
-## Possibili verifiche numeriche
+## Esperimenti numerici
 
-Una simulazione dell'equazione di Langevin permette di verificare
-direttamente diversi risultati:
+Una simulazione dell'equazione di Langevin permette di verificare direttamente diversi risultati:
 
 1. La velocità media decade come
    $$

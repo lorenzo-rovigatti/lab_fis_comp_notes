@@ -60,7 +60,7 @@ $$
 \odd{\theta_2}{t} = \frac{2 \sin(\Delta \theta) \left[ \left(\od{\theta_1}{t}\right)^2 l_1 M + g M \cos\theta_1 + \left(\od{\theta_2}{t}\right)^2 l_2 m_2 \cos(\Delta \theta) \right]}{l_2 \left[ 2m_1 + m_2 - m_2 \cos(2\theta_1 - 2\theta_2) \right]} \end{cases}
 $$
 
-dove $\Delta \theta = \theta_1 - \theta_2$ e $M = m_1 + m_2$. Queste equazioni sono impossibili da risolvere in forma chiusa. Non solo: il doppio pendolo è uno dei più celebri esempi di sistema caotico, una proprietà che discuteremo meglio più avanti. Qui basti sapere che con "sistema caotico" si intende un sistema per cui una piccolissima variazione nelle condizioni iniziali $\theta_1(0)$ o $\theta_2(0)$ (anche solo dovuta alla precisione finita con cui un computer immagazzina i numeri decimali) produce traiettorie che divergono completamente[^definizione_caos]. Per studiarne la dinamica, l'integrazione numerica al computer non è un'opzione comoda, è l'unica via percorribile. Un esempio di simulazione è mostrato in [](#sim:pendolo_doppio).
+dove $\Delta \theta = \theta_1 - \theta_2$ e $M = m_1 + m_2$. Queste equazioni sono impossibili da risolvere in forma chiusa. Non solo: il doppio pendolo è uno dei più celebri esempi di sistema caotico, una proprietà che discuteremo meglio [più avanti](#sec:caos). Qui basti sapere che con "sistema caotico" si intende un sistema per cui una piccolissima variazione nelle condizioni iniziali $\theta_1(0)$ o $\theta_2(0)$ (anche solo dovuta alla precisione finita con cui un computer immagazzina i numeri decimali) produce traiettorie che divergono completamente[^definizione_caos]. Per studiarne la dinamica, l'integrazione numerica al computer non è un'opzione comoda, è l'unica via percorribile. Un esempio di simulazione è mostrato in [](#sim:pendolo_doppio).
 
 ```{iframe} ../simulations/double_pendulum.html
 :label: sim:pendolo_doppio
@@ -262,18 +262,6 @@ v' = -\omega_0^2 x.
 \end{cases}
 \label{eq:ODE_harmonic_oscillator}
 $$
-
-Nel resto del capitolo considereremo anche una versione più generale del problema, che include sia l'attrito viscoso sia una *forzante*, ovvero una forza esterna dipendente dal tempo:
-
-$$
-x'' = -\omega_0^2 x - \gamma x' + \frac{F(t)}{m}.
-$$
-
-A seconda della scelta dei parametri si ottengono diversi casi di interesse fisico:
-
-* $\gamma = 0$ e $F(t) = 0$: oscillatore armonico semplice;
-* $\gamma > 0$ e $F(t) = 0$: oscillatore armonico smorzato;
-* $\gamma > 0$ e $F(t) \neq 0$: oscillatore armonico forzato.
 
 Questo sistema costituirà il principale banco di prova per gli algoritmi di integrazione numerica discussi nelle sezioni successive.
 
@@ -2444,3 +2432,227 @@ return 0;
 ```
 
 La memoria dinamica ci permette così di scrivere un solo programma capace di simulare un numero arbitrario di pianeti, limitato soltanto dalla memoria disponibile, senza conoscere $N$ quando scriviamo o compiliamo il codice.
+
+(sec:caos)=
+# Il pendolo smorzato e forzato: un esempio di moto caotico
+
+Consideriamo infine una variante del pendolo semplice che abbiamo già studiato: un pendolo sottoposto sia a una forza di attrito sia a una forza esterna periodica, che chiameremo *forzante*. Questo sistema ci permetterà di osservare numericamente alcuni dei comportamenti caratteristici della dinamica caotica senza svilupparne la teoria matematica completa.
+
+Supponiamo che sul pendolo agisca una forza di attrito tangenziale proporzionale alla velocità, $F_{\rm attr}=-\gamma L\dot\theta$, e una forza esterna $F(t)$. L'equazione del moto è allora
+
+$$
+mL\odd{\theta}{t} = -mg\sin\theta - \gamma L\od{\theta}{t} + F(t),
+$$
+
+ovvero
+
+$$
+\label{eq:driven_damped_pendulum}
+\odd{\theta}{t}=-\omega_0^2\sin\theta-\beta\od{\theta}{t}+A\cos(\omega_Dt),
+$$
+
+dove abbiamo scelto una forzante sinusoidale di pulsazione $\omega_D$ e definito
+
+$$
+\omega_0^2\equiv\frac{g}{L},\qquad
+\beta\equiv\frac{\gamma}{m},\qquad
+A\equiv\frac{F_0}{mL}.
+$$
+
+Il termine proporzionale a $\beta$ dissipa energia, mentre la forzante può cedere energia al pendolo. La dinamica risultante dipende dal bilancio fra questi due effetti e, soprattutto, dalla non linearità del termine $\sin\theta$. Se utilizzassimo l'approssimazione delle piccole oscillazioni, $\sin\theta\simeq\theta$, otterremmo infatti un oscillatore armonico smorzato e forzato: un sistema lineare che, pur possedendo una dinamica che può essere complessa, non mostra per nessuna combinazione di parametri le proprietà *caotiche* che discuteremo più avanti.
+
+È conveniente ridurre il numero di parametri introducendo il tempo adimensionale $\tau=\omega_0 t$. Se deriviamo rispetto a $\tau$, l'equazione [](#eq:driven_damped_pendulum) diventa
+
+$$
+\label{eq:dimensionless_driven_pendulum}
+\odd{\theta}{\tau} = -\sin\theta - q\od{\theta}{\tau} + f\cos(\Omega\tau),
+$$
+
+dove
+
+$$
+q\equiv\frac{\beta}{\omega_0},\qquad
+f\equiv\frac{A}{\omega_0^2},\qquad
+\Omega\equiv\frac{\omega_D}{\omega_0}.
+$$
+
+Indicando con un apice la derivata rispetto a $\tau$ e definendo la velocità angolare adimensionale $\omega(\tau) \equiv \theta'(\tau)$, il sistema di equazioni del primo ordine da integrare è quindi
+
+$$
+\label{eq:first_order_driven_pendulum}
+\begin{cases}
+\theta'=\omega,\\
+\omega'=-\sin\theta-q\omega+f\cos(\Omega\tau).
+\end{cases}
+$$
+
+Poiché l'accelerazione dipende sia dalla velocità sia dal tempo, utilizzeremo il metodo RK4 introdotto in precedenza.
+
+## Transiente e regime asintotico
+
+In un sistema conservativo le condizioni iniziali determinano la traiettoria percorsa per tutta la durata del moto. La presenza dell'attrito cambia questa situazione: una parte dell'informazione sullo stato iniziale viene progressivamente dissipata (o, in un certo senso, *dimenticata*). Nel moto di sistemi dissipativi c'è quindi una prima parte di traiettoria che dipende fortemente dalle condizioni iniziali che prende il nome di *transiente*; dopo un tempo sufficientemente lungo il sistema raggiunge invece il proprio *regime asintotico*.
+
+La distinzione è evidente già nel caso lineare ($\sin \theta \approx \theta$). Dopo l'accensione della forzante, la soluzione è la somma di una componente transiente, che decade a causa dell'attrito, e di una risposta periodica che oscilla alla frequenza della forzante. Nel pendolo non lineare il regime asintotico può essere molto più complesso, ma per studiarlo dobbiamo comunque eliminare la parte iniziale della simulazione.
+
+Introduciamo il periodo della forzante
+
+$$
+T_D=\frac{2\pi}{\Omega}.
+$$
+
+Una procedura pratica consiste nell'integrare le equazioni per un numero $N_{\rm t}$ di periodi senza utilizzare i dati prodotti, e analizzare soltanto la parte successiva della traiettoria. Il valore necessario di $N_{\rm t}$ dipende dai parametri: deve essere scelto controllando che le proprietà osservate non cambino apprezzabilmente se il transiente scartato viene allungato. 
+
+```{figure} figures/driven_transient.png
+:label: fig:driven_pendulum_transient
+:align: center
+
+Evoluzione temporale dell'angolo di un pendolo smorzato e forzato con $q=0.5$, $\Omega=2/3$ e (a) $f = 0.5$ e (b) $f = 1.1$. La regione iniziale ombreggiata rappresenta una stima approssimativa del transiente, seguita dal regime asintotico. Il tempo è in unità di periodi della forzante $T_D$.
+```
+
+La [](#fig:driven_pendulum_transient) mostra due esempi di traiettorie ottenute per due valori diversi dell'ampiezza della forzante. L'ombreggiatura nei due casi mostra come l'estensione del regime transiente dipenda, in generale, dai parametri.
+
+L'energia meccanica adimensionale del pendolo,
+
+$$
+E(\tau)=\frac{1}{2}\omega^2(\tau)+1-\cos\theta(\tau),
+$$
+
+non è una costante del moto. Derivandola rispetto a $\tau$ e usando l'equazione [](#eq:dimensionless_driven_pendulum) si ottiene infatti
+
+$$
+\od{E}{\tau}=-q\omega^2+f\omega\cos(\Omega\tau).
+$$
+
+Il primo termine è sempre negativo e rappresenta l'energia dissipata dall'attrito; il secondo rappresenta invece il lavoro compiuto dalla forza esterna e può avere entrambi i segni. L'energia rimane quindi un'osservabile utile, ma la sua mancata conservazione è in questo caso una proprietà fisica e non un errore dell'algoritmo.
+
+## Che cosa intendiamo per caos?
+
+Nel linguaggio comune la parola *caos* indica spesso una situazione completamente disordinata o casuale. In un sistema dinamico ha invece un significato più preciso. Un moto caotico è generato da equazioni deterministiche: assegnati esattamente lo stato iniziale e i parametri, l'evoluzione successiva è completamente determinata e non interviene alcun elemento casuale. Ciononostante, il moto non diventa periodico e condizioni iniziali arbitrariamente vicine possono produrre traiettorie molto diverse dopo un tempo sufficientemente lungo.
+
+Questa *sensibilità alle condizioni iniziali* limita la possibilità di prevedere la traiettoria a lungo termine. In una misura sperimentale le condizioni iniziali sono note soltanto con precisione finita; analogamente, in una simulazione numerica, come abbiamo visto, sono inevitabili gli errori di arrotondamento e di discretizzazione. Se il sistema è caotico, queste piccole incertezze vengono progressivamente amplificate[^amplificazione]. Il sistema rimane deterministico, ma la previsione della sua traiettoria individuale diventa rapidamente inaffidabile.
+
+[^amplificazione]: Queste amplificazioni sono esponenziali, come vedremo tra poco.
+
+In queste note non cercheremo di formulare una definizione matematica rigorosa del caos. Utilizzeremo invece alcuni suoi principali indicatori numerici: l'assenza di periodicità nel regime asintotico, la struttura irregolare della sezione di Poincaré e la rapida separazione di traiettorie inizialmente molto vicine. Nessuno di questi elementi deve essere confuso con la semplice complessità di una serie temporale: anche un lungo transiente o un errore numerico possono produrre un moto apparentemente irregolare.
+
+## La sezione di Poincaré
+
+Una lunga serie temporale può essere difficile da interpretare: oscillazioni periodiche di periodo elevato e moti irregolari possono apparire molto simili. Possiamo semplificare drasticamente la rappresentazione osservando il sistema soltanto una volta per ogni periodo della forzante, sempre alla stessa fase. Dopo aver scartato il transiente, registriamo quindi i punti
+
+$$
+\label{eq:poincare_points}
+(\theta_n,\omega_n)=
+\left[\theta(\tau_*+nT_D),\omega(\tau_*+nT_D)\right],
+\qquad n=0,1,2,\ldots,
+$$
+
+dove $\tau_*$ viene scelto in modo che la forzante abbia la stessa fase in tutti gli istanti campionati. L'insieme di questi punti prende il nome di *sezione di Poincaré*[^poincare_stroboscopica].
+
+[^poincare_stroboscopica]: Più precisamente, questo campionamento periodico viene spesso chiamato *mappa stroboscopica*: come una lampada stroboscopica, osserva il sistema sempre nello stesso punto del ciclo della forzante.
+
+```{figure} #cell:poincare
+:label: fig:poincare
+:align: center
+
+Sezioni di Poincaré del pendolo smorzato e forzato in tre diversi regimi. Un'orbita di periodo uno produce un singolo punto, un'orbita di periodo tre produce tre punti, mentre una traiettoria caotica genera un insieme irregolare. I parametri comuni sono $q=0.5$ e $\Omega=2/3$; da sinistra a destra, $f=0.5$, $f=1.1$ e $f=1.2$. Le condizioni iniziali sono $\theta(0)=0.2$ e $\omega(0)=0$.
+```
+
+Come mostrato in [](#fig:poincare), la sezione permette di distinguere immediatamente diversi comportamenti asintotici:
+
+* se il moto ha lo stesso periodo $T_D$ della forzante, tutti i campionamenti coincidono e osserviamo un solo punto (pannello $f = 0.5$ in [](#fig:poincare));
+* se il moto si ripete dopo $nT_D$, osserviamo $n$ punti distinti (pannello $f = 1.1$ in [](#fig:poincare));
+* se il moto è caotico, i punti non si ripetono e formano un insieme irregolare, pur rimanendo confinati in una regione dello spazio delle fasi (pannello $f = 1.2$ in [](#fig:poincare)).
+
+Poiché gli angoli che differiscono di $2\pi$ descrivono la stessa configurazione fisica, è spesso conveniente riportare $\theta$ nell'intervallo $[-\pi,\pi)$ prima di rappresentare la sezione. In C possiamo farlo, per esempio, mediante la funzione `atan2`[^atan2]:
+
+```c
+double theta_ridotto = atan2(sin(theta), cos(theta));
+```
+
+[^atan2]: Questo procedimento è particolarmente semplice da implementare, ma richiede la valutazione di due funzioni trigonometriche e di `atan2`, operazioni generalmente più costose della normale aritmetica. È quindi adatto alla scrittura dei risultati o alla loro analisi, ma conviene evitarlo nelle parti del codice eseguite molte volte, a meno che non sia strettamente necessario.
+
+Dal punto di vista numerico è essenziale campionare sempre alla stessa fase. Il modo più semplice per farlo è scegliere un passo temporale tale che
+
+$$
+\Delta\tau=\frac{T_D}{M},
+$$
+
+con $M$ intero, e salvare un punto ogni $M$ passi. In caso contrario è necessario interpolare la soluzione agli istanti dell'equazione [](#eq:poincare_points): prendere semplicemente il punto della griglia più vicino può introdurre un lento spostamento della fase di campionamento.
+
+## Sensibilità alle condizioni iniziali
+
+Come abbiamo anticipato, uno degli indicatori principali della dinamica caotica è la sensibilità alle condizioni iniziali. Cerchiamo ora di osservarla quantitativamente. Consideriamo due copie dello stesso sistema con condizioni iniziali quasi identiche,
+
+$$
+\begin{split}
+\theta_1(0)&=\theta_0,\\
+\theta_2(0)&=\theta_0+\epsilon,
+\end{split}
+\qquad
+\omega_1(0)=\omega_2(0)=\omega_{\rm ini},
+$$
+
+dove $\epsilon$ è molto piccolo. Poiché l'angolo è una variabile periodica, definiamo la differenza angolare come
+
+$$
+\Delta\theta=\operatorname{atan2}\!\left[
+\sin(\theta_1-\theta_2),\cos(\theta_1-\theta_2)
+\right]
+$$
+
+e misuriamo la distanza fra le due traiettorie mediante
+
+$$
+\label{eq:phase_space_distance}
+\delta(\tau)=\sqrt{(\Delta\theta)^2+(\omega_1-\omega_2)^2}.
+$$
+
+In un regime caotico, per un certo intervallo temporale ci aspettiamo un andamento approssimativamente esponenziale,
+
+$$
+\delta(\tau)\simeq\delta(0)e^{\lambda\tau},
+$$
+
+con $\lambda>0$.
+
+```{figure} #cell:lyapunov
+:label: fig:lyapunov
+:align: center
+
+Distanza nello spazio delle fasi, Eq. [](#eq:phase_space_distance), fra due traiettorie con condizioni iniziali separate da una piccola quantità $\epsilon$. Notare la scala logaritmica sull'asse delle ordinate: punti disposti su una retta indicano un comportamento esponenziale. I parametri comuni sono $q=0.5$ e $\Omega=2/3$, mentre le due curve si riferiscono a $f = 0.5$ (blu) e $f = 1.2$ (rosso). Le condizioni iniziali di riferimento sono $\theta(0)=0.2$ e $\omega(0)=0$, mentre nel caso perturbato $\theta(0)=0.200001$ (una differenza dello $0.0005$%).
+```
+
+La [](#fig:lyapunov) mostra in scala logaritmica $\delta(\tau)$ per traiettorie che partono da condizioni iniziali molto simili (stessa velocità angolare, angolo iniziale $\theta'(0) = \theta(0) + 0.000001$). Nel caso non caotico, $f = 0.5$, la differenza decresce esponenzialmente nel tempo, fino ad annullarsi completamente. Di converso, nel caso caotico, $f = 1.2$, si osserva una crescita iniziale che appare approssimativamente lineare in scala logaritmica; successivamente la distanza satura: quando le due traiettorie sono ormai separate quanto consentito dalla regione accessibile (in questo caso $\approx \pi$), $\delta(\tau)$ non può continuare a crescere esponenzialmente. In un sistema senza condizioni periodiche, la crescita continuerebbe senza limiti.
+
+La quantità $\lambda$ è collegata al cosiddetto [*esponente di Lyapunov*](https://it.wikipedia.org/wiki/Esponente_di_Ljapunov). La sua determinazione accurata richiede procedure più sofisticate della semplice evoluzione di due traiettorie e non verrà affrontata qui. Il nostro esperimento mostra però il punto fisico fondamentale: le equazioni sono completamente deterministiche, ma un'incertezza arbitrariamente piccola sullo stato iniziale viene amplificata e limita la possibilità di prevedere la traiettoria a tempi lunghi.
+
+Questo fenomeno non deve essere confuso con un errore causato dalla precisione finita del calcolatore. Gli errori di arrotondamento e discretizzazione forniscono inevitabilmente piccole perturbazioni, ma non sono l'origine del caos: rendono semplicemente impossibile seguire indefinitamente una particolare traiettoria caotica. Per verificare che il comportamento osservato non sia un artefatto numerico dovremo ripetere l'integrazione riducendo $\Delta\tau$. Le singole traiettorie finiranno comunque per separarsi, ma proprietà come la forma della sezione di Poincaré e il tipo di regime osservato devono rimanere compatibili.
+
+### Al variare della forzante: il diagramma di biforcazione
+
+La sezione di Poincaré descrive la dinamica per un particolare insieme di parametri. Per osservare come il comportamento cambi al variare, per esempio, dell'ampiezza $f$ della forzante possiamo costruire un *diagramma di biforcazione*.
+
+Per ciascun valore di $f$ integriamo il sistema, scartiamo il transiente e rappresentiamo i successivi valori stroboscopici $\omega_n$ in funzione di $f$. Un solo valore di $\omega_n$ corrisponde a un'orbita di periodo uno; due o più rami indicano orbite di periodo maggiore; una banda contenente molti punti può segnalare un regime caotico. Al variare di $f$ possiamo così osservare raddoppiamenti del periodo, regioni irregolari e finestre nelle quali ricompare un moto periodico.
+
+```{figure} #cell:driven_pendulum_bifurcation
+:label: fig:driven_pendulum_bifurcation
+:align: center
+
+Diagramma di biforcazione ottenuto rappresentando i valori della velocità angolare nella sezione di Poincaré al variare dell'ampiezza $f$ della forzante, mantenendo costanti $q$ e $\Omega$.
+```
+
+Il diagramma riassume efficacemente la transizione fra regimi dinamici differenti, ma non costituisce da solo una dimostrazione di caos. In particolare, un transiente non sufficientemente lungo può trasformare artificialmente un piccolo numero di rami in una nuvola di punti.
+
+## Esperimenti numerici
+
+Il pendolo smorzato e forzato permette di riutilizzare il programma sviluppato per il pendolo semplice modificando soltanto la funzione che calcola l'accelerazione e aggiungendo i parametri $q$, $f$ e $\Omega$. Una possibile analisi numerica può seguire l'organizzazione di questa sezione, analizzando il sistema nel modo seguente:
+
+1. integrare il sistema [](#eq:first_order_driven_pendulum) con RK4 e rappresentare $\theta(\tau)$, $\omega(\tau)$ ed $E(\tau)$;
+2. individuare il transiente e verificare che i risultati asintotici non cambino aumentandone la durata;
+3. costruire la sezione di Poincaré per un regime periodico e per uno caotico;
+4. nel regime caotico, confrontare due condizioni iniziali separate da una piccola perturbazione e rappresentare la distanza [](#eq:phase_space_distance) in scala semilogaritmica;
+5. ripetere almeno una simulazione dimezzando il passo temporale, confrontando le proprietà geometriche delle sezioni di Poincaré anziché le singole traiettorie a tempi lunghi.
+
+Come approfondimento, è possibile automatizzare la variazione di $f$ e costruire il diagramma di biforcazione descritto sopra. I valori $q=0.5$ e $\Omega=2/3$ costituiscono un utile punto di partenza: abbiamo visto che con le condizioni iniziali $\theta(0)=0.2$ e $\omega(0)=0$, valori come $f=0.5$ producono un'orbita di periodo uno, $f=1.1$ un'orbita di periodo tre e $f=1.2$ un regime caotico[^parametri_caos].
+
+[^parametri_caos]: La classificazione deve essere verificata dopo aver eliminato un transiente sufficientemente lungo e controllato la convergenza rispetto al passo temporale. In un sistema non lineare, condizioni iniziali differenti possono inoltre raggiungere attrattori diversi anche a parità di parametri.

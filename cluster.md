@@ -1,5 +1,6 @@
 ---
-title: Liste e cluster
+title: Liste, cluster e percolazione
 exports:
    - format: pdf
 ---
+
