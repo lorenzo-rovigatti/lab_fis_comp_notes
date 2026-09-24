@@ -2632,16 +2632,21 @@ Questo fenomeno non deve essere confuso con un errore causato dalla precisione f
 
 La sezione di Poincaré descrive la dinamica per un particolare insieme di parametri. Per osservare come il comportamento cambi al variare, per esempio, dell'ampiezza $f$ della forzante possiamo costruire un *diagramma di biforcazione*.
 
-Per ciascun valore di $f$ integriamo il sistema, scartiamo il transiente e rappresentiamo i successivi valori stroboscopici $\omega_n$ in funzione di $f$. Un solo valore di $\omega_n$ corrisponde a un'orbita di periodo uno; due o più rami indicano orbite di periodo maggiore; una banda contenente molti punti può segnalare un regime caotico. Al variare di $f$ possiamo così osservare raddoppiamenti del periodo, regioni irregolari e finestre nelle quali ricompare un moto periodico.
-
-```{figure} #cell:driven_pendulum_bifurcation
-:label: fig:driven_pendulum_bifurcation
+```{figure} #cell:bifurcation
+:label: fig:bifurcation
 :align: center
 
-Diagramma di biforcazione ottenuto rappresentando i valori della velocità angolare nella sezione di Poincaré al variare dell'ampiezza $f$ della forzante, mantenendo costanti $q$ e $\Omega$.
+Diagramma di biforcazione ottenuto rappresentando i valori della velocità angolare nella sezione di Poincaré al variare dell'ampiezza $f$ della forzante, mantenendo costanti $q = 0.5$ e $\Omega = 2/3$. Per ogni valore di $f$ (che varia tra 0.8 e 1.8 con passo $10^{-3}$), sono state fatte dieci simulazioni con condizioni iniziali $\theta(0)=0.2$ e $\omega(0)=\frac{1}{3} k$, con $0 \leq k < 10$.
+``````{figure} #cell:bifurcation
+:label: fig:bifurcation
+:align: center
+
+Diagramma di biforcazione ottenuto rappresentando i valori della velocità angolare nella sezione di Poincaré al variare dell'ampiezza $f$ della forzante, mantenendo costanti $q = 0.5$ e $\Omega = 2/3$. Per ogni valore di $f$ (che varia tra 0.8 e 1.8 con passo $10^{-3}$), sono state fatte dieci simulazioni con condizioni iniziali $\theta(0)=0.2$ e $\omega(0)=\frac{1}{3} k$, con $0 \leq k < 10$.
 ```
 
-Il diagramma riassume efficacemente la transizione fra regimi dinamici differenti, ma non costituisce da solo una dimostrazione di caos. In particolare, un transiente non sufficientemente lungo può trasformare artificialmente un piccolo numero di rami in una nuvola di punti.
+Per ciascun valore di $f$ integriamo il sistema, scartiamo il transiente e rappresentiamo i successivi valori stroboscopici $\omega_n$ in funzione di $f$. La [](#fig:bifurcation) mostra un esempio ottenuto con il pendolo smorzato e forzato. Osservando la figura partendo da $f$ piccoli si trova un solo valore di $\omega_n$, che corrisponde a un'orbita di periodo uno. Aumentando il valore di $f$ cominciamo a trovare due o più rami, che indicano orbite di periodo maggiore. Aumentando ancora $f$ cominciamo ad osservare prima una banda contenente molti punti, che può segnalare un regime caotico, e poi altre transizioni tra diversi regimi. Al variare di $f$ possiamo così osservare raddoppiamenti del periodo, regioni irregolari e finestre nelle quali ricompare un moto periodico.
+
+Il diagramma riassume efficacemente la transizione fra regimi dinamici differenti, ma non costituisce da solo una dimostrazione di caos. Per esempio, un transiente non sufficientemente lungo può trasformare artificialmente un piccolo numero di rami in una nuvola di punti.
 
 ## Esperimenti numerici
 
