@@ -527,7 +527,7 @@ modifichi direttamente lo stato del punto:
 
 ```c
 void eulero(Sistema *sistema, Punto *punto) {
-    double a = accelerazione(punto, sistema);
+    double a = accelerazione(sistema, punto);
 
     punto->x += punto->v * sistema->dt;
     punto->v += a * sistema->dt;
@@ -538,8 +538,8 @@ Il metodo di Eulero-Cromer ha la stessa interfaccia e differisce soltanto
 nell'ordine degli aggiornamenti:
 
 ```c
-void eulero_cromer(Punto *punto, const Sistema *sistema) {
-    double a = accelerazione(punto, sistema);
+void eulero_cromer(Sistema *sistema, Punto *punto) {
+    double a = accelerazione(sistema, punto);
 
     punto->v += a * sistema->dt;
     punto->x += punto->v * sistema->dt;
@@ -611,7 +611,7 @@ $$
 \label{eq:eulero_matrix_step}
 \begin{cases}
 x_{n+1} = x_n + v_n \Delta t\\
-v_{n+1} = - \omega^2 x_n \Delta t + v_n.
+v_{n+1} = - \omega_0^2 x_n \Delta t + v_n.
 \end{cases}
 $$
 
@@ -1034,12 +1034,12 @@ v_{n+1} &= v_n + \frac{1}{2} (a_n + a_{n+1}) \Delta t.
 \end{cases}
 $$
 
-Nel caso dell'oscillatore armonico, $a_n = -\omega_0 x_n$ e $a_{n+1} = -\omega_0 x_{n+1}$, quindi
+Nel caso dell'oscillatore armonico, $a_n = -\omega_0^2 x_n$ e $a_{n+1} = -\omega_0^2 x_{n+1}$, quindi
 
 $$
 \begin{cases}
-x_{n+1} &= x_n + v_n \Delta t - \frac{1}{2} \omega_0 x_n \Delta t^2\\
-v_{n+1} &= v_n - \frac{1}{2} \omega_0(x_n + x_{n+1}) \Delta t.
+x_{n+1} &= x_n + v_n \Delta t - \frac{1}{2} \omega_0^2 x_n \Delta t^2\\
+v_{n+1} &= v_n - \frac{1}{2} \omega_0^2(x_n + x_{n+1}) \Delta t.
 \end{cases}
 $$
 
@@ -1448,11 +1448,11 @@ dove $a_{n+1/2} = a(x_{n+1/2}, v_{v+1/2}, t_{n+1/2})$ è l'accelerazione calcola
 
 ### Stabilità ed accuratezza
 
-Considerando che, per l'oscillatore armonico, $a_{n+1/2} = -\omega_0 x_{n+1/2} =-\omega_0(x_n + v_n \Delta t/2)$, le equazioni di aggiornamento [](#eq:rk2) si possono scrivere come
+Considerando che, per l'oscillatore armonico, $a_{n+1/2} = -\omega_0^2 x_{n+1/2} =-\omega_0^2(x_n + v_n \Delta t/2)$, le equazioni di aggiornamento [](#eq:rk2) si possono scrivere come
 
 $$
 \begin{cases}
-x_{n+1} = x_n + \left(v_n - \omega_0 x_n \frac{\Delta t}{2}\right) \Delta t\\
+x_{n+1} = x_n + \left(v_n - \omega_0^2 x_n \frac{\Delta t}{2}\right) \Delta t\\
 v_{n+1} = v_n + \left(-\omega_0^2 x_n - \frac{1}{2}\omega_0^2 \Delta t v_n\right) \Delta t,
 \end{cases}
 $$

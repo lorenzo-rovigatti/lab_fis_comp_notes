@@ -163,7 +163,7 @@ In C, un nodo si definisce naturalmente come una `struct` che contiene un puntat
 ```c
 typedef struct nodo {
     int valore;
-    struct nodo *next;   /* puntatore al nodo successivo, o NULL */
+    struct nodo *next; // puntatore al nodo successivo, o NULL
 } Nodo;
 ```
 
@@ -193,19 +193,19 @@ int main(void) {
             exit(1);
         }
         nuovo->valore = v;
-        nuovo->next = testa;   /* il nuovo nodo punta a quella che era la vecchia testa */
-        testa = nuovo;         /* e diventa lui stesso la nuova testa */
+        nuovo->next = testa; // il nuovo nodo punta a quella che era la vecchia testa
+        testa = nuovo;       // e diventa lui stesso la nuova testa
     }
 
-    /* percorriamo la lista, stampando i valori */
+    // percorriamo la lista, stampando i valori
     for(Nodo *corrente = testa; corrente != NULL; corrente = corrente->next) {
         printf("%d\n", corrente->valore);
     }
 
-    /* liberiamo la memoria, un nodo alla volta */
+    // liberiamo la memoria, un nodo alla volta
     Nodo *corrente = testa;
     while(corrente != NULL) {
-        Nodo *prossimo = corrente->next;   /* salviamo il puntatore prima di liberare il nodo corrente */
+        Nodo *prossimo = corrente->next; // salviamo il puntatore prima di liberare il nodo corrente
         free(corrente);
         corrente = prossimo;
     }
@@ -217,7 +217,7 @@ int main(void) {
 Il programma stampa i numeri da 4 a 0, non da 0 a 4: inserendo ogni nuovo nodo in testa, l'ultimo elemento inserito è il primo che si incontra percorrendo la lista. Questo modo di costruire la lista si comporta quindi come una pila (chiamata anche *stack* o *LIFO*, cioè "*last in first out*"), ed è la maniera più semplice di inserire un elemento in una lista concatenata, perché richiede di conoscere solo la testa della lista.
 
 :::{warning} Non dimenticate `free`
-Ogni nodo allocato con `malloc` va liberato con `free` quando non serve più, altrimenti il programma perde memoria (*memory leak*) a ogni inserimento. Da notare, nel codice sopra, il salvataggio esplicito di `corrente->next` in `prossimo` **prima** di chiamare `free(corrente)`: una volta liberato un nodo non è più lecito leggerne i campi, quindi bisogna prima annotarsi dove si trova il nodo successivo.
+Ogni nodo allocato con `malloc` va liberato con `free` quando non serve più, altrimenti il programma perde memoria (*memory leak*) a ogni inserimento. Da notare, nel codice sopra, il salvataggio esplicito di `corrente->next` in `prossimo` prima di chiamare `free(corrente)`: una volta liberato un nodo non è più lecito leggerne i campi, quindi bisogna prima annotarsi dove si trova il nodo successivo.
 :::
 
 Il flood fill richiede invece una coda (una struttura *FIFO*, "*first in first out*"): i siti vanno esaminati nell'ordine in cui sono stati aggiunti, e i nuovi siti vanno aggiunti in fondo. Inserire in fondo a una lista richiede di conoscerne anche l'ultimo nodo: per questo, oltre al puntatore alla testa, terremo un secondo puntatore all'ultimo nodo, così che ogni inserimento abbia un costo indipendente dalla lunghezza della lista. Il vantaggio di questa scelta è che per scorrere la coda basta percorrere la lista dalla testa seguendo i puntatori `next`, esattamente come nel ciclo di stampa qui sopra: i siti aggiunti in fondo durante il percorso verranno raggiunti a loro volta, e l'esplorazione termina quando si arriva a un `next` uguale a `NULL`.
@@ -226,23 +226,24 @@ Il flood fill richiede invece una coda (una struttura *FIFO*, "*first in first o
 
 Nell'esempio precedente ogni nodo della lista viene allocato con una `malloc` dedicata, e liberato con una `free` quando non serve più. Applicando lo stesso schema al nostro problema finiremmo per allocare (e liberare) fino a $L^2$ nodi per ogni singola realizzazione del reticolo, da ripetere per le molte realizzazioni necessarie a fare delle medie.
 
-Possiamo evitarlo del tutto. Ogni sito del reticolo entra nella coda al più una volta durante l'intera esplorazione: possiamo quindi usare la memoria già allocata per il sito stesso come nodo della lista, invece di allocarne uno a parte. Per farlo sostituiamo l'`int` che rappresentava ogni sito con una `struct` che contiene due interi (se il sito è occupato e l'etichetta del cluster di cui fa parte, che vale 0 finché il sito non è stato raggiunto) e il campo `next` necessario per la lista:
+Possiamo evitarlo del tutto. Ogni sito del reticolo entra nella coda al più una volta durante l'intera esplorazione: possiamo quindi usare la memoria già allocata per il sito stesso come nodo della lista, invece di allocarne uno a parte. Per farlo sostituiamo l'`int` che rappresentava ogni sito con una `struct` che contiene quattro interi (le coordinate del sito $i$ e $j$, se il sito è occupato e l'etichetta del cluster di cui fa parte, che vale $-1$ finché il sito non è stato raggiunto) e il campo `next` necessario per la lista:
 
 ```c
 typedef struct sito {
+    int i, j;
     int occupato;
     int cluster_id;
-    struct sito *next;    /* usato solo mentre il sito è nella coda */
+    struct sito *next; // puntatore al sito successivo nel cluster, o NULL
 } Sito;
 ```
 
-A questo punto allochiamo il reticolo come un unico array di `Sito`:
+I campi `i` e `j` non sono strettamente necessari, ma rendono più semplice tenere traccia dei siti durante l'esplorazione dei cluster. A questo punto allochiamo il reticolo come un unico array di `Sito`:
 
 ```c
 Sito *reticolo = malloc(L * L * sizeof(Sito));
 ```
 
-Il sito in posizione $(i,j)$ si trova, con la stessa indicizzazione usata sopra, in `reticolo[i + j * L]`. Questo array continua a essere un blocco contiguo di memoria (ogni elemento è semplicemente più grande di un singolo `int`), quindi manteniamo tutti i vantaggi discussi in precedenza. Per generare una configurazione si procede come prima, impostando `reticolo[idx].occupato = (drand48() < p)` e `reticolo[idx].cluster_id = 0` per ogni sito.
+Il sito in posizione $(i,j)$ si trova, con la stessa indicizzazione usata sopra, in `reticolo[i + j * L]`. Questo array continua a essere un blocco contiguo di memoria (ogni elemento è semplicemente più grande di un singolo `int`), quindi manteniamo tutti i vantaggi discussi in precedenza. Per generare una configurazione si procede come prima, impostando `reticolo[idx].occupato = (drand48() < p)` e `reticolo[idx].cluster_id = -1` per ogni sito.
 
 Con questa scelta, "aggiungere un sito alla coda" non significa più allocare un nuovo nodo, ma semplicemente far puntare il campo `next` dell'ultimo sito già in coda all'indirizzo del nuovo sito:
 
@@ -256,42 +257,52 @@ void aggiungi_in_coda(Sito **coda, Sito *nuovo) {
 
 Non serve una funzione per "estrarre" un sito dalla coda: dato che non liberiamo mai i nodi, ci basta avanzare lungo la lista con `corrente = corrente->next`. L'intera esplorazione non richiede nessuna chiamata a `malloc` o `free`: tutta la memoria necessaria è stata allocata una volta sola, insieme al reticolo.
 
-## L'implementazione
-
-La funzione che esplora un singolo cluster a partire dal sito di indice `idx0`, assegnandogli l'etichetta `id` e restituendone la taglia, è la seguente:
+````{attention} Puntatori a puntatori
+Perché `aggiungi_in_coda` prende come argomento un puntatore a puntatore, `Sito **coda`? Quando passate un puntatore a una funzione, questa riceve una *copia* di quel puntatore: può leggere l'indirizzo che contiene, e modificare il dato a cui punta, ma non può cambiare *a cosa punta* la variabile originale nel chiamante, perché sta lavorando su una copia. Per esempio:
 
 ```c
-int esplora_cluster(Sito *reticolo, int L, int idx0, int id) {
-    Sito *testa = &reticolo[idx0];
+void assegna(int *p) {
+  *p = 73;  // *p è il valore puntato: la modifica si vede anche fuori dalla funzione
+  p = NULL; // p è una copia locale: la sua modifica non ha effetto all'esterno
+}
+```
+
+Nel caso di `aggiungi_in_coda`, invece, deve fare esattamente questo: quando si aggiunge un sito in coda, il puntatore `coda` del chiamante deve cominciare a puntare al nuovo ultimo nodo. Per modificare il valore di `coda` stesso, e non solo il dato a cui punta, la funzione ha bisogno dell'indirizzo di `coda`: un puntatore a un puntatore, `Sito **`. È lo stesso motivo per cui, quando la chiamate da `esplora_cluster`, passate `&coda` e non semplicemente `coda`.
+````
+
+## L'implementazione
+
+La funzione che esplora un singolo cluster a partire da un sito puntato da `testa`, assegnandogli l'etichetta `id` e restituendone la taglia, è la seguente:
+
+```c
+int esplora_cluster(Sito *reticolo, Sito *testa, int L, int id) {
     Sito *coda = testa;
     int taglia = 0;
 
     testa->cluster_id = id;
     testa->next = NULL;
 
-    for (Sito *corrente = testa; corrente != NULL; corrente = corrente->next) {
+    for(Sito *corrente = testa; corrente != NULL; corrente = corrente->next) {
         taglia++;
 
-        int idx = corrente - reticolo;   /* posizione del sito corrente nell'array */
-        int i = idx % L;
-        int j = idx / L;
+        int idx = corrente - reticolo; // posizione del sito corrente nell'array
 
-        /* i quattro primi vicini: sinistra, destra, sopra, sotto */
+        // i quattro primi vicini: sinistra, destra, sopra, sotto
         int di[4] = {-1, +1,  0,  0};
         int dj[4] = { 0,  0, -1, +1};
 
-        for (int k = 0; k < 4; k++) {
-            int vi = i + di[k];
-            int vj = j + dj[k];
+        for(int k = 0; k < 4; k++) {
+            int vi = corrente->i + di[k];
+            int vj = corrente->j + dj[k];
 
-            /* scartiamo i vicini fuori dal reticolo */
-            if (vi < 0 || vi >= L || vj < 0 || vj >= L) {
+            // scartiamo i vicini fuori dal reticolo
+            if(vi < 0 || vi >= L || vj < 0 || vj >= L) {
                 continue;
             }
 
             Sito *vicino = &reticolo[vi + vj * L];
 
-            if (vicino->occupato && vicino->cluster_id == 0) {
+            if(vicino->occupato && vicino->cluster_id == -1) {
                 vicino->cluster_id = id;
                 aggiungi_in_coda(&coda, vicino);
             }
@@ -308,15 +319,17 @@ Il ciclo che etichetta tutti i cluster del reticolo è quindi:
 
 ```c
 int id = 0;
-int *taglia = malloc(L * L * sizeof(int));   /* nel caso peggiore ci sono L*L cluster */
+// nel caso peggiore di siti disposti a "scacchiera" ci sono circa L*L/2 cluster, ma il
+// numero preciso dipende dalla grandezza esatta... comunque è un numero di ordine L*L.
+int *taglia = malloc(L * L * sizeof(int));
 
-for (int idx = 0; idx < L * L; idx++) {
-    if (reticolo[idx].occupato && reticolo[idx].cluster_id == 0) {
+for(int idx = 0; idx < L * L; idx++) {
+    Sito *sito = reticolo + idx;
+    if(sito->occupato && sito->cluster_id == -1) {
         id++;
-        taglia[id - 1] = esplora_cluster(reticolo, L, idx, id);
+        taglia[id - 1] = esplora_cluster(reticolo, sito, L, id);
     }
 }
-int n_cluster = id;
 ```
 
 ## Identificare il cluster percolante

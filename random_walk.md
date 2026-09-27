@@ -500,7 +500,14 @@ Z_2 &= \sqrt{-2\log U_1}\sin(2\pi U_2),
 \end{align}
 $$
 
-dove $U_1$ e $U_2$ sono variabili uniformi indipendenti in $(0,1)$. Le variabili $Z_1$ e $Z_2$ così generate sono indipendenti e distribuite secondo una normale standard. Un incremento gaussiano di varianza $\sigma^2$ si ottiene quindi ponendo
+dove $U_1$ e $U_2$ sono variabili uniformi indipendenti in $(0,1)$. Le variabili $Z_1$ e $Z_2$ così generate sono indipendenti e distribuite secondo una normale standard, cioè con varianza unitaria. Incrementi gaussiani di varianza $\sigma^2$ si ottengono quindi ponendo
+
+$$
+\begin{align}
+\csi_1 &= \sigma Z_1\\
+\csi_2 &= \sigma Z_2.
+\end{align}
+$$
 
 ### C: Variabili locali `static`, ovvero come ricordare un valore tra due chiamate
 
