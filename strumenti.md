@@ -87,6 +87,14 @@ git commit -m "Implementato il metodo di Eulero"
 
 Questo comando prende le modifiche che avevate preparato nella staging area, le applica alla versione precedente e ne crea una nuova, accludendo (con `-m`) un breve messaggio che descrive il lavoro svolto.
 
+:::{attention} Cosa succede se dimentichiamo `-m`?
+L'opzione `-m` permette di specificare il messaggio direttamente dalla riga di comando. Se lo omettiamo, git aprirà un file temporaneo con l'editor di default, che di solito è un editor potente ma di non semplice utilizzo (come [nano](https://www.nano-editor.org/) o [vim](https://www.vim.org/)). Per ovviare a questo problema e fare in modo che git apra un editor che conosciamo ([Emacs](https://www.gnu.org/software/emacs/), ad esempio) possiamo dare questo comando (una volta per ogni computer su cui vogliamo lavorare):
+
+```bash
+git config --global core.editor "emacs"
+```
+:::
+
 Il workflow locale è quindi, in pratica:
 
 ```bash

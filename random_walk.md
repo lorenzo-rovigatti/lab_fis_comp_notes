@@ -504,8 +504,8 @@ dove $U_1$ e $U_2$ sono variabili uniformi indipendenti in $(0,1)$. Le variabili
 
 $$
 \begin{align}
-\csi_1 &= \sigma Z_1\\
-\csi_2 &= \sigma Z_2.
+\xi_1 &= \sigma Z_1\\
+\xi_2 &= \sigma Z_2.
 \end{align}
 $$
 
