@@ -20,10 +20,13 @@ Possiamo quindi distinguere almeno due scale temporali:
 - una scala microscopica, associata agli urti con le molecole del fluido;
 - una scala macroscopica, associata all'evoluzione osservabile della posizione della particella.
 
-Scegliendo un intervallo temporale $\Delta t$ molto più grande della durata e della separazione tipica dei singoli urti, non cerchiamo di descrivere ciò che accade durante ogni collisione. Descriviamo invece soltanto lo spostamento netto accumulato dalla particella durante ciascun intervallo
-$\Delta t$.
+Scegliendo un intervallo temporale $\Delta t$ molto più grande della durata e della separazione tipica dei singoli urti, non cerchiamo di descrivere ciò che accade durante ogni collisione. Descriviamo invece soltanto l'effetto *netto* accumulato dagli urti durante ciascun intervallo $\Delta t$.
 
-Il modello che costruiamo è quindi una descrizione **coarse-grained** (cioè *a grana grossa*): sostituiamo la complicata dinamica microscopica con una successione di spostamenti casuali che tengono conto dell'effetto *medio* degli urti. Infatti, se volessimo (e potessimo) risolvere il moto alle scale microscopiche, vedremmo che a tempi molto brevi la particella reale possiede una velocità ben definita e il moto è approssimativamente balistico. La descrizione browniana emerge quando osserviamo il sistema su intervalli temporali molto più lunghi del tempo caratteristico degli urti microscopici. A queste scale di tempo intermedie, la traiettoria efficace del moto browniano risulta continua ma non differenziabile: ingrandendone un tratto continuano ad apparire nuove irregolarità. Quindi, poiché la traiettoria non è differenziabile, non è possibile associare alla traiettoria una velocità istantanea ordinaria. Il random walk discreto evita inizialmente questo problema, descrivendo il moto mediante spostamenti definiti su intervalli temporali finiti.
+Il modello che costruiamo è quindi una descrizione **coarse-grained** (cioè *a grana grossa*): sostituiamo la complicata dinamica microscopica con un modello che tiene conto soltanto dell'effetto *medio* degli urti e delle fluttuazioni attorno a questa media. La scala a cui "sgranare" la descrizione, però, non è unica.
+
+Se osserviamo la particella su tempi sufficientemente brevi, essa possiede una velocità ben definita e il moto è approssimativamente balistico. In questo caso conviene scrivere un'equazione del moto per la velocità, in cui il fluido esercita sulla particella una forza di attrito e una forza casuale. Si tratta dell'equazione di Langevin: un'equazione differenziale ordinaria con una forzante stocastica, che possiamo integrare con i metodi numerici già visti per le ODE.
+
+Su tempi molto più lunghi del tempo che la particella impiega a "dimenticare" la propria velocità, la traiettoria efficace risulta invece continua ma non differenziabile: ingrandendone un tratto continuano ad apparire nuove irregolarità. Poiché la traiettoria non è differenziabile, non è possibile associarle una velocità istantanea ordinaria. A queste scale conviene rinunciare del tutto alla velocità e descrivere il moto mediante spostamenti casuali definiti su intervalli temporali finiti: è il **random walk** (o *cammino aleatorio*), che otterremo come limite dell'equazione di Langevin e che studieremo poi come modello a sé stante.
 
 Una singola traiettoria browniana è estremamente irregolare. La posizione della particella dopo un certo tempo non può essere prevista conoscendo
 soltanto la sua posizione iniziale: traiettorie preparate nelle stesse condizioni macroscopiche producono evoluzioni microscopiche diverse.
@@ -70,204 +73,6 @@ traiettoria, il ruolo di $x_0$ può essere assunto di volta in volta dalla posiz
 
 Studiare $x_n-x_0$, anziché direttamente $x_n$, permette inoltre di separare le proprietà del moto dalla scelta arbitraria dell'origine delle coordinate. Infatti, per un sistema omogeneo le statistiche degli spostamenti non devono dipendere dal punto dello spazio dal quale la particella è partita.
 
-(sec:random-walk-1d)=
-# Random walk unidimensionale discreto
-
-Il modello più semplice che contiene questi ingredienti è il random walk
-simmetrico unidimensionale.
-
-Consideriamo una particella che si trova inizialmente nella posizione $x_0$.
-Dividiamo il tempo in intervalli di durata $\Delta t$. Durante ogni intervallo
-la particella compie uno spostamento di modulo $\Delta x$, verso destra oppure
-verso sinistra con uguale probabilità:
-
-$$
-x_n=x_{n-1}+\xi_n,
-$$
-
-dove
-
-$$
-\xi_n=
-\begin{cases}
-+\Delta x & \text{con probabilità } 1/2,\\
--\Delta x & \text{con probabilità } 1/2.
-\end{cases}
-$$
-
-Ne discende che gli spostamenti compiuti in intervalli temporali diversi sono statisticamente indipendenti, cioè che $\langle \xi_i \xi_j \rangle = 0$ per $i \neq j$.
-
-```{figure} #cell:res_random_walk_traj
-:label: fig:res_random_walk_traj
-:align: center
-
-Quattro diverse realizzazioni di un random walk unidimensionale simulato per $10^5$ passi.
-```
-
-La [](#fig:res_random_walk_traj) mostra quattro diverse realizzazioni numeriche di un random walk unidimensionale. Si vede come le traiettorie siano molto frastagliate e diverse tra loro. Qualitativamente, sembra anche che il camminatore non si sposti molto: se ci si muove di $N$ passi lungo una direzione, lo spostamento totale coinciderà con $N$, mentre in queste traiettorie il camminatore non si è allontanato per più di qualche centinaio di passi dall'origine, nonostante i $10^5$ passi compiuti. Questa osservazione qualitativa si può circostanziare come segue. Dopo $n$ passi,
-
-$$
-x_n=x_0+\sum_{i=1}^{n}\xi_i,
-$$
-
-e quindi lo spostamento rispetto alla posizione iniziale è
-
-$$
-X_n\equiv x_n-x_0=\sum_{i=1}^{n}\xi_i.
-$$
-
-Questa formulazione rende esplicito che $x_0$ determina soltanto una traslazione della traiettoria, mentre le proprietà statistiche del moto sono contenute nella somma degli incrementi casuali.
-
-Per un singolo passo si ha
-
-$$
-\langle \xi_i\rangle = \frac{1}{2}\Delta x+\frac{1}{2}(-\Delta x)
-=0.
-$$
-
-Usando la linearità del valor medio,
-
-$$
-\langle X_n\rangle = \left\langle\sum_{i=1}^n\xi_i\right\rangle = \sum_{i=1}^n\langle\xi_i\rangle = 0.
-$$
-
-Di conseguenza, $\langle x_n-x_0\rangle=0$ e quindi $\langle x_n\rangle=x_0$: la posizione media non cambia nel tempo. Questo non significa che la particella rimanga ferma: le singole traiettorie si allontanano in generale da $x_0$, ma gli spostamenti verso destra e verso sinistra si compensano quando si calcola la media su molte realizzazioni.
-
-Calcoliamo ora il quadrato dello spostamento:
-
-$$
-X_n^2 = \left(\sum_{i=1}^n\xi_i\right)^2 = \sum_{i=1}^n\xi_i^2 + 2\sum_{i<j}\xi_i\xi_j.
-$$
-
-Prendendo il valor medio,
-
-$$
-\langle X_n^2\rangle = \sum_{i=1}^n\langle\xi_i^2\rangle + 2\sum_{i<j}\langle\xi_i\xi_j\rangle.
-$$
-
-Poiché i passi sono indipendenti, per $i\neq j$ vale
-
-$$
-\langle\xi_i\xi_j\rangle = \langle\xi_i\rangle\langle\xi_j\rangle = 0.
-$$
-
-Inoltre, indipendentemente dalla direzione del passo,
-
-$$
-\xi_i^2=\Delta x^2,
-$$
-
-e quindi
-
-$$
-\langle X_n^2\rangle = \sum_{i=1}^n\Delta x^2 = n\Delta x^2.
-$$
-
-Otteniamo dunque
-
-$$
-\left\langle (x_n-x_0)^2\right\rangle=n\Delta x^2.
-$$
-
-Dato che $\langle X_n\rangle=0$, questa quantità coincide con la varianza:
-
-$$
-\operatorname{Var}(X_n) = \langle X_n^2\rangle-\langle X_n\rangle^2 = n\Delta x^2.
-$$
-
-Analogamente,
-
-$$
-\operatorname{Var}(x_n)=n\Delta x^2.
-$$
-
-La posizione quadratica media, che in generale dipende dalla scelta dell'origine e/o dalla condizione iniziale $x_0$, è invece
-
-$$
-\langle x_n^2\rangle = x_0^2+\langle X_n^2\rangle = x_0^2+n\Delta x^2.
-$$
-
-(sec:diffusive-scaling)=
-## Legge di scala diffusiva
-
-Una misura della distanza tipica percorsa dalla particella è la radice dello spostamento quadratico medio,
-
-$$
-x_{\mathrm{rms}}
-\equiv
-\sqrt{\left\langle(x_n-x_0)^2\right\rangle}.
-$$
-
-Per il random walk,
-
-$$
-x_{\mathrm{rms}}=\Delta x\sqrt{n}.
-$$
-
-La distanza tipica cresce quindi come $\sqrt{n}$, e non come $n$: dopo $n$ passi la particella ha percorso una distanza totale $n\Delta x$, ma il suo spostamento netto è tipicamente soltanto dell'ordine di $\Delta x\sqrt n$.
-
-Se a ogni passo associamo un intervallo temporale $\Delta t$, dopo $n$ passi è trascorso un tempo
-
-$$
-t=n\Delta t.
-$$
-
-Lo spostamento quadratico medio può allora essere scritto come
-
-$$
-\label{eq:D}
-\left\langle(x(t)-x_0)^2\right\rangle = \frac{\Delta x^2}{\Delta t}t \equiv 2 D t,
-$$
-
-dove abbiamo introdotto il coefficiente di diffusione unidimensionale
-
-$$
-D\equiv\frac{\Delta x^2}{2\Delta t}.
-$$
-
-Questa relazione lineare tra spostamento quadratico medio e tempo rappresenta la caratteristica principale (la firma) del **moto diffusivo**.
-
-```{figure} #cell:res_random_walk_msd
-:label: fig:res_random_walk_msd
-:align: center
-
-Lo spostamento quadratico $\left\langle(x(t)-x_0)^2\right\rangle$ per un random-walk unidimensionale mediato su una o più traiettorie (vedi legenda), insieme alla curva teorica di pendenza unitaria (linea tratteggiata viola). **Nota Bene:** la linea rossa è quasi completamente nascosta dalla curva teorica.
-```
-
-La [](#fig:res_random_walk_msd) mostra come lo spostamento quadratico medio tenda al valore teorico, purché il numero di traiettorie su cui è mediato sia sufficientemente grande. Il grafico è in scala doppio logaritmica (o log-log): questa scelta è la migliore quando le quantità di interesse variano di diversi ordini di grandezza. Inoltre, se $A(t) = B t^\alpha$, allora $\log(A(t)) = \alpha \log(Bt) = \alpha \log(t) + \alpha \log B$: quantità che dipendono dall'ascissa con una legge a potenza appariranno rette di coefficiente angolare pari all'esponente della potenza.
-
-```{note} Il limite al continuo
-Immaginiamo di descrivere lo stesso processo usando passi temporali e spaziali, $\Delta t$ e $\Delta x$, sempre più piccoli. Poiché stiamo descrivendo lo stesso sistema fisico, le quantità osservabili devono rimanere le stesse, indipendentemente dal valore di $\Delta t$ e $\Delta x$. In particolare, la varianza osservata dopo lo stesso tempo $t$, eq. [](#eq:D), non deve cambiare quando scegliamo una discretizzazione più fine. Per questo, nel limite continuo, il rapporto
-
-$$
-\frac{\Delta x^2}{\Delta t}
-$$
-
-deve rimanere costante.
-
-In una dimensione si definisce convenzionalmente
-
-$$
-D=\frac{\Delta x^2}{2\Delta t},
-$$
-
-così che la relazione precedente assuma la forma standard $\left\langle [x(t)-x_0]^2 \right\rangle=2Dt$. Il fattore $2$ fa quindi parte della definizione convenzionale di $D$; la condizione fisica importante è che $\Delta x^2/\Delta t$ rimanga costante.
-```
-
-Confrontiamo il moto diffusivo con quello di una particella che si muove con velocità costante (*moto balistico*). In questo caso la posizione evolve con la legge
-
-$$
-x(t)-x_0=vt,
-$$
-
-da cui si trova immediatamente
-
-$$
-[x(t)-x_0]^2=v^2t^2.
-$$
-
-Nel moto balistico gli spostamenti successivi sono tutti coerenti: la particella mantiene memoria della direzione del moto. Nel random walk, invece, la direzione di ogni passo è indipendente da quella dei passi precedenti e la memoria della direzione viene persa immediatamente.
-
 :::{note} Distinguere il tipo di moto
 Una quantità molto utile per studiare il moto di oggetti (che siano particelle, colloidi, persone, *ecc*) è lo spostamento quadratico medio (*mean-square displacement* o MSD) in funzione del tempo:
 
@@ -278,130 +83,212 @@ $$
 È comune in molti sistemi fisici molto diversi tra loro che l'MSD e il tempo siano connessi da una legge a potenza del tipo $\mathrm{MSD}(t)\propto t^\beta$. Spesso, $\beta$ dipende dal tempo: in questo caso l'MSD mostra *regimi* differenti. Ad esempio, il moto di una particella può essere di tipo balistico ($\beta = 2$) a tempi brevi, e diffusivo ($\beta = 1$) a tempi lunghi.
 :::
 
-(sec:random-walk-distribution)=
-## Distribuzione delle posizioni
+(sec:langevin-equation)=
+# L'equazione di Langevin
 
-Consideriamo ora il seguente sistema: un "camminatore" (cioè la versione semplificata della nostra particella) che può spostarsi lungo un binario. A ogni istante di tempo $\Delta t$, il camminatore può spostarsi a destra o a sinistra di $\Delta x$ con uguale probabilità. Dopo $n$ passi, indichiamo con $n_+$ il numero di passi verso destra e con $n_-$ il numero di passi verso sinistra. Si ha
+Il primo punto di vista che adottiamo è il più vicino alla meccanica newtoniana: scrivere un'equazione del moto per la particella e rappresentare l'effetto del fluido mediante una forza dissipativa e una forza casuale.
+
+Questo approccio fu introdotto da Paul Langevin all'inizio del Novecento. L'idea fondamentale consiste nel separare l'effetto delle molecole del fluido in due contributi:
+
+1. un termine di attrito, che tende a frenare la particella;
+2. una parte rapidamente fluttuante (detta spesso *di rumore*), dovuta al fatto che gli urti microscopici non si compensano mai esattamente.
+
+In una dimensione l'equazione di Langevin più semplice è
 
 $$
-n_++n_-=n
+m\odd{x}{t} = -\gamma v(t) + \eta(t),
+$$
+
+dove $\gamma > 0$ è il coefficiente di attrito e quindi $-\gamma v(t)$ è la forza dissipativa, e $\eta(t)$ è una forza casuale che rappresenta gli urti con il fluido. La novità rispetto alle ODE considerate finora, come le equazioni differenziali dovute all'applicazione delle leggi di Newton, è che la forzante $\eta(t)$ non è una funzione deterministica del tempo, e non può essere scritta in termini di $x(t)$ e $v(t)$. In questo caso, infatti, "risolvere l'equazione" significa ottenere una traiettoria che non è unica, ma dipende dalla realizzazione. Il sistema va quindi studiato in termini probabilistici, usando le medie [discusse nell'introduzione](#sec:random-walk).
+
+Prima di introdurre il rumore ripassiamo l'effetto della dissipazione. Ponendo $\eta(t) = 0$ l'equazione diventa
+
+$$
+m\odd{x}{t} = m\od{v}{t}=-\gamma v,
+$$
+
+che ha soluzione
+
+$$
+\label{eq:dissipazione_esatta}
+v(t)=v_0e^{-\gamma t/m} = v_0e^{-t/\tau_v},
+$$
+
+dove abbiamo implicitamente definito il *tempo di rilassamento* della velocità come $\tau_v=\frac{m}{\gamma}$
+
+La velocità iniziale viene quindi "dimenticata" su una scala temporale
+dell'ordine di $\tau_v$. Infatti, per tempi molto più brevi, $t\ll\tau_v$, la velocità cambia poco e il moto è approssimativamente balistico. Per tempi molto più lunghi, $t\gg\tau_v$, la memoria della velocità iniziale è persa e diventano dominanti gli effetti
+cumulativi delle fluttuazioni casuali.
+
+Questa scala temporale è importante anche da un altro punto di vista: per risolvere numericamente la dinamica di un sistema con un termine di attrito, $\Delta t$ deve essere sufficientemente piccolo da poter risolvere correttamente il rilassamento, e quindi si deve avere $\Delta t \ll \tau_v$.
+
+(sec:wiener-process)=
+## Il processo di Wiener
+
+Per rappresentare la forza casuale è utile introdurre il **processo di Wiener**, il più famoso tra i *processi stocastici*, spesso indicato con $W(t)$.
+
+:::{admonition} Che cos'è un processo stocastico?
+:class: note
+
+Una variabile aleatoria descrive una quantità il cui valore non è noto con certezza. Un **processo stocastico** è una collezione di variabili aleatorie indicizzate dal tempo, diciamo $X(t)$. Per ogni istante $t$, $X(t)$ rappresenta l'insieme dei valori che il sistema potrebbe assumere, insieme alle rispettive probabilità.
+
+Quando si osserva o si simula una singola evoluzione del sistema, si ottiene invece una funzione del tempo,
+
+$$
+t \mapsto x(t),
+$$
+
+chiamata **traiettoria** o **realizzazione** del processo.
+
+Per esempio, se lanciamo ripetutamente una moneta e a ogni lancio ci spostiamo di $+1$ o di $-1$ a seconda del risultato, la successione delle posizioni
+
+$$
+X_0,X_1,X_2,\ldots
+$$
+
+è un processo stocastico a tempo discreto (lo studieremo in dettaglio quando parleremo di [random walk](#sec:random-walk-1d)), mentre una sequenza specifica come
+
+$$
+0,\ 1,\ 0,\ -1,\ -2,\ \ldots
+$$
+
+è una sua traiettoria.
+
+Il processo di Wiener $W(t)$ è invece un processo stocastico a tempo continuo: le sue traiettorie sono continue, ma estremamente irregolari.
+:::
+
+$W(t)$ non è una funzione propriamente detta, e quindi non possiamo definirlo tramite un'espressione chiusa (per esempio attraverso la sua derivata). È invece caratterizzabile mediante i suoi incrementi. Consideriamo due istanti separati da un intervallo $\Delta t$. L'incremento
+
+$$
+\Delta W
+=
+W(t+\Delta t)-W(t)
+$$
+
+è una variabile aleatoria gaussiana con
+
+$$
+\langle\Delta W\rangle=0
 $$
 
 e
 
 $$
-\label{eq:x_n_discreto}
-x_n-x_0=(n_+-n_-)\Delta x=(2n_+-n)\Delta x.
+\langle(\Delta W)^2\rangle=\Delta t.
 $$
 
-La probabilità che in un percorso di $n$ passi il camminatore ne abbia fatti $n_+$ verso destra è data da una distribuzione binomiale:
+```{note} Perché la varianza è proporzionale a $\Delta t$?
+:label: note:wiener-variance
+
+La richiesta $\langle(\Delta W)^2\rangle=\Delta t$ non è arbitraria, ma discende dall'indipendenza degli incrementi. Dividiamo l'intervallo $[0,t]$ in $n$ sottointervalli di durata $\Delta t = t/n$. Allora
 
 $$
-\mathcal{P}(n_+, n) = \frac{1}{2^n} \binom{n}{n_+},
+W(t)-W(0)=\sum_{i=1}^n \Delta W_i,
 $$
 
-da cui si ottiene la distribuzione della posizione sostituendo la dipendenza di $n_+$ da $x_n$ trovata nell'equazione [](#eq:x_n_discreto)[^Px_valida]:
+e, elevando al quadrato e mediando,
 
 $$
-P_n(x) = \frac{1}{2^n}
-\binom{n}{
-\frac{1}{2}
-\left(
-n+\frac{x-x_0}{\Delta x}
-\right)
-},
-$$
-
-[^Px_valida]: La distribuzione è ovviamente valida per i soli valori di $x$ accessibili al random walk.
-
-La distribuzione discreta presenta alcune particolarità. Per esempio, se $n$ è dispari $P(x_0) = 0$, e dopo un numero pari di passi la particella può trovarsi soltanto a una distanza pari a un multiplo pari di $\Delta x$ da $x_0$. Questi dettagli diventano però irrilevanti quando $n$ è grande e si osserva il sistema su scale spaziali molto maggiori di $\Delta x$.
-
-(sec:random-walk-clt)=
-## Il limite continuo e il teorema del limite centrale
-
-Lo spostamento dopo $n$ passi,
-
-$$
-X_n=\sum_{i=1}^n\xi_i,
-$$
-
-è la somma di $n$ variabili aleatorie indipendenti e identicamente distribuite, con
-
-$$
-\langle\xi_i\rangle=0,
-\qquad
-\operatorname{Var}(\xi_i)=\Delta x^2.
-$$
-
-Il [teorema del limite centrale](https://it.wikipedia.org/wiki/Teoremi_del_limite_centrale) afferma che, per $n$ grande, la variabile normalizzata
-
-$$
-Z_n
+\left\langle [W(t)-W(0)]^2 \right\rangle
 =
-\frac{X_n}{\Delta x\sqrt n}
+\sum_{i=1}^n \left\langle \Delta W_i^2 \right\rangle
++
+2\sum_{i<j} \left\langle \Delta W_i \Delta W_j \right\rangle.
 $$
 
-tende ad avere una distribuzione normale con media nulla e varianza unitaria.
-
-La distribuzione dello spostamento è quindi approssimativamente
+Poiché gli incrementi sono indipendenti e di media nulla, $\langle \Delta W_i \Delta W_j \rangle = \langle \Delta W_i \rangle \langle \Delta W_j \rangle = 0$ per $i \neq j$, e quindi le varianze si *sommano*:
 
 $$
-P(X_n) \simeq \frac{1}{\sqrt{2\pi n\Delta x^2}} \exp\left[ -\frac{X_n^2}{2n\Delta x^2} \right].
+\left\langle [W(t)-W(0)]^2 \right\rangle
+=
+n \left\langle \Delta W^2 \right\rangle.
 $$
 
-Usando
+Il membro sinistro è una proprietà del processo al tempo $t$ e non può dipendere da come abbiamo scelto di suddividere l'intervallo. Questo è possibile soltanto se $\langle \Delta W^2 \rangle$ è proporzionale a $\Delta t$: con $\langle \Delta W^2 \rangle = \Delta t$ si ottiene infatti
 
 $$
-X_n=x-x_0,
-\qquad
-t=n\Delta t,
-\qquad
-D=\frac{\Delta x^2}{2\Delta t},
+\left\langle [W(t)-W(0)]^2 \right\rangle
+=
+n\Delta t
+=
+t,
 $$
 
-otteniamo
-
-$$
-\label{eq:diff_gaussian}
-P(x,t) = \frac{1}{\sqrt{4\pi Dt}} \exp\left[ -\frac{(x-x_0)^2}{4Dt} \right].
-$$
-
-Questa distribuzione ha media
-
-$$
-\langle x(t)\rangle=x_0
-$$
-
-e varianza
-
-$$
-\operatorname{Var}[x(t)]=2Dt.
-$$
-
-Nel limite continuo la distribuzione binomiale del random walk viene dunque sostituita da una distribuzione gaussiana la cui larghezza cresce come $\sqrt t$.
-
-:::{note} Sul teorema del limite centrale
-Il teorema del limite centrale non afferma che i singoli passi siano gaussiani. La distribuzione gaussiana emerge perché lo spostamento totale è la somma di un gran numero di contributi indipendenti.
-:::
-
-```{figure} #cell:res_random_walk_prob
-:label: fig:res_random_walk_prob
-:align: center
-
-Distribuzioni di probabilità delle posizioni $x - x_0$ per un random walk unidimensionale a tre diversi istanti di tempo (da sinistra a destra, $n = 10, 100, 1000$), mediate su $10^5$ traiettorie. Gli istogrammi sono i valori numerici, mentre le righe continue sono le distribuzioni continue teoriche, eq. [](#eq:diff_gaussian).
+per qualunque valore di $n$. Ritroveremo esattamente la stessa struttura nel [random walk discreto](#sec:diffusive-scaling).
 ```
 
-La [](#fig:res_random_walk_prob) mostra come l'approssimazione continua funzioni piuttosto bene già a tempi corti ($n = 10$).
+Dal punto di vista implementativo, l'incremento si può generare numericamente come
 
-## Oltre il random walk destra/sinistra
+$$
+\Delta W=\sqrt{\Delta t}\,R,
+$$
 
-Il teorema del limite centrale mostra che il comportamento diffusivo non dipende dalla scelta particolare di passi discreti verso destra o verso sinistra. Le ipotesi essenziali sono che gli incrementi $\xi_i$ siano indipendenti e identicamente distribuiti, con media nulla e varianza finita. Se queste condizioni sono verificate, per $n$ grande la distribuzione dello spostamento tenderà a una gaussiana, indipendentemente dalla forma dettagliata della distribuzione dei singoli passi. Il random walk destra/sinistra è quindi soltanto il più semplice esempio di una classe molto più generale di processi diffusivi.
+dove $R$ è una variabile normale standard (cioè di media nulla e varianza unitaria, $R\sim\mathcal{N}(0,1)$). Data questa definizione, gli incrementi associati a intervalli temporali distinti sono indipendenti.
 
-:::{warning}
-La finitezza della varianza è essenziale. Distribuzioni con code molto larghe e varianza infinita non soddisfano il teorema del limite centrale nella sua forma usuale e possono dare origine a dinamiche non diffusive.
+In pratica, un processo di Wiener può essere costruito iterativamente:
+
+$$
+W_{n+1}=W_n+\sqrt{\Delta t}\,R_n,
+$$
+
+con $R_n$ indipendenti e distribuiti secondo una normale standard.
+
+Questa costruzione è un *cammino aleatorio* (random walk) con passi gaussiani, che studieremo in dettaglio [più avanti](#sec:random-walk-1d). Per costruzione,
+
+$$
+\langle W_n-W_0\rangle=0
+$$
+
+e
+
+$$
+\left\langle(W_n-W_0)^2\right\rangle=n\Delta t=t_n.
+$$
+
+:::{note} Perché $\sqrt{\Delta t}$?
+Se per generare una traiettoria utilizzassimo $\Delta W \propto \Delta t$, la varianza del processo stocastico risultante sarebbe proporzionale a $\Delta t^2$ invece che a $\Delta t$, e quindi simuleremmo un moto di tipo balistico invece che diffusivo. Infatti, si può dimostrare come questa scelta farebbe scomparire le fluttuazioni nel limite $\Delta t\to0$.
 :::
 
-Una scelta comune, e utile anche per altre applicazioni, consiste nell'estrarre direttamente gli incrementi da una distribuzione gaussiana. Supponiamo di voler generare due variabili indipendenti $Z_1$ e $Z_2$, entrambe distribuite secondo una normale standard,
+La forza ideale $\eta(t)$ varia su tempi arbitrariamente brevi e non deve essere interpretata come una normale funzione regolare. Conviene quindi, come fatto per il processo di Wiener, scrivere l'equazione direttamente in termini degli incrementi prodotti in un intervallo finito:
+
+$$
+m \Delta v = -\gamma v \Delta t + \sigma\Delta W,
+$$
+
+dove il parametro $\sigma$ determina l'intensità delle fluttuazioni.
+
+Come vedrete più avanti nel corso di Meccanica Statistica, considerando una particella in equilibrio con un fluido alla temperatura $T$, il [teorema di equipartizione](https://it.wikipedia.org/wiki/Teorema_di_equipartizione_dell%27energia) richiede
+
+$$
+\frac{1}{2}m\langle v^2\rangle = \frac{1}{2}k_{\mathrm B}T,
+$$
+
+dove $k_B$ è la costante di Boltzmann. Dissipazione e rumore non possono quindi essere scelti indipendentemente: l'energia sottratta alla particella dalla forza di attrito deve essere restituita dal sistema sotto forma di rumore. Non lo dimostriamo, ma la condizione di equilibrio termico fissa
+
+$$
+\sigma=\sqrt{2\gamma k_{\mathrm B}T}.
+$$
+
+L'equazione di Langevin diventa quindi
+
+$$
+m\Delta v = -\gamma v\Delta t + \sqrt{2\gamma k_{\mathrm B}T}\Delta W,
+$$
+
+o, equivalentemente,
+
+$$
+\Delta v = -\frac{v}{\tau_v}\Delta t + \sqrt{\frac{2k_{\mathrm B}T}{m\tau_v}}\Delta W = -\frac{v}{\tau_v}\Delta t + \sqrt{
+\frac{2k_{\mathrm B}T}{m\tau_v}\Delta t
+} R.
+$$
+
+(sec:gaussian-numbers)=
+## Numeri casuali gaussiani
+
+Per integrare numericamente l'equazione di Langevin dobbiamo essere in grado di estrarre numeri casuali $R_n$ distribuiti secondo una normale standard. I generatori che abbiamo usato finora, come `drand48()`, producono però numeri uniformemente distribuiti in $[0,1)$. Vediamo quindi come trasformarli in numeri gaussiani.
+
+Supponiamo di voler generare due variabili indipendenti $Z_1$ e $Z_2$, entrambe distribuite secondo una normale standard,
 
 $$
 Z_1,Z_2\sim\mathcal{N}(0,1).
@@ -413,7 +300,7 @@ $$
 \frac{1}{2\pi}\exp\left[-\frac{z_1^2+z_2^2}{2}\right].
 $$
 
-Introduciamo le coordinate polari, $z_1=r\cos\theta$ e $z_2=r\sin\theta$, per cui $z_1^2+z_2^2=r^2$. Nel cambio di variabili bisogna inoltre includere lo Jacobiano, $dz_1,dz_2=r,dr,d\theta$. La densità congiunta di $R$ e $\Theta$ diventa quindi
+Introduciamo le coordinate polari, $z_1=r\cos\theta$ e $z_2=r\sin\theta$, per cui $z_1^2+z_2^2=r^2$. Nel cambio di variabili bisogna inoltre includere lo Jacobiano, $dz_1\,dz_2=r\,dr\,d\theta$. La densità congiunta di $R$ e $\Theta$ diventa quindi
 
 $$
 p_{R, \Theta}(r, \theta) = \frac{1}{2\pi}r e^{-r^2/2},
@@ -428,7 +315,7 @@ $$
 Questa densità si fattorizza:
 
 $$
-p_{R, \Theta}(r, \theta) = \underbrace{r e^{-r^2/2}}{p_R(r)}\underbrace{\frac{1}{2\pi}}{p_\Theta(\theta)}.
+p_{R, \Theta}(r, \theta) = \underbrace{r e^{-r^2/2}}_{p_R(r)}\underbrace{\frac{1}{2\pi}}_{p_\Theta(\theta)}.
 $$
 
 Di conseguenza, $R$ e $\Theta$ sono indipendenti. In particolare, l'angolo è uniformemente distribuito nell'intervallo $[0,2\pi)$. Se $U_2$ è una variabile uniforme in $(0,1)$, possiamo quindi porre
@@ -446,13 +333,13 @@ $$
 La sua funzione di distribuzione cumulativa è
 
 $$
-F_R(r) = P(R\leq r) = \int_0^r s e^{-s^2/2},ds.
+F_R(r) = P(R\leq r) = \int_0^r s e^{-s^2/2}\,ds.
 $$
 
 Poiché
 
 $$
-\od{}{dx} e^{-s^2/2} = -s e^{-s^2/2},
+\od{}{s} e^{-s^2/2} = -s e^{-s^2/2},
 $$
 
 si ottiene
@@ -626,288 +513,6 @@ sono variabili gaussiane indipendenti con media nulla e varianza unitaria.
 
 [^U1]: Oppure possiamo mantenere il numero distribuito in $(0, 1]$ per evitare divergenze nel logaritmo, come viene fatto nella funzione di esempio riportata più in basso
 
-(sec:diffusion-equation)=
-## Dalla dinamica discreta all'equazione di diffusione
-
-Indichiamo con $P(x,t)$ la probabilità di trovare la particella nella posizione $x$ al tempo $t$.
-
-Per trovarsi in $x$ al tempo $t+\Delta t$, al passo precedente la particella deve essersi trovata
-
-- in $x-\Delta x$ e aver compiuto un passo verso destra;
-- oppure in $x+\Delta x$ e aver compiuto un passo verso sinistra.
-
-La probabilità soddisfa quindi la *master equation*
-
-$$
-\label{eq:master_equation}
-P(x,t+\Delta t) = \frac12P(x-\Delta x,t) + \frac12P(x+\Delta x,t).
-$$
-
-Supponiamo ora che $\Delta x$ e $\Delta t$ siano sufficientemente piccoli (o, equivalentemente, che $P(x,t)$ vari lentamente sulle scale microscopiche
-$\Delta x$ e $\Delta t$). Possiamo allora sviluppare i due membri in serie di Taylor.
-
-Per il membro sinistro,
-
-$$
-P(x,t+\Delta t) = P(x,t) + \Delta t\frac{\partial P}{\partial t} + \mathcal{O}(\Delta t^2).
-$$
-
-Per i due termini spaziali,
-
-$$
-P(x\pm\Delta x,t) = P(x,t) \pm \Delta x\frac{\partial P}{\partial x} + \frac{\Delta x^2}{2} \frac{\partial^2P}{\partial x^2} \pm \frac{\Delta x^3}{3!} \frac{\partial^3P}{\partial x^3} + \mathcal{O}(\Delta x^4).
-$$
-
-Sommando i due contributi, i termini dispari in $\Delta x$ si cancellano:
-
-$$
-\frac12 \left[ P(x-\Delta x,t)+P(x+\Delta x,t) \right] = P(x,t) + \frac{\Delta x^2}{2} \frac{\partial^2P}{\partial x^2} + \mathcal{O}(\Delta x^4).
-$$
-
-Inserendo gli sviluppi nell'equazione [](#eq:master_equation) si ottiene
-
-$$
-P + \Delta t\frac{\partial P}{\partial t} = P + \frac{\Delta x^2}{2} \frac{\partial^2P}{\partial x^2} + \mathcal{O}(\Delta t^2,\Delta x^4).
-$$
-
-Eliminando il termine $P(x,t)$ da entrambi i membri e dividendo per
-$\Delta t$,
-
-$$
-\frac{\partial P}{\partial t} = \frac{\Delta x^2}{2\Delta t} \frac{\partial^2P}{\partial x^2} + \mathcal{O} \left( \Delta t, \frac{\Delta x^4}{\Delta t} \right).
-$$
-
-Ricordando la definizione di coefficiente di diffusione, eq. [](#eq:D), possiamo prendere il limite al continuo, $\Delta x\to0$ e $\Delta t\to0$, ottenendo
-
-$$
-\frac{\partial P(x,t)}{\partial t} = D\frac{\partial^2P(x,t)}{\partial x^2}.
-$$
-
-Questa è l'**equazione di diffusione**, formalmente identica all'[equazione del calore](https://it.wikipedia.org/wiki/Equazione_del_calore). Si può dimostrare (ma noi non lo faremo) che la soluzione di questa equazione differenziale per una particella che si trova con certezza in $x_0$ al tempo iniziale[^condizione_iniziale] è
-
-$$
-P(x,t) = \frac{1}{\sqrt{4\pi Dt}} \exp\left[ -\frac{(x-x_0)^2}{4Dt} \right].
-$$
-
-Si tratta, e non è un caso, della stessa distribuzione gaussiana ottenuta applicando il teorema del limite centrale al random walk discreto, eq. [](#eq:diff_gaussian).
-
-La distribuzione è normalizzata,
-
-$$
-\int_{-\infty}^{+\infty}P(x,t)\,dx=1,
-$$
-
-e soddisfa
-
-$$
-\langle x(t)\rangle=x_0,
-\qquad
-\left\langle[x(t)-x_0]^2\right\rangle=2Dt.
-$$
-
-Il random walk discreto e l'equazione di diffusione descrivono quindi la
-stessa fisica su scale differenti:
-
-- il random walk fornisce una descrizione microscopica in termini di passi
-  casuali;
-- l'equazione di diffusione fornisce una descrizione continua e
-  macroscopica dell'evoluzione della densità di probabilità.
-
-[^condizione_iniziale]: Questo tipo di condizioni iniziali si può scrivere formalmente come
-$$
-P(x,0)=\delta(x-x_0),
-$$
-dove $\delta(x)$ è la [delta di Dirac](https://it.wikipedia.org/wiki/Delta_di_Dirac), un oggetto matematico che verrà introdotto durante il corso di Modelli e Metodi Matematici della Fisica.
-
-(sec:langevin-equation)=
-# L'equazione di Langevin
-
-Il random walk descrive il moto browniano direttamente in termini di spostamenti casuali. Esiste però un secondo punto di vista, più vicino alla meccanica newtoniana: scrivere un'equazione del moto per la particella e rappresentare l'effetto del fluido mediante una forza dissipativa e una forza casuale.
-
-Questo approccio fu introdotto da Paul Langevin all'inizio del Novecento. L'idea fondamentale consiste nel separare l'effetto delle molecole del fluido in due contributi:
-
-1. un termine di attrito, che tende a frenare la particella;
-2. una parte rapidamente fluttuante (detta spesso *di rumore*), dovuta al fatto che gli urti microscopici non si compensano mai esattamente.
-
-In una dimensione l'equazione di Langevin più semplice è
-
-$$
-m\odd{x}{t} = -\gamma v(t) + \eta(t),
-$$
-
-dove $\gamma > 0$ è il coefficiente di attrito e quindi $-\gamma v(t)$ è la forza dissipativa, e $\eta(t)$ è una forza casuale che rappresenta gli urti con il fluido. La novità rispetto alle ODE considerate finora, come le equazioni differenziali dovute all'applicazione delle leggi di Newton, è che la forzante $\eta(t)$ non è una funzione deterministica del tempo, e non può essere scritta in termini di $x(t)$ e $v(t)$. In questo caso, infatti, "risolvere l'equazione" significa ottenere una traiettoria che non è unica, ma dipende dalla realizzazione. Come per il random walk discreto, anche in questo caso il sistema va studiato in termini probabilistici.
-
-Prima di introdurre il rumore ripassiamo l'effetto della dissipazione. Ponendo $\eta(t) = 0$ l'equazione diventa
-
-$$
-m\odd{x}{t} = m\od{v}{t}=-\gamma v,
-$$
-
-che ha soluzione
-
-$$
-\label{eq:dissipazione_esatta}
-v(t)=v_0e^{-\gamma t/m} = v_0e^{-t/\tau_v},
-$$
-
-dove abbiamo implicitamente definito il *tempo di rilassamento* della velocità come $\tau_v=\frac{m}{\gamma}$
-
-La velocità iniziale viene quindi "dimenticata" su una scala temporale
-dell'ordine di $\tau_v$. Infatti, per tempi molto più brevi, $t\ll\tau_v$, la velocità cambia poco e il moto è approssimativamente balistico. Per tempi molto più lunghi, $t\gg\tau_v$, la memoria della velocità iniziale è persa e diventano dominanti gli effetti
-cumulativi delle fluttuazioni casuali.
-
-Questa scala temporale è importante anche da un altro punto di vista: per risolvere numericamente la dinamica di un sistema con un termine di attrito, $\Delta t$ deve essere sufficientemente piccolo da poter risolvere correttamente il rilassamento, e quindi si deve avere $\Delta t \ll \tau_v$.
-
-(sec:wiener-process)=
-## Il processo di Wiener
-
-Per rappresentare la forza casuale è utile introdurre il **processo di Wiener**, il più famoso tra i *processi stocastici*, spesso indicato con $W(t)$.
-
-:::{admonition} Che cos'è un processo stocastico?
-:class: note
-
-Una variabile aleatoria descrive una quantità il cui valore non è noto con certezza. Un **processo stocastico** è una collezione di variabili aleatorie indicizzate dal tempo, diciamo $X(t)$. Per ogni istante $t$, $X(t)$ rappresenta l'insieme dei valori che il sistema potrebbe assumere, insieme alle rispettive probabilità.
-
-Quando si osserva o si simula una singola evoluzione del sistema, si ottiene invece una funzione del tempo,
-
-$$
-t \mapsto x(t),
-$$
-
-chiamata **traiettoria** o **realizzazione** del processo.
-
-Per esempio, nel random walk la successione delle posizioni
-
-$$
-X_0,X_1,X_2,\ldots
-$$
-
-è un processo stocastico a tempo discreto, mentre una sequenza specifica come
-
-$$
-0,\ \Delta x,\ 0,\ -\Delta x, - 2 \Delta x, \ldots
-$$
-
-è una sua traiettoria.
-
-Il processo di Wiener $W(t)$ è invece un processo stocastico a tempo continuo: le sue traiettorie sono continue, ma estremamente irregolari.
-:::
-
-$W(t)$ non è una funzione propriamente detta, e quindi non possiamo definirlo tramite un'espressione chiusa (per esempio attraverso la sua derivata). È invece caratterizzabile mediante i suoi incrementi. Consideriamo due istanti separati da un intervallo $\Delta t$. L'incremento
-
-$$
-\Delta W
-=
-W(t+\Delta t)-W(t)
-$$
-
-è una variabile aleatoria gaussiana con
-
-$$
-\langle\Delta W\rangle=0
-$$
-
-e
-
-$$
-\langle(\Delta W)^2\rangle=\Delta t.
-$$
-
-```{note} La relazione tra il random walk discreto e il processo di Wiener 
-
-Il collegamento con il random walk discreto è immediato. Se dividiamo l'intervallo $[0,t]$ in $n$ sottointervalli di durata $\Delta t$, allora
-
-$$
-W(t)-W(0)=\sum_{i=1}^n \Delta W_i,
-$$
-
-dove gli incrementi $\Delta W_i$ sono indipendenti e soddisfano
-
-$$
-\left\langle \Delta W_i^2 \right\rangle=\Delta t.
-$$
-
-Di conseguenza, le varianze si sommano:
-
-$$
-\left\langle [W(t)-W(0)]^2 \right\rangle
-=
-\sum_{i=1}^n \left\langle \Delta W_i^2 \right\rangle
-=
-n\Delta t
-=
-t.
-$$
-
-Ricordando come, nel limite del continuo, $\Delta x^2 / \Delta t \to const$, ritroviamo la stessa struttura del random walk discreto, per il quale la varianza dopo $n$ passi è $n\Delta x^2$.
-```
-
-Dal punto di vista implementativo, l'incremento si può generare numericamente come
-
-$$
-\Delta W=\sqrt{\Delta t}\,R,
-$$
-
-dove $R$ è una variabile normale standard (cioè di media nulla e varianza unitaria, $R\sim\mathcal{N}(0,1)$). Data questa definizione, come per il random walk anche in questo caso gli incrementi associati a intervalli temporali distinti sono indipendenti.
-
-In pratica, un processo di Wiener può essere costruito iterativamente:
-
-$$
-W_{n+1}=W_n+\sqrt{\Delta t}\,R_n,
-$$
-
-con $R_n$ indipendenti e distribuiti secondo una normale standard.
-
-Questo è precisamente un random walk con passi gaussiani, che implica
-
-$$
-\langle W_n-W_0\rangle=0
-$$
-
-e
-
-$$
-\left\langle(W_n-W_0)^2\right\rangle=n\Delta t=t_n.
-$$
-
-:::{note} Perché $\sqrt{\Delta t}$?
-Se per generare una traiettoria utilizzassimo $\Delta W \propto \Delta t$, la varianza del processo stocastico risultante sarebbe proporzionale a $\Delta t^2$ invece che a $\Delta t$, e quindi simuleremmo un moto di tipo balistico invece che diffusivo. Infatti, si può dimostrare come questa scelta farebbe scomparire le fluttuazioni nel limite $\Delta t\to0$.
-:::
-
-La forza ideale $\eta(t)$ varia su tempi arbitrariamente brevi e non deve essere interpretata come una normale funzione regolare. Conviene quindi, come fatto per il processo di Wiener, scrivere l'equazione direttamente in termini degli incrementi prodotti in un intervallo finito:
-
-$$
-m \Delta v = -\gamma v \Delta t + \sigma\Delta W,
-$$
-
-dove il parametro $\sigma$ determina l'intensità delle fluttuazioni.
-
-Come vedrete più avanti nel corso di Meccanica Statistica, considerando una particella in equilibrio con un fluido alla temperatura $T$, il [teorema di equipartizione](https://it.wikipedia.org/wiki/Teorema_di_equipartizione_dell%27energia) richiede
-
-$$
-\frac{1}{2}m\langle v^2\rangle = \frac{1}{2}k_{\mathrm B}T,
-$$
-
-dove $k_B$ è la costante di Boltzmann. Dissipazione e rumore non possono quindi essere scelti indipendentemente: l'energia sottratta alla particella dalla forza di attrito deve essere restituita dal sistema sotto forma di rumore. Non lo dimostriamo, ma la condizione di equilibrio termico fissa
-
-$$
-\sigma=\sqrt{2\gamma k_{\mathrm B}T}.
-$$
-
-L'equazione di Langevin diventa quindi
-
-$$
-m\Delta v = -\gamma v\Delta t + \sqrt{2\gamma k_{\mathrm B}T}\Delta W,
-$$
-
-o, equivalentemente,
-
-$$
-\Delta v = -\frac{v}{\tau_v}\Delta t + \sqrt{\frac{2k_{\mathrm B}T}{m\tau_v}}\Delta W = -\frac{v}{\tau_v}\Delta t + \sqrt{
-\frac{2k_{\mathrm B}T}{m\tau_v}\Delta t
-} R.
-$$
-
 (sec:langevin-euler)=
 ## Integrazione numerica con il metodo di Eulero
 
@@ -926,9 +531,9 @@ $$
 x_{n+1}=x_n+v_n\Delta t.
 $$
 
-Come per il random walk discreto, ogni esecuzione dell'algoritmo produce una diversa traiettoria. Le proprietà fisiche si ottengono mediando su molte realizzazioni oppure, sotto opportune condizioni, studiando una singola traiettoria sufficientemente lunga.
+Ogni esecuzione dell'algoritmo produce una diversa traiettoria. Le proprietà fisiche si ottengono mediando su molte realizzazioni oppure, sotto opportune condizioni, studiando una singola traiettoria sufficientemente lunga.
 
-Come abbiamo ampiamente dimostrato in passato, il metodo di Eulero è semplice, ma soffre di problemi strutturali che possono spesso portare a comportamenti non fisici, indipendentemente dal valore id $\Delta t$. Nel caso dell'equazione di Langevin, dimostriamo che la dinamica di Eulero non riproduce esattamente la distribuzione di equilibrio della velocità.
+Come abbiamo ampiamente dimostrato in passato, il metodo di Eulero è semplice, ma soffre di problemi strutturali che possono spesso portare a comportamenti non fisici, indipendentemente dal valore di $\Delta t$. Nel caso dell'equazione di Langevin, dimostriamo che la dinamica di Eulero non riproduce esattamente la distribuzione di equilibrio della velocità.
 
 Considerando l'aggiornamento [](#eq:langevin_euler) e definendo $q=1-\frac{\Delta t}{\tau_v}$, possiamo calcolare la varianza della velocità, che evolve secondo
 
@@ -1026,7 +631,7 @@ Utilizzando la soluzione esatta otteniamo un'espressione per l'aggiornamento del
 :label: fig:res_langevin
 :align: center
 
-A sinistra: lo spostamento quadratico medio ottenuto risolvendo l'equazione di Langevin di parametri $\gamma = 1$, $m = 1$, $k_B T = 1$ integrata con il metodo di Eulero con $\Delta t = 0.01$. I risultati sono stati ottenuti mediando su 10000 traiettorie. Le linee tratteggiate sono gli andamenti teorici balistico e diffusivo nei rispettivi regimi di validità. A destra: le distribuzioni degli spostamenti numeriche (linee continue) e teoriche (eq [](#eq:diff_gaussian), linee tratteggiate) a $t = 10$ e $t = 100$.
+A sinistra: lo spostamento quadratico medio ottenuto risolvendo l'equazione di Langevin di parametri $\gamma = 1$, $m = 1$, $k_B T = 1$ integrata con il metodo di Eulero con $\Delta t = 0.01$. I risultati sono stati ottenuti mediando su 10000 traiettorie. Le linee tratteggiate sono gli andamenti teorici balistico e diffusivo nei rispettivi regimi di validità. A destra: le distribuzioni degli spostamenti numeriche (linee continue) e teoriche (gaussiane di varianza $2Dt$, eq. [](#eq:diff_gaussian), linee tratteggiate) a $t = 10$ e $t = 100$.
 ```
 
 La [](#fig:res_langevin) mostra alcuni risultati di simulazione ottenuti mediando molte traiettorie. Nel pannello di sinistra, che mostra lo spostamento quadratico medio, si può vedere come l'equazione di Langevin contenga sia il regime balistico sia quello diffusivo. Infatti, per tempi molto brevi rispetto a $\tau_v$, la velocità non ha ancora perso memoria del suo valore iniziale e
@@ -1042,11 +647,13 @@ $$
 \propto t^2.
 $$
 
-Per tempi molto lunghi rispetto a $\tau_v$, la velocità iniziale viene dimenticata e lo spostamento è il risultato della somma di molti contributi debolmente correlati. Si può dimostrare (ma non lo faremo) come in questo regime si ottenga allora il regime diffusivo,
+Per tempi molto lunghi rispetto a $\tau_v$, la velocità iniziale viene dimenticata e lo spostamento è il risultato della somma di molti contributi debolmente correlati. In questo regime si ottiene il comportamento diffusivo,
 
 $$
 \left\langle[x(t)-x_0]^2\right\rangle \simeq 2Dt.
 $$
+
+dove $D$ è il *coefficiente di diffusione*. Il pannello di destra mostra inoltre che, a tempi lunghi, la distribuzione degli spostamenti è una gaussiana di varianza $2Dt$: giustificheremo questo risultato [più avanti](#sec:random-walk-clt).
 
 Il coefficiente di diffusione è legato all'attrito e alla temperatura dalla relazione di Einstein,
 
@@ -1054,7 +661,58 @@ $$
 D=\frac{k_{\mathrm B}T}{\gamma}.
 $$
 
-La dinamica di Langevin fornisce quindi un collegamento tra la descrizione microscopica in termini di velocità, attrito e fluttuazioni e la descrizione macroscopica in termini di diffusione.
+che ricaveremo nella prossima sezione. La dinamica di Langevin fornisce quindi un collegamento tra la descrizione microscopica in termini di velocità, attrito e fluttuazioni e la descrizione macroscopica in termini di diffusione.
+
+(sec:overdamped)=
+## Il limite sovrasmorzato
+
+Vediamo ora cosa resta dell'equazione di Langevin quando la osserviamo su scale temporali molto più lunghe di $\tau_v$. Partiamo dalla forma a incrementi,
+
+$$
+m\Delta v = -\gamma v\Delta t + \sigma\Delta W,
+$$
+
+e ricordiamo che $v\Delta t$ è lo spostamento $\Delta x$ compiuto nell'intervallo. Sommando gli incrementi su un intervallo di durata $\tau$ (cioè su molti passi $\Delta t$) si ottiene
+
+$$
+m\left[v(t+\tau)-v(t)\right] = -\gamma\left[x(t+\tau)-x(t)\right] + \sigma\left[W(t+\tau)-W(t)\right].
+$$
+
+Questa relazione è esatta. Confrontiamo ora l'ordine di grandezza dei tre termini:
+
+- la velocità fluttua attorno a zero con $\langle v^2\rangle = k_{\mathrm B}T/m$, quindi il membro sinistro è tipicamente dell'ordine di $m\sqrt{k_{\mathrm B}T/m}=\sqrt{m k_{\mathrm B}T}$, *indipendentemente da* $\tau$;
+- il termine di rumore cresce invece come $\sigma\sqrt{\tau}=\sqrt{2\gamma k_{\mathrm B}T\tau}$, e lo stesso vale (lo verificheremo a posteriori) per il termine di attrito.
+
+Il rapporto tra il primo e il secondo termine è
+
+$$
+\frac{\sqrt{m k_{\mathrm B}T}}{\sqrt{2\gamma k_{\mathrm B}T\tau}} = \sqrt{\frac{\tau_v}{2\tau}},
+$$
+
+che diventa trascurabile per $\tau \gg \tau_v$. In questo limite, detto **sovrasmorzato** (*overdamped*), l'inerzia della particella non conta più e si ha
+
+$$
+x(t+\tau)-x(t) \simeq \frac{\sigma}{\gamma}\left[W(t+\tau)-W(t)\right] = \sqrt{\frac{2k_{\mathrm B}T}{\gamma}}\,\left[W(t+\tau)-W(t)\right].
+$$
+
+Gli spostamenti sono quindi proporzionali agli incrementi di un processo di Wiener. Usando $\langle(\Delta W)^2\rangle=\tau$,
+
+$$
+\left\langle[x(t+\tau)-x(t)]^2\right\rangle = \frac{2k_{\mathrm B}T}{\gamma}\tau \equiv 2D\tau,
+$$
+
+che è proprio la relazione di Einstein, $D=k_{\mathrm B}T/\gamma$. Il ragionamento non è una dimostrazione rigorosa, ma cattura la fisica: su tempi lunghi, attrito e rumore si bilanciano e la velocità perde ogni ruolo dinamico.
+
+Numericamente, nel limite sovrasmorzato non è più necessario integrare l'equazione per la velocità: la posizione si aggiorna direttamente come
+
+$$
+\label{eq:overdamped}
+x_{n+1} = x_n + \sqrt{2D\Delta t}\,R_n,
+$$
+
+con $R_n$ gaussiane standard indipendenti. Questo schema (spesso chiamato *dinamica browniana*) richiede soltanto $\Delta t \gg \tau_v$, e non più $\Delta t \ll \tau_v$, perché la scala $\tau_v$ è stata eliminata dalla descrizione. Il prezzo da pagare è che il regime balistico a tempi brevi non è più descritto.
+
+L'equazione [](#eq:overdamped) descrive una particella che a ogni passo compie uno spostamento casuale, indipendente dai precedenti. Nella prossima sezione semplificheremo ulteriormente questa descrizione, permettendo alla particella di spostarsi soltanto di una quantità fissa verso destra o verso sinistra.
 
 (sec:langevin-exercises)=
 ## Esperimenti numerici
@@ -1087,3 +745,418 @@ Una simulazione dell'equazione di Langevin permette di verificare direttamente d
    $$
 
 5. Il metodo di Eulero converge al risultato corretto diminuendo $\Delta t$, mentre l'aggiornamento esponenziale riproduce più    accuratamente la distribuzione delle velocità anche a passi temporali maggiori.
+
+(sec:random-walk-1d)=
+# Random walk unidimensionale discreto
+
+Nel [limite sovrasmorzato](#sec:overdamped), il moto browniano si riduce a una successione di spostamenti casuali indipendenti. Possiamo allora semplificare ulteriormente e dimenticare del tutto la dinamica sottostante: il modello più semplice che contiene questi ingredienti è il random walk simmetrico unidimensionale, in cui gli spostamenti possono assumere soltanto due valori e la particella si muove quindi su un reticolo di passo $\Delta x$.
+
+Consideriamo una particella che si trova inizialmente nella posizione $x_0$.
+Dividiamo il tempo in intervalli di durata $\Delta t$. Durante ogni intervallo
+la particella compie uno spostamento di modulo $\Delta x$, verso destra oppure
+verso sinistra con uguale probabilità:
+
+$$
+x_n=x_{n-1}+\xi_n,
+$$
+
+dove
+
+$$
+\xi_n=
+\begin{cases}
++\Delta x & \text{con probabilità } 1/2,\\
+-\Delta x & \text{con probabilità } 1/2.
+\end{cases}
+$$
+
+Ne discende che gli spostamenti compiuti in intervalli temporali diversi sono statisticamente indipendenti, cioè che $\langle \xi_i \xi_j \rangle = 0$ per $i \neq j$.
+
+```{figure} #cell:res_random_walk_traj
+:label: fig:res_random_walk_traj
+:align: center
+
+Quattro diverse realizzazioni di un random walk unidimensionale simulato per $10^5$ passi.
+```
+
+La [](#fig:res_random_walk_traj) mostra quattro diverse realizzazioni numeriche di un random walk unidimensionale. Si vede come le traiettorie siano molto frastagliate e diverse tra loro. Qualitativamente, sembra anche che il camminatore non si sposti molto: se ci si muove di $N$ passi lungo una direzione, lo spostamento totale coinciderà con $N\Delta x$, mentre in queste traiettorie il camminatore non si è allontanato per più di qualche centinaio di passi dall'origine, nonostante i $10^5$ passi compiuti. Questa osservazione qualitativa si può circostanziare come segue. Dopo $n$ passi,
+
+$$
+x_n=x_0+\sum_{i=1}^{n}\xi_i,
+$$
+
+e quindi lo spostamento rispetto alla posizione iniziale è
+
+$$
+X_n\equiv x_n-x_0=\sum_{i=1}^{n}\xi_i.
+$$
+
+Questa formulazione rende esplicito che $x_0$ determina soltanto una traslazione della traiettoria, mentre le proprietà statistiche del moto sono contenute nella somma degli incrementi casuali.
+
+Per un singolo passo si ha
+
+$$
+\langle \xi_i\rangle = \frac{1}{2}\Delta x+\frac{1}{2}(-\Delta x)
+=0.
+$$
+
+Usando la linearità del valor medio,
+
+$$
+\langle X_n\rangle = \left\langle\sum_{i=1}^n\xi_i\right\rangle = \sum_{i=1}^n\langle\xi_i\rangle = 0.
+$$
+
+Di conseguenza, $\langle x_n-x_0\rangle=0$ e quindi $\langle x_n\rangle=x_0$: la posizione media non cambia nel tempo. Questo non significa che la particella rimanga ferma: le singole traiettorie si allontanano in generale da $x_0$, ma gli spostamenti verso destra e verso sinistra si compensano quando si calcola la media su molte realizzazioni.
+
+Calcoliamo ora il quadrato dello spostamento:
+
+$$
+X_n^2 = \left(\sum_{i=1}^n\xi_i\right)^2 = \sum_{i=1}^n\xi_i^2 + 2\sum_{i<j}\xi_i\xi_j.
+$$
+
+Prendendo il valor medio,
+
+$$
+\langle X_n^2\rangle = \sum_{i=1}^n\langle\xi_i^2\rangle + 2\sum_{i<j}\langle\xi_i\xi_j\rangle.
+$$
+
+Poiché i passi sono indipendenti, per $i\neq j$ vale
+
+$$
+\langle\xi_i\xi_j\rangle = \langle\xi_i\rangle\langle\xi_j\rangle = 0.
+$$
+
+Inoltre, indipendentemente dalla direzione del passo,
+
+$$
+\xi_i^2=\Delta x^2,
+$$
+
+e quindi
+
+$$
+\langle X_n^2\rangle = \sum_{i=1}^n\Delta x^2 = n\Delta x^2.
+$$
+
+Otteniamo dunque
+
+$$
+\left\langle (x_n-x_0)^2\right\rangle=n\Delta x^2.
+$$
+
+Dato che $\langle X_n\rangle=0$, questa quantità coincide con la varianza:
+
+$$
+\operatorname{Var}(X_n) = \langle X_n^2\rangle-\langle X_n\rangle^2 = n\Delta x^2.
+$$
+
+Analogamente,
+
+$$
+\operatorname{Var}(x_n)=n\Delta x^2.
+$$
+
+La posizione quadratica media, che in generale dipende dalla scelta dell'origine e/o dalla condizione iniziale $x_0$, è invece
+
+$$
+\langle x_n^2\rangle = x_0^2+\langle X_n^2\rangle = x_0^2+n\Delta x^2.
+$$
+
+(sec:diffusive-scaling)=
+## Legge di scala diffusiva
+
+Una misura della distanza tipica percorsa dalla particella è la radice dello spostamento quadratico medio,
+
+$$
+x_{\mathrm{rms}}
+\equiv
+\sqrt{\left\langle(x_n-x_0)^2\right\rangle}.
+$$
+
+Per il random walk,
+
+$$
+x_{\mathrm{rms}}=\Delta x\sqrt{n}.
+$$
+
+La distanza tipica cresce quindi come $\sqrt{n}$, e non come $n$: dopo $n$ passi la particella ha percorso una distanza totale $n\Delta x$, ma il suo spostamento netto è tipicamente soltanto dell'ordine di $\Delta x\sqrt n$.
+
+Se a ogni passo associamo un intervallo temporale $\Delta t$, dopo $n$ passi è trascorso un tempo
+
+$$
+t=n\Delta t.
+$$
+
+Lo spostamento quadratico medio può allora essere scritto come
+
+$$
+\label{eq:D}
+\left\langle(x(t)-x_0)^2\right\rangle = \frac{\Delta x^2}{\Delta t}t \equiv 2 D t,
+$$
+
+dove abbiamo identificato il coefficiente di diffusione unidimensionale, già incontrato nel limite sovrasmorzato dell'equazione di Langevin,
+
+$$
+D\equiv\frac{\Delta x^2}{2\Delta t}.
+$$
+
+Questa relazione lineare tra spostamento quadratico medio e tempo rappresenta la caratteristica principale (la firma) del **moto diffusivo**.
+
+```{figure} #cell:res_random_walk_msd
+:label: fig:res_random_walk_msd
+:align: center
+
+Lo spostamento quadratico $\left\langle(x(t)-x_0)^2\right\rangle$ per un random-walk unidimensionale mediato su una o più traiettorie (vedi legenda), insieme alla curva teorica di pendenza unitaria (linea tratteggiata viola). **Nota Bene:** la linea rossa è quasi completamente nascosta dalla curva teorica.
+```
+
+La [](#fig:res_random_walk_msd) mostra come lo spostamento quadratico medio tenda al valore teorico, purché il numero di traiettorie su cui è mediato sia sufficientemente grande. Il grafico è in scala doppio logaritmica (o log-log): questa scelta è la migliore quando le quantità di interesse variano di diversi ordini di grandezza. Inoltre, se $A(t) = B t^\alpha$, allora $\log(A(t)) = \alpha \log(Bt) = \alpha \log(t) + \alpha \log B$: quantità che dipendono dall'ascissa con una legge a potenza appariranno rette di coefficiente angolare pari all'esponente della potenza.
+
+```{note} Il limite al continuo
+Immaginiamo di descrivere lo stesso processo usando passi temporali e spaziali, $\Delta t$ e $\Delta x$, sempre più piccoli. Poiché stiamo descrivendo lo stesso sistema fisico, le quantità osservabili devono rimanere le stesse, indipendentemente dal valore di $\Delta t$ e $\Delta x$. In particolare, la varianza osservata dopo lo stesso tempo $t$, eq. [](#eq:D), non deve cambiare quando scegliamo una discretizzazione più fine. Per questo, nel limite continuo, il rapporto
+
+$$
+\frac{\Delta x^2}{\Delta t}
+$$
+
+deve rimanere costante.
+
+In una dimensione si definisce convenzionalmente
+
+$$
+D=\frac{\Delta x^2}{2\Delta t},
+$$
+
+così che la relazione precedente assuma la forma standard $\left\langle [x(t)-x_0]^2 \right\rangle=2Dt$. Il fattore $2$ fa quindi parte della definizione convenzionale di $D$; la condizione fisica importante è che $\Delta x^2/\Delta t$ rimanga costante.
+```
+
+Confrontiamo il moto diffusivo con quello di una particella che si muove con velocità costante (*moto balistico*). In questo caso la posizione evolve con la legge
+
+$$
+x(t)-x_0=vt,
+$$
+
+da cui si trova immediatamente
+
+$$
+[x(t)-x_0]^2=v^2t^2.
+$$
+
+Nel moto balistico gli spostamenti successivi sono tutti coerenti: la particella mantiene memoria della direzione del moto. Nel random walk, invece, la direzione di ogni passo è indipendente da quella dei passi precedenti e la memoria della direzione viene persa immediatamente.
+
+(sec:random-walk-distribution)=
+## Distribuzione delle posizioni
+
+Consideriamo ora il seguente sistema: un "camminatore" (cioè la versione semplificata della nostra particella) che può spostarsi lungo un binario. A ogni istante di tempo $\Delta t$, il camminatore può spostarsi a destra o a sinistra di $\Delta x$ con uguale probabilità. Dopo $n$ passi, indichiamo con $n_+$ il numero di passi verso destra e con $n_-$ il numero di passi verso sinistra. Si ha
+
+$$
+n_++n_-=n
+$$
+
+e
+
+$$
+\label{eq:x_n_discreto}
+x_n-x_0=(n_+-n_-)\Delta x=(2n_+-n)\Delta x.
+$$
+
+La probabilità che in un percorso di $n$ passi il camminatore ne abbia fatti $n_+$ verso destra è data da una distribuzione binomiale:
+
+$$
+\mathcal{P}(n_+, n) = \frac{1}{2^n} \binom{n}{n_+},
+$$
+
+da cui si ottiene la distribuzione della posizione sostituendo la dipendenza di $n_+$ da $x_n$ trovata nell'equazione [](#eq:x_n_discreto)[^Px_valida]:
+
+$$
+P_n(x) = \frac{1}{2^n}
+\binom{n}{
+\frac{1}{2}
+\left(
+n+\frac{x-x_0}{\Delta x}
+\right)
+},
+$$
+
+[^Px_valida]: La distribuzione è ovviamente valida per i soli valori di $x$ accessibili al random walk.
+
+La distribuzione discreta presenta alcune particolarità. Per esempio, se $n$ è dispari $P(x_0) = 0$, e dopo un numero pari di passi la particella può trovarsi soltanto a una distanza pari a un multiplo pari di $\Delta x$ da $x_0$. Questi dettagli diventano però irrilevanti quando $n$ è grande e si osserva il sistema su scale spaziali molto maggiori di $\Delta x$.
+
+(sec:random-walk-clt)=
+## Il limite continuo e il teorema del limite centrale
+
+Lo spostamento dopo $n$ passi,
+
+$$
+X_n=\sum_{i=1}^n\xi_i,
+$$
+
+è la somma di $n$ variabili aleatorie indipendenti e identicamente distribuite, con
+
+$$
+\langle\xi_i\rangle=0,
+\qquad
+\operatorname{Var}(\xi_i)=\Delta x^2.
+$$
+
+Il [teorema del limite centrale](https://it.wikipedia.org/wiki/Teoremi_del_limite_centrale) afferma che, per $n$ grande, la variabile normalizzata
+
+$$
+Z_n
+=
+\frac{X_n}{\Delta x\sqrt n}
+$$
+
+tende ad avere una distribuzione normale con media nulla e varianza unitaria.
+
+La distribuzione dello spostamento è quindi approssimativamente
+
+$$
+P(X_n) \simeq \frac{1}{\sqrt{2\pi n\Delta x^2}} \exp\left[ -\frac{X_n^2}{2n\Delta x^2} \right].
+$$
+
+Usando
+
+$$
+X_n=x-x_0,
+\qquad
+t=n\Delta t,
+\qquad
+D=\frac{\Delta x^2}{2\Delta t},
+$$
+
+otteniamo
+
+$$
+\label{eq:diff_gaussian}
+P(x,t) = \frac{1}{\sqrt{4\pi Dt}} \exp\left[ -\frac{(x-x_0)^2}{4Dt} \right].
+$$
+
+Questa distribuzione ha media
+
+$$
+\langle x(t)\rangle=x_0
+$$
+
+e varianza
+
+$$
+\operatorname{Var}[x(t)]=2Dt.
+$$
+
+Nel limite continuo la distribuzione binomiale del random walk viene dunque sostituita da una distribuzione gaussiana la cui larghezza cresce come $\sqrt t$.
+
+:::{note} Sul teorema del limite centrale
+Il teorema del limite centrale non afferma che i singoli passi siano gaussiani. La distribuzione gaussiana emerge perché lo spostamento totale è la somma di un gran numero di contributi indipendenti.
+:::
+
+```{figure} #cell:res_random_walk_prob
+:label: fig:res_random_walk_prob
+:align: center
+
+Distribuzioni di probabilità delle posizioni $x - x_0$ per un random walk unidimensionale a tre diversi istanti di tempo (da sinistra a destra, $n = 10, 100, 1000$), mediate su $10^5$ traiettorie. Gli istogrammi sono i valori numerici, mentre le righe continue sono le distribuzioni continue teoriche, eq. [](#eq:diff_gaussian).
+```
+
+La [](#fig:res_random_walk_prob) mostra come l'approssimazione continua funzioni piuttosto bene già a tempi corti ($n = 10$).
+
+## Oltre il random walk destra/sinistra
+
+Il teorema del limite centrale mostra che il comportamento diffusivo non dipende dalla scelta particolare di passi discreti verso destra o verso sinistra. Le ipotesi essenziali sono che gli incrementi $\xi_i$ siano indipendenti e identicamente distribuiti, con media nulla e varianza finita. Se queste condizioni sono verificate, per $n$ grande la distribuzione dello spostamento tenderà a una gaussiana, indipendentemente dalla forma dettagliata della distribuzione dei singoli passi. Il random walk destra/sinistra è quindi soltanto il più semplice esempio di una classe molto più generale di processi diffusivi.
+
+:::{warning}
+La finitezza della varianza è essenziale. Distribuzioni con code molto larghe e varianza infinita non soddisfano il teorema del limite centrale nella sua forma usuale e possono dare origine a dinamiche non diffusive.
+:::
+
+Un esempio lo abbiamo già incontrato: nel limite sovrasmorzato dell'equazione di Langevin, eq. [](#eq:overdamped), gli spostamenti sono variabili gaussiane indipendenti di varianza $2D\Delta t$, generabili con il metodo di [Box-Muller](#sec:gaussian-numbers). In questo caso particolare la distribuzione dello spostamento è gaussiana per *qualunque* valore di $n$, e non solo asintoticamente, perché la somma di variabili gaussiane indipendenti è ancora una variabile gaussiana.
+
+(sec:diffusion-equation)=
+## Dalla dinamica discreta all'equazione di diffusione
+
+Indichiamo con $P(x,t)$ la probabilità di trovare la particella nella posizione $x$ al tempo $t$.
+
+Per trovarsi in $x$ al tempo $t+\Delta t$, al passo precedente la particella deve essersi trovata
+
+- in $x-\Delta x$ e aver compiuto un passo verso destra;
+- oppure in $x+\Delta x$ e aver compiuto un passo verso sinistra.
+
+La probabilità soddisfa quindi la *master equation*
+
+$$
+\label{eq:master_equation}
+P(x,t+\Delta t) = \frac12P(x-\Delta x,t) + \frac12P(x+\Delta x,t).
+$$
+
+Supponiamo ora che $\Delta x$ e $\Delta t$ siano sufficientemente piccoli (o, equivalentemente, che $P(x,t)$ vari lentamente sulle scale microscopiche
+$\Delta x$ e $\Delta t$). Possiamo allora sviluppare i due membri in serie di Taylor.
+
+Per il membro sinistro,
+
+$$
+P(x,t+\Delta t) = P(x,t) + \Delta t\frac{\partial P}{\partial t} + \mathcal{O}(\Delta t^2).
+$$
+
+Per i due termini spaziali,
+
+$$
+P(x\pm\Delta x,t) = P(x,t) \pm \Delta x\frac{\partial P}{\partial x} + \frac{\Delta x^2}{2} \frac{\partial^2P}{\partial x^2} \pm \frac{\Delta x^3}{3!} \frac{\partial^3P}{\partial x^3} + \mathcal{O}(\Delta x^4).
+$$
+
+Sommando i due contributi, i termini dispari in $\Delta x$ si cancellano:
+
+$$
+\frac12 \left[ P(x-\Delta x,t)+P(x+\Delta x,t) \right] = P(x,t) + \frac{\Delta x^2}{2} \frac{\partial^2P}{\partial x^2} + \mathcal{O}(\Delta x^4).
+$$
+
+Inserendo gli sviluppi nell'equazione [](#eq:master_equation) si ottiene
+
+$$
+P + \Delta t\frac{\partial P}{\partial t} = P + \frac{\Delta x^2}{2} \frac{\partial^2P}{\partial x^2} + \mathcal{O}(\Delta t^2,\Delta x^4).
+$$
+
+Eliminando il termine $P(x,t)$ da entrambi i membri e dividendo per
+$\Delta t$,
+
+$$
+\frac{\partial P}{\partial t} = \frac{\Delta x^2}{2\Delta t} \frac{\partial^2P}{\partial x^2} + \mathcal{O} \left( \Delta t, \frac{\Delta x^4}{\Delta t} \right).
+$$
+
+Ricordando la definizione di coefficiente di diffusione, eq. [](#eq:D), possiamo prendere il limite al continuo, $\Delta x\to0$ e $\Delta t\to0$, ottenendo
+
+$$
+\frac{\partial P(x,t)}{\partial t} = D\frac{\partial^2P(x,t)}{\partial x^2}.
+$$
+
+Questa è l'**equazione di diffusione**, formalmente identica all'[equazione del calore](https://it.wikipedia.org/wiki/Equazione_del_calore). Si può dimostrare (ma noi non lo faremo) che la soluzione di questa equazione differenziale per una particella che si trova con certezza in $x_0$ al tempo iniziale[^condizione_iniziale] è
+
+$$
+P(x,t) = \frac{1}{\sqrt{4\pi Dt}} \exp\left[ -\frac{(x-x_0)^2}{4Dt} \right].
+$$
+
+Si tratta, e non è un caso, della stessa distribuzione gaussiana ottenuta applicando il teorema del limite centrale al random walk discreto, eq. [](#eq:diff_gaussian).
+
+La distribuzione è normalizzata,
+
+$$
+\int_{-\infty}^{+\infty}P(x,t)\,dx=1,
+$$
+
+e soddisfa
+
+$$
+\langle x(t)\rangle=x_0,
+\qquad
+\left\langle[x(t)-x_0]^2\right\rangle=2Dt.
+$$
+
+Il random walk discreto e l'equazione di diffusione descrivono quindi la
+stessa fisica su scale differenti:
+
+- il random walk fornisce una descrizione microscopica in termini di passi
+  casuali;
+- l'equazione di diffusione fornisce una descrizione continua e
+  macroscopica dell'evoluzione della densità di probabilità.
+
+[^condizione_iniziale]: Questo tipo di condizioni iniziali si può scrivere formalmente come
+$$
+P(x,0)=\delta(x-x_0),
+$$
+dove $\delta(x)$ è la [delta di Dirac](https://it.wikipedia.org/wiki/Delta_di_Dirac), un oggetto matematico che verrà introdotto durante il corso di Modelli e Metodi Matematici della Fisica.
