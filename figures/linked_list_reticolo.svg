@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 812 540" width="812" height="540" font-family="Helvetica, Arial, sans-serif">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1f3a5f"/></marker><marker id="ahk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#333"/></marker></defs>
+<rect width="812" height="540" fill="white"/>
+<rect x="296" y="42" width="52" height="52" rx="6" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="322.0" y="74.0" text-anchor="middle" font-size="17" fill="#777">0</text>
+<rect x="352" y="42" width="52" height="52" rx="6" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="378.0" y="74.0" text-anchor="middle" font-size="17" fill="#777">1</text>
+<rect x="408" y="42" width="52" height="52" rx="6" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="434.0" y="74.0" text-anchor="middle" font-size="17" fill="white">2</text>
+<rect x="464" y="42" width="52" height="52" rx="6" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="490.0" y="74.0" text-anchor="middle" font-size="17" fill="#777">3</text>
+<rect x="296" y="98" width="52" height="52" rx="6" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="322.0" y="130.0" text-anchor="middle" font-size="17" fill="white">4</text>
+<rect x="352" y="98" width="52" height="52" rx="6" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="378.0" y="130.0" text-anchor="middle" font-size="17" fill="white">5</text>
+<rect x="408" y="98" width="52" height="52" rx="6" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="434.0" y="130.0" text-anchor="middle" font-size="17" fill="white">6</text>
+<rect x="464" y="98" width="52" height="52" rx="6" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="490.0" y="130.0" text-anchor="middle" font-size="17" fill="white">7</text>
+<rect x="296" y="154" width="52" height="52" rx="6" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="322.0" y="186.0" text-anchor="middle" font-size="17" fill="#777">8</text>
+<rect x="352" y="154" width="52" height="52" rx="6" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="378.0" y="186.0" text-anchor="middle" font-size="17" fill="white">9</text>
+<rect x="408" y="154" width="52" height="52" rx="6" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="434.0" y="186.0" text-anchor="middle" font-size="17" fill="white">10</text>
+<rect x="464" y="154" width="52" height="52" rx="6" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="490.0" y="186.0" text-anchor="middle" font-size="17" fill="#777">11</text>
+<rect x="296" y="210" width="52" height="52" rx="6" fill="#5aa9a0" stroke="#3b7d76" stroke-width="1.5"/>
+<text x="322.0" y="242.0" text-anchor="middle" font-size="17" fill="white">12</text>
+<rect x="352" y="210" width="52" height="52" rx="6" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="378.0" y="242.0" text-anchor="middle" font-size="17" fill="#777">13</text>
+<rect x="408" y="210" width="52" height="52" rx="6" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="434.0" y="242.0" text-anchor="middle" font-size="17" fill="#777">14</text>
+<rect x="464" y="210" width="52" height="52" rx="6" fill="#8e7cc3" stroke="#64549a" stroke-width="1.5"/>
+<text x="490.0" y="242.0" text-anchor="middle" font-size="17" fill="white">15</text>
+<line x1="294" y1="26" x2="364" y2="26" stroke="#333" stroke-width="1.5" marker-end="url(#ahk)"/>
+<line x1="280" y1="40" x2="280" y2="110" stroke="#333" stroke-width="1.5" marker-end="url(#ahk)"/>
+<text x="374" y="31" font-size="16" font-style="italic" fill="#333">i</text>
+<text x="275" y="130" font-size="16" font-style="italic" fill="#333">j</text>
+<rect x="43.5" y="380" width="41" height="44" rx="4" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="64.0" y="408.0" text-anchor="middle" font-size="16" fill="#777">0</text>
+<rect x="87.5" y="380" width="41" height="44" rx="4" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="108.0" y="408.0" text-anchor="middle" font-size="16" fill="#777">1</text>
+<rect x="131.5" y="380" width="41" height="44" rx="4" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="152.0" y="408.0" text-anchor="middle" font-size="16" fill="white">2</text>
+<rect x="175.5" y="380" width="41" height="44" rx="4" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="196.0" y="408.0" text-anchor="middle" font-size="16" fill="#777">3</text>
+<rect x="227.5" y="380" width="41" height="44" rx="4" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="248.0" y="408.0" text-anchor="middle" font-size="16" fill="white">4</text>
+<rect x="271.5" y="380" width="41" height="44" rx="4" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="292.0" y="408.0" text-anchor="middle" font-size="16" fill="white">5</text>
+<rect x="315.5" y="380" width="41" height="44" rx="4" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="336.0" y="408.0" text-anchor="middle" font-size="16" fill="white">6</text>
+<rect x="359.5" y="380" width="41" height="44" rx="4" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="380.0" y="408.0" text-anchor="middle" font-size="16" fill="white">7</text>
+<rect x="411.5" y="380" width="41" height="44" rx="4" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="432.0" y="408.0" text-anchor="middle" font-size="16" fill="#777">8</text>
+<rect x="455.5" y="380" width="41" height="44" rx="4" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="476.0" y="408.0" text-anchor="middle" font-size="16" fill="white">9</text>
+<rect x="499.5" y="380" width="41" height="44" rx="4" fill="#e8743b" stroke="#b4511f" stroke-width="1.5"/>
+<text x="520.0" y="408.0" text-anchor="middle" font-size="16" fill="white">10</text>
+<rect x="543.5" y="380" width="41" height="44" rx="4" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="564.0" y="408.0" text-anchor="middle" font-size="16" fill="#777">11</text>
+<rect x="595.5" y="380" width="41" height="44" rx="4" fill="#5aa9a0" stroke="#3b7d76" stroke-width="1.5"/>
+<text x="616.0" y="408.0" text-anchor="middle" font-size="16" fill="white">12</text>
+<rect x="639.5" y="380" width="41" height="44" rx="4" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="660.0" y="408.0" text-anchor="middle" font-size="16" fill="#777">13</text>
+<rect x="683.5" y="380" width="41" height="44" rx="4" fill="#ffffff" stroke="#b8b8b8" stroke-width="1.5"/>
+<text x="704.0" y="408.0" text-anchor="middle" font-size="16" fill="#777">14</text>
+<rect x="727.5" y="380" width="41" height="44" rx="4" fill="#8e7cc3" stroke="#64549a" stroke-width="1.5"/>
+<text x="748.0" y="408.0" text-anchor="middle" font-size="16" fill="white">15</text>
+<circle cx="159.0" cy="380" r="3.2" fill="#1f3a5f"/>
+<path d="M159.0,380 C159.0,306 329.0,306 329.0,377" fill="none" stroke="#1f3a5f" stroke-width="2" marker-end="url(#ah)"/>
+<circle cx="329.0" cy="424" r="3.2" fill="#1f3a5f"/>
+<path d="M329.0,424 C329.0,459 299.0,459 299.0,427" fill="none" stroke="#1f3a5f" stroke-width="2" marker-end="url(#ah)"/>
+<circle cx="299.0" cy="380" r="3.2" fill="#1f3a5f"/>
+<path d="M299.0,380 C299.0,332 373.0,332 373.0,377" fill="none" stroke="#1f3a5f" stroke-width="2" marker-end="url(#ah)"/>
+<circle cx="387.0" cy="380" r="3.2" fill="#1f3a5f"/>
+<path d="M387.0,380 C387.0,319 513.0,319 513.0,377" fill="none" stroke="#1f3a5f" stroke-width="2" marker-end="url(#ah)"/>
+<circle cx="513.0" cy="424" r="3.2" fill="#1f3a5f"/>
+<path d="M513.0,424 C513.0,524 255.0,524 255.0,427" fill="none" stroke="#1f3a5f" stroke-width="2" marker-end="url(#ah)"/>
+<circle cx="255.0" cy="380" r="3.2" fill="#1f3a5f"/>
+<path d="M255.0,380 C255.0,293 469.0,293 469.0,377" fill="none" stroke="#1f3a5f" stroke-width="2" marker-end="url(#ah)"/>
+<line x1="152.0" y1="482" x2="152.0" y2="428" stroke="#1f3a5f" stroke-width="2" marker-end="url(#ah)"/>
+<text x="152.0" y="500" text-anchor="middle" font-size="16" fill="#1f3a5f">testa</text>
+<circle cx="476.0" cy="424" r="3.2" fill="#1f3a5f"/>
+<line x1="476.0" y1="424" x2="476.0" y2="446" stroke="#1f3a5f" stroke-width="2" marker-end="url(#ah)"/>
+<text x="476.0" y="464" text-anchor="middle" font-size="14" font-family="Courier New, monospace" font-weight="bold" fill="#1f3a5f">NULL</text>
+</svg>

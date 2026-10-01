@@ -18,7 +18,7 @@ Lo stesso tipo di fenomeno compare in contesti molto diversi tra loro:
 * in un materiale composito fatto di grani conduttori dispersi in una matrice isolante, la corrente può attraversare il materiale solo se i grani conduttori formano un cammino continuo da un elettrodo all'altro: sotto una certa concentrazione di grani il materiale è isolante, sopra diventa conduttore;
 * la diffusione di un'epidemia in una popolazione richiede che esista una catena continua di contatti tra individui suscettibili: se i contatti sono troppo radi, l'epidemia si esaurisce localmente; se sono abbastanza densi, può raggiungere una frazione estesa della popolazione.
 
-In tutti questi esempi la domanda fisica è la stessa: **esiste un cammino continuo che attraversa l'intero sistema?** E la risposta cambia bruscamente al variare di un solo parametro, la densità (di habitat, di alberi, di connessioni, di contatti). Un cambiamento improvviso di comportamento macroscopico al variare con continuità di un parametro microscopico è la firma di una **transizione di fase**, un concetto che incontrerete anche nel corso di termodinamica in un contesto molto diverso (per esempio la transizione liquido-vapore). La percolazione è probabilmente il modello più semplice in cui si possa studiare una transizione di fase al calcolatore, con pochissimi ingredienti fisici: per questo è un ottimo punto di partenza.
+In tutti questi esempi la domanda fisica è la stessa: esiste un cammino continuo che attraversa l'intero sistema? E la risposta cambia bruscamente al variare di un solo parametro, la densità (di habitat, di alberi, di connessioni, di contatti). Un cambiamento improvviso di comportamento macroscopico al variare con continuità di un parametro microscopico è la firma di una transizione di fase, un concetto che incontrerete anche nel corso di termodinamica in un contesto molto diverso (per esempio la transizione liquido-vapore). La percolazione è probabilmente il modello più semplice in cui si possa studiare una transizione di fase al calcolatore, con pochissimi ingredienti fisici: per questo è un ottimo punto di partenza.
 
 ```{note} Da dove viene il nome
 Il termine "percolazione" nasce in un contesto ancora più quotidiano: descrive il filtraggio di un fluido attraverso un mezzo poroso, come l'acqua calda che attraversa la polvere di caffè in una moka, o il petrolio che si muove attraverso la roccia porosa di un giacimento. Il fluido riesce ad attraversare il mezzo solo se esiste un cammino continuo di pori collegati tra loro: la stessa domanda che ci porremo qui, applicata a un caso concreto.
@@ -31,16 +31,16 @@ Il termine "percolazione" nasce in un contesto ancora più quotidiano: descrive 
 
 Per studiare la percolazione al calcolatore ne costruiamo una versione semplificata e discreta. Consideriamo un reticolo quadrato $L \times L$, i cui siti sono identificati da una coppia di indici interi $(i,j)$, con $i,j = 0, \dots, L-1$, dove $i$ indica la colonna e $j$ la riga. A differenza di quanto avete visto per il gas reticolare, qui non useremo condizioni al bordo periodiche: il reticolo ha bordi veri e propri, oltre i quali non esistono altri siti, dato che ci chiederemo se esiste un cammino che attraversa il sistema da un bordo a quello opposto.
 
-Ogni sito del reticolo viene dichiarato **occupato** con probabilità $p$, e **vuoto** con probabilità $1-p$, indipendentemente da tutti gli altri siti. Questa è la cosiddetta **percolazione di sito** (*site percolation*). Due siti occupati sono considerati **connessi** se sono primi vicini sul reticolo, cioè se differiscono di un'unità in una sola delle due coordinate:
+Ogni sito del reticolo viene dichiarato occupato con probabilità $p$, e vuoto con probabilità $1-p$, indipendentemente da tutti gli altri siti. Questa è la cosiddetta percolazione di sito (*site percolation*). Due siti occupati sono considerati connessi se sono primi vicini sul reticolo, cioè se differiscono di un'unità in una sola delle due coordinate:
 
 $$
 (i,j) \sim (i', j') \iff |i-i'|+|j-j'| = 1.
 $$
 
-Un **cluster** è un insieme massimale di siti occupati, tutti raggiungibili l'uno dall'altro attraverso una catena di connessioni tra primi vicini. In altre parole, due siti occupati appartengono allo stesso cluster se e solo se esiste un cammino di siti occupati, ciascuno primo vicino del successivo, che li collega.
+Un *cluster* è un insieme massimale di siti occupati, tutti raggiungibili l'uno dall'altro attraverso una catena di connessioni tra primi vicini. In altre parole, due siti occupati appartengono allo stesso cluster se e solo se esiste un cammino di siti occupati, ciascuno primo vicino del successivo, che li collega.
 
 ```{note} Percolazione di legame
-Un modello strettamente imparentato è la **percolazione di legame** (*bond percolation*): qui tutti i siti sono presenti, ma è ciascun *legame* tra due primi vicini a essere presente con probabilità $p$ e assente con probabilità $1-p$, indipendentemente dagli altri legami. Due siti appartengono allo stesso cluster se sono collegati da una catena di legami presenti. Concettualmente il modello è identico a quello di sito: cambia solo l'oggetto (sito o legame) sottoposto al sorteggio casuale. Nel seguito lavoreremo sempre con la percolazione di sito, ma la variante di legame ricompare spesso in letteratura.
+Un modello strettamente imparentato è la percolazione di legame (*bond percolation*): qui tutti i siti sono presenti, ma è ciascun *legame* tra due primi vicini a essere presente con probabilità $p$ e assente con probabilità $1-p$, indipendentemente dagli altri legami. Due siti appartengono allo stesso cluster se sono collegati da una catena di legami presenti. Concettualmente il modello è identico a quello di sito: cambia solo l'oggetto (sito o legame) sottoposto al sorteggio casuale. Nel seguito lavoreremo sempre con la percolazione di sito, ma la variante di legame ricompare spesso in letteratura.
 ```
 
 Diciamo che un cluster **percola** (o è *percolante*) se collega due bordi opposti del reticolo, cioè se contiene almeno un sito nella prima colonna ($i=0$) e almeno uno nell'ultima ($i=L-1$), oppure almeno un sito nella prima riga ($j=0$) e almeno uno nell'ultima ($j=L-1$). In questo caso esiste un cammino continuo di siti occupati che attraversa il reticolo da sinistra a destra o dall'alto in basso. Dato che il reticolo è quadrato, le due direzioni sono equivalenti per simmetria, e non c'è motivo di privilegiarne una.
@@ -59,7 +59,7 @@ La [](#fig:percolazione) mostra due configurazioni di esempio generate casualmen
 
 Per $p$ molto piccolo, quasi tutti i siti occupati sono isolati o formano piccoli cluster: è estremamente improbabile che esista un cluster percolante. Le due configurazioni rappresentate in [](#fig:percolazione) sono vicine a questo limite: se generassimo molte altre configurazioni, la gran parte conterrebbe tanti piccoli cluster, e solo pochissime percolerebbero. D'altro canto, per $p$ vicino a 1, quasi tutti i siti sono occupati, ed è quasi certo che esista un cluster percolante (nel caso estremo $p=1$ tutto il reticolo è un unico cluster). Ci aspettiamo quindi che la probabilità di osservare un cluster percolante, che indichiamo con $P_{\rm perc}(p, L)$, sia una funzione crescente di $p$, che passa da valori vicini a 0 a valori vicini a 1.
 
-Si può dimostrare (non lo faremo qui) che nel limite di reticolo infinito, $L \to \infty$, questa transizione diventa **discontinua**: esiste un valore critico $p_c$, detto **soglia di percolazione**, tale che
+Si può dimostrare (non lo faremo qui) che nel limite di reticolo infinito, $L \to \infty$, questa transizione diventa **discontinua**: esiste un valore critico $p_c$, detto soglia di percolazione, tale che
 
 $$
 \lim_{L\to\infty} P_{\rm perc}(p, L) =
@@ -79,7 +79,7 @@ $$
 Per la percolazione di *legame* sul reticolo quadrato 2D vale invece un risultato esatto, $p_c = 1/2$, che si può dimostrare con un argomento di simmetria legato al concetto di *dualità* ([](doi:10.1112/S002460930601842X)). È un fatto piuttosto raro nella teoria della percolazione: nella stragrande maggioranza dei casi, incluso quello che consideriamo qui, il valore di $p_c$ si può ottenere solo numericamente.
 ```
 
-Anche se il valore numerico di $p_c$ dipende dai dettagli del reticolo, molte proprietà del sistema vicino a $p_c$ (per esempio con quale legge di potenza diverge una certa grandezza) sono invece le stesse per intere classi di modelli molto diversi tra loro: questo fenomeno si chiama [**universalità**](https://it.wikipedia.org/wiki/Classe_di_universalit%C3%A0). Non lo studieremo in dettaglio in questo corso, ma è uno dei motivi per cui la percolazione, nonostante la sua semplicità, è un modello di riferimento nello studio delle transizioni di fase.
+Anche se il valore numerico di $p_c$ dipende dai dettagli del reticolo, molte proprietà del sistema vicino a $p_c$ (per esempio con quale legge di potenza diverge una certa grandezza) sono invece le stesse per intere classi di modelli molto diversi tra loro: questo fenomeno si chiama [universalità](https://it.wikipedia.org/wiki/Classe_di_universalit%C3%A0). Non lo studieremo in dettaglio in questo corso, ma è uno dei motivi per cui la percolazione, nonostante la sua semplicità, è un modello di riferimento nello studio delle transizioni di fase.
 
 (sec:percolazione-algoritmo)=
 # Come trovare i cluster al calcolatore
@@ -110,7 +110,7 @@ for(i = 0; i < L; i++) {
 free(occupato);
 ```
 
-**L'unico** vantaggio di questa tecnica è che si accede all'elemento $(i, j)$ del reticolo con la sintassi `occupato[i][j]`. D'altra parte, gli svantaggi sono almeno due:
+L'unico vantaggio di questa tecnica è che si accede all'elemento $(i, j)$ del reticolo con la sintassi `occupato[i][j]`. D'altra parte, gli svantaggi sono almeno due:
 
 1. Allocare e liberare la memoria di array multidimensionali è macchinoso. Pensate ad esempio a come diventerebbe il codice precedente se volessimo simulare un reticolo tridimensionale...
 2. A differenza di un vero array bidimensionale, le caselle di un array costruito dinamicamente a partire da una variabile `int **` non sono contigue in memoria. Questo ha un effetto pratico, perché la contiguità migliora le performance, specialmente quando si lavora con acceleratori hardware dedicati (ad esempio le GPU, utilizzatissime in ambito AI).
@@ -141,7 +141,7 @@ Un sito viene etichettato nel momento in cui viene aggiunto alla coda, non quand
 ```{figure} figures/flood_fill.png
 :name: fig:flood_fill
 :align: center
-:width: 400px
+:width: 500px
 
 L'algoritmo *flood fill* che utilizzeremo per studiare la percolazione di sito. Cominciando a scorrere i siti dall'angolo in alto a sinistra, il primo sito occupato che si incontra è nella posizione $(0, 2)$ (passo 0, in giallo). Una volta incontrato un sito occupato si aggiungono i suoi primi vicini alla coda (passo 1 e 2), finché la coda non è esaurita (passo 3): il cluster è ora stato completamente identificato.
 ```
@@ -270,6 +270,14 @@ void assegna(int *p) {
 Nel caso di `aggiungi_in_coda`, invece, deve fare esattamente questo: quando si aggiunge un sito in coda, il puntatore `coda` del chiamante deve cominciare a puntare al nuovo ultimo nodo. Per modificare il valore di `coda` stesso, e non solo il dato a cui punta, la funzione ha bisogno dell'indirizzo di `coda`: un puntatore a un puntatore, `Sito **`. È lo stesso motivo per cui, quando la chiamate da `esplora_cluster`, passate `&coda` e non semplicemente `coda`.
 ````
 
+```{figure} figures/linked_list_reticolo.svg
+:name: fig:linked_list
+:align: center
+:width: 600px
+
+Rappresentazione del reticolo tramite array unidimensionale (in alto), e della coda mediante una lista concatenata (in basso). I siti rimangono nelle loro posizioni all’interno dell’array `reticolo`, mentre i campi `next` ne determinano l’ordine logico. Nell'esempio in basso le frecce scorrono, tramite i puntatori `next`, la lista che rappresenta il cluster rosso; `testa` indica primo sito del cluster, mentre il campo `next` dell'ultimo punta a `NULL`.
+```
+
 ## L'implementazione
 
 La funzione che esplora un singolo cluster a partire da un sito puntato da `testa`, assegnandogli l'etichetta `id` e restituendone la taglia, è la seguente:
@@ -334,7 +342,7 @@ for(int idx = 0; idx < L * L; idx++) {
 
 ## Identificare il cluster percolante
 
-Per sapere se un cluster percola basta tenere traccia, durante l'esplorazione, di quali bordi del reticolo tocca ciascun cluster. Il modo più semplice è usare quattro array di booleani, `tocca_sinistra[id]`, `tocca_destra[id]`, `tocca_alto[id]` e `tocca_basso[id]`, aggiornati in `esplora_cluster` ogni volta che si incontra un sito con $i=0$, $i=L-1$, $j=0$ oppure $j=L-1$. Un cluster `id` percola se `tocca_sinistra[id] && tocca_destra[id]` oppure `tocca_alto[id] && tocca_basso[id]` è vero, e una volta trovati tutti i cluster basta scorrerne gli identificativi per stabilire se il reticolo percola e qual è la taglia del cluster percolante.
+Per sapere se un cluster percola basta tenere traccia, durante l'esplorazione (e quindi, ad esempio, all'interno della funzione `esplora_cluster()`), di quali bordi del reticolo siano toccati dal cluster. Il modo più semplice è usare quattro variabili, ad esempio `tocca_sinistra`, `tocca_destra`, `tocca_alto` e `tocca_basso`, che vengono messe a 0 all'inizio della funzione, e aggiornate a 1 qualora si incontri un un sito con $i=0$, $i=L-1$, $j=0$ oppure $j=L-1$. Alla fine dell'esplorazione, il cluster percola se `tocca_sinistra && tocca_destra` oppure `tocca_alto && tocca_basso` è vero.
 
 Su un reticolo finito possono esistere anche più cluster percolanti contemporaneamente (pensate a due righe interamente occupate separate da una riga vuota), anche se si tratta di un evento raro, e nel limite $L \to \infty$ il cluster percolante diventa unico. Per questo motivo conviene controllare tutti i cluster, e non fermarsi al primo percolante che si trova.
 
@@ -349,11 +357,11 @@ Questo algoritmo è più efficiente di quello basato sul flood fill (in particol
 (sec:percolazione-misure)=
 # Misure, medie e risultati
 
-Una singola configurazione del reticolo, a un dato $p$, è solo una realizzazione tra le tante possibili: due sorteggi indipendenti con la stessa probabilità $p$ possono dare cluster completamente diversi, soprattutto vicino a $p_c$. Come per i cammini aleatori, le grandezze fisicamente rilevanti si ottengono **mediando su molte realizzazioni indipendenti** della configurazione, a $p$ e $L$ fissati.
+Una singola configurazione del reticolo, a un dato $p$, è solo una realizzazione tra le tante possibili: due sorteggi indipendenti con la stessa probabilità $p$ possono dare cluster completamente diversi (vedi l'esempio di [](#fig:percolazione)). Come per i cammini aleatori, le grandezze fisicamente rilevanti si ottengono mediando su molte realizzazioni indipendenti della configurazione, a $p$ e $L$ fissati.
 
 ## Distribuzione delle taglie dei cluster
 
-Fissato $p$, possiamo costruire un istogramma delle taglie di tutti i cluster trovati, accumulando i risultati su molte realizzazioni indipendenti. Lontano da $p_c$ questa distribuzione decade rapidamente (circa esponenzialmente) al crescere della taglia $s$: i cluster grandi sono rari. Esattamente a $p = p_c$, invece, non esiste più una scala di taglia caratteristica, e la distribuzione dei cluster segue una **legge di potenza**,
+Fissato $p$, possiamo costruire un istogramma delle taglie di tutti i cluster trovati, accumulando i risultati su molte realizzazioni indipendenti. Lontano da $p_c$ questa distribuzione decade rapidamente (circa esponenzialmente) al crescere della taglia $s$: i cluster grandi sono rari. Esattamente a $p = p_c$, invece, non esiste più una scala di taglia caratteristica, e la distribuzione dei cluster segue una legge di potenza,
 
 $$
 n_s(p_c) \sim s^{-\tau},
@@ -361,13 +369,35 @@ $$
 
 dove $n_s$ è il numero (normalizzato) di cluster di taglia $s$, e $\tau$ è un esponente numerico[^tau]. Su un grafico in scala log-log, una legge di potenza appare come una retta: è questo il modo più semplice per riconoscerla numericamente.
 
-[^tau]: Il valore di $\tau$ è uno degli esponenti critici della percolazione, e per la percolazione di sito su reticolo quadrato 2D vale $\tau = 187/91 \simeq 2.05$. Qui ci basterà osservare qualitativamente l'andamento a potenza.
-
-```{figure} #cell:distribuzione_taglie_cluster
-:label: fig:distribuzione_taglie_cluster
+```{figure} #cell:csd
+:label: fig:csd
 :align: center
 
-Distribuzione delle taglie dei cluster $n_s(p)$, in scala log-log, per tre valori di $p$: lontano da $p_c$ da entrambi i lati la distribuzione decade rapidamente, mentre a $p=p_c$ l'andamento è approssimativamente una retta, segno di una legge di potenza.
+Distribuzione delle taglie dei cluster $n_s(p)$ per un reticolo $64x64$, calcolata per quattro valori di $p$ e graficata in scala log-log, mediata su 10000 realizzazioni. Lontano da $p_c$ da entrambi i lati la distribuzione decade rapidamente, mentre a $p \approx p_c$ l'andamento è approssimativamente una retta, segno di una legge di potenza.
+```
+
+La [](#fig:csd) mostra $n(s)$ al variare di $p$ per un reticolo $64x64$ e quattro diversi valori di $p$. Si vede come vicino a $p_c$ ($p = 0.60$, curva verde) la distribuzione segua una legge di potenza.
+
+[^tau]: Il valore di $\tau$ è uno degli esponenti critici della percolazione, e per la percolazione di sito su reticolo quadrato 2D vale $\tau = 187/91 \simeq 2.05$. Qui ci basterà osservare qualitativamente l'andamento a potenza.
+
+```{note} Leggi di potenza: quando gli eventi estremi contano
+Una legge di potenza ha la forma
+
+$$
+P(x)\propto x^{-\alpha}.
+$$
+
+Ciò significa che, moltiplicando $x$ per un fattore $b$, la frequenza si riduce sempre dello stesso fattore $b^\alpha$, indipendentemente dal valore di partenza. Per esempio, se $\alpha=2$, eventi dieci volte più grandi sono circa cento volte meno frequenti. A differenza di una distribuzione esponenziale o Gaussiana, una legge di potenza non possiede una scala caratteristica: si possono osservare molti eventi piccoli, meno eventi grandi e, molto raramente, eventi enormi.
+
+Un esempio reso celebre da Nassim Nicholas Taleb aiuta a capire perché questa differenza sia importante. Immaginiamo di riempire uno stadio scegliendo persone a caso e di calcolarne l'altezza media. Se sostituiamo uno spettatore con la persona più alta del mondo, la media cambia in modo impercettibile: le altezze umane sono concentrate in un intervallo relativamente ristretto e un singolo individuo non può essere centinaia o migliaia di volte più alto degli altri.
+
+Supponiamo invece di calcolare la ricchezza media degli spettatori e di sostituirne uno con la persona più ricca del mondo. In questo caso la media cambierà drasticamente: non esiste per la ricchezza un limite naturale confrontabile con quello imposto all'altezza dalla struttura del corpo umano, e un solo patrimonio può essere paragonabile alla somma di quelli di moltissime altre persone. La parte superiore della distribuzione della ricchezza è infatti spesso descritta, almeno approssimativamente, da una legge di potenza.
+
+In una distribuzione di questo tipo gli eventi estremi, benché rari, non sono necessariamente trascurabili: possono contribuire in modo sostanziale alle medie e rendere queste ultime molto sensibili alla dimensione del campione. È per questo che estrapolare l'evento "tipico" può essere fuorviante.
+
+Andamenti a potenza, generalmente entro un intervallo limitato di scale, compaiono in molti altri sistemi: nell'energia liberata dai terremoti, nelle dimensioni degli incendi, nell'intensità di alcune alluvioni e frane, nelle dimensioni delle città e nel numero di connessioni di alcune reti. Non tutte queste distribuzioni seguono una legge di potenza esatta, né lo fanno su tutte le scale: nei sistemi reali esistono sempre limiti fisici e correzioni.
+
+Alla soglia di percolazione accade qualcosa di analogo. Non esiste una taglia "tipica" dei cluster: ne troviamo su molte scale, da pochi siti fino a una frazione significativa del reticolo. I cluster grandi sono meno numerosi di quelli piccoli, ma non vengono soppressi rapidamente come accadrebbe in una distribuzione esponenziale, cioè lontano dalla soglia di percolazione. Questa assenza di una scala caratteristica è una delle firme fondamentali di un [punto critico](https://it.wikipedia.org/wiki/Punto_critico_(termodinamica)), un concetto che molti di voi studieranno approfonditamente nei prossimi anni. In un reticolo finito la legge non può naturalmente continuare fino a taglie infinite: la dimensione $L$ del sistema introduce un limite superiore.
 ```
 
 ## Effetti di taglia finita e stima di $p_c$
@@ -376,29 +406,33 @@ La discontinuità di $P_{\rm perc}(p,L)$ in $p_c$ si ha solo per $L\to\infty$. S
 
 Questo suggerisce un modo semplice per stimare numericamente $p_c$ senza dover mandare $L$ all'infinito: calcoliamo $P_{\rm perc}(p, L)$ mediando su molte realizzazioni, per diversi valori di $L$, e rappresentiamo le curve ottenute sullo stesso grafico in funzione di $p$. Al crescere di $L$ le curve diventano sempre più ripide attorno a un punto comune, che si avvicina progressivamente al vero $p_c$: il punto in cui le curve relative a $L$ diversi si incrociano (approssimativamente) è quindi una stima di $p_c$, tipicamente già ragionevole con reticoli di taglia moderata. La convergenza è tanto più lenta quanto più contano gli effetti di bordo: con i bordi aperti che abbiamo scelto, i siti vicino al contorno hanno meno vicini degli altri, e questo introduce correzioni di taglia finita che vanno tenute in conto se si vuole stimare $p_c$ con grande precisione.
 
-```{figure} #cell:probabilita_percolazione
-:label: fig:probabilita_percolazione
+```{figure} #cell:P_perc
+:label: fig:P_perc
 :align: center
 
 Probabilità di trovare un cluster percolante, $P_{\rm perc}(p, L)$, in funzione di $p$, per diversi valori di $L$. All'aumentare di $L$ la transizione diventa più ripida, e le curve si incrociano approssimativamente in un unico punto, che fornisce una stima di $p_c$.
 ```
 
+La [](#fig:P_perc) mostra proprio una costruzione del genere: le curve di $P_{\rm perc}(p, L)$ in funzione di $p$ per diversi valori di $L$ diventano più ripide via via che la taglia del reticolo aumenta, e si incrociano per $p \approx 0.60$.
+
 ## Suscettibilità
 
-Vicino a $p_c$ ci interessa anche quantificare quanto sia grande, tipicamente, il cluster "più importante" del sistema, escluso quello percolante (se esiste). Definiamo quindi, per ogni realizzazione, la taglia del cluster più grande non percolante, e mediamo questa quantità su molte realizzazioni indipendenti a $p$ e $L$ fissati: chiamiamo questa grandezza **suscettibilità**, $\chi(p, L)$.
+Vicino a $p_c$ ci interessa anche quantificare quanto sia grande, tipicamente, il cluster "più importante" del sistema, escluso quello percolante (se esiste). Definiamo quindi, per ogni realizzazione, la taglia del cluster più grande non percolante, e mediamo questa quantità su molte realizzazioni indipendenti a $p$ e $L$ fissati: chiamiamo questa grandezza suscettibilità, $\chi_{\rm perc}(p, L)$.
 
-Lontano da $p_c$, da entrambi i lati, $\chi$ è piccola: sotto $p_c$ perché nessun cluster è ancora molto grande, sopra $p_c$ perché quasi tutti i siti occupati appartengono ormai al cluster percolante, e ne restano pochi per formare cluster secondari di taglia rilevante. Vicino a $p_c$, invece, $\chi$ presenta un massimo pronunciato, tanto più alto quanto più $L$ è grande: è il segnale numerico più diretto della transizione.
+Lontano da $p_c$, da entrambi i lati, $\chi_{\rm perc}$ è piccola: sotto $p_c$ perché nessun cluster è ancora molto grande, sopra $p_c$ perché quasi tutti i siti occupati appartengono ormai al cluster percolante, e ne restano pochi per formare cluster secondari di taglia rilevante. Vicino a $p_c$, invece, $\chi_{\rm perc}$ presenta un massimo pronunciato, tanto più alto quanto più $L$ è grande: è il segnale numerico più diretto della transizione, ed è un ottimo modo per stimare $p_c$.
 
-```{figure} #cell:suscettibilita_percolazione
-:label: fig:suscettibilita_percolazione
+```{figure} #cell:chi_perc
+:label: fig:chi_perc
 :align: center
 
-Suscettibilità $\chi(p, L)$ (taglia media del cluster più grande, escluso quello percolante) in funzione di $p$, per diversi valori di $L$. Il picco, localizzato vicino a $p_c$, cresce con $L$.
+Suscettibilità $\chi_{\rm perc}(p, L)$ (taglia media del cluster più grande, escluso quello percolante) in funzione di $p$, per diversi valori di $L$. Il picco, localizzato vicino a $p_c$, cresce con $L$.
 ```
 
 ```{note} Un parallelo con la termodinamica
 Nel corso di termodinamica incontrerete la compressibilità di un fluido, che misura la risposta del volume a una variazione di pressione e che, per un sistema infinito, diverge nel punto critico della transizione liquido-vapore. La suscettibilità della percolazione gioca un ruolo del tutto analogo: anch'essa diverge (per $L \to \infty$) nel punto critico, segnalando che il sistema si organizza su tutte le scale di lunghezza. Non è un caso che si usi lo stesso linguaggio in contesti fisici tanto diversi: è proprio l'[universalità](#sec:percolazione-reticolo) delle transizioni di fase a rendere sensato questo confronto.
 ```
+
+La [](#fig:chi_perc) mostra la suscettibilità in funzione di $p$ per diversi valori di $L$: all'aumentare della taglia del reticolo, $\chi_{\rm perc}$ sviluppa un picco via via più stretto e alto e centrato su valori $p \approx 0.60$ che permettono di ottenere un'altra stima del valore della probabilità critica $p_c$.
 
 # Esperimenti numerici
 
@@ -407,5 +441,5 @@ Un'analisi numerica della percolazione può seguire l'organizzazione di questo c
 1. implementare la generazione del reticolo e l'algoritmo di identificazione dei cluster tramite flood fill con lista concatenata; verificare il funzionamento su reticoli piccoli, per esempio stampando o colorando i cluster trovati e controllando a mano il risultato;
 2. calcolare, mediando su molte realizzazioni indipendenti, la probabilità di percolazione $P_{\rm perc}(p, L)$ per almeno tre o quattro valori di $L$, e stimare $p_c$ dal punto in cui le curve si incrociano approssimativamente;
 3. a un valore di $p$ vicino al $p_c$ stimato, costruire l'istogramma delle taglie dei cluster in scala log-log, e verificare qualitativamente l'andamento a legge di potenza;
-4. calcolare la suscettibilità $\chi(p, L)$ in funzione di $p$, per gli stessi valori di $L$ usati al punto 2, e verificare che il picco cresce al crescere di $L$;
+4. calcolare la suscettibilità $\chi_{\rm perc}(p, L)$ in funzione di $p$, per gli stessi valori di $L$ usati al punto 2, e verificare che il picco cresce al crescere di $L$;
 5. facoltativo: confrontare la stima di $p_c$ ottenuta al punto 2 con il valore noto in letteratura, $p_c \simeq 0.592746$.

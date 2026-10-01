@@ -112,7 +112,7 @@ $$
 \left(\od{\theta}{t}\right)^2 = \frac{2g}{L} \left(\cos\theta-\cos\theta_0\right).
 $$
 
-Questa relazione consente di determinare il tempo mediante un'integrazione. In particolare, il tempo necessario affinché il pendolo vada dall'ampiezza massima $\theta_0$ alla posizione di equilibrio $\theta=0$ è pari a un quarto del periodo:
+Questa relazione consente di determinare il periodo mediante un'integrazione. In particolare, il tempo necessario affinché il pendolo vada dall'ampiezza massima $\theta_0$ alla posizione di equilibrio $\theta=0$ è pari a un quarto del periodo:
 
 $$
 \label{eq:periodo_pendolo_esatto}

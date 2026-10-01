@@ -34,6 +34,8 @@ project:
       hidden: true
     - file: notebooks/random_walk.ipynb
       hidden: true
+    - file: notebooks/percolazione.ipynb
+      hidden: true
     
 site:
   template: book-theme
