@@ -16,14 +16,9 @@
 
   // Note: We use a typeof check here instead of optional chaining using
   // globalThis because older browsers might not have globalThis defined.
-
-  // We skip the node version checking when running on Bun/Deno since the node
-  // version they report doesn't seem to be useful.
-  if (typeof process !== 'undefined' && !process.versions?.bun && typeof Deno == "undefined") {
-    var currentNodeVersion = process.versions?.node ? humanReadableVersionToPacked(process.versions.node) : TARGET_NOT_SUPPORTED;
-    if (currentNodeVersion < 180300) {
-      throw new Error(`This emscripten-generated code requires node v${ packedVersionToHumanReadable(180300) } (detected v${packedVersionToHumanReadable(currentNodeVersion)})`);
-    }
+  var currentNodeVersion = typeof process !== 'undefined' && process.versions?.node ? humanReadableVersionToPacked(process.versions.node) : TARGET_NOT_SUPPORTED;
+  if (currentNodeVersion < 180300) {
+    throw new Error(`This emscripten-generated code requires node v${ packedVersionToHumanReadable(180300) } (detected v${packedVersionToHumanReadable(currentNodeVersion)})`);
   }
 
   var userAgent = typeof navigator !== 'undefined' && navigator.userAgent;
@@ -287,6 +282,44 @@ function assert(condition, text) {
 var isFileURI = (filename) => filename.startsWith('file://');
 
 // include: runtime_common.js
+// include: runtime_stack_check.js
+// Initializes the stack cookie. Called at the startup of main and at the startup of each thread in pthreads mode.
+function writeStackCookie() {
+  var max = _emscripten_stack_get_end();
+  assert((max & 3) == 0);
+  // If the stack ends at address zero we write our cookies 4 bytes into the
+  // stack.  This prevents interference with SAFE_HEAP and ASAN which also
+  // monitor writes to address zero.
+  if (max == 0) {
+    max += 4;
+  }
+  // The stack grow downwards towards _emscripten_stack_get_end.
+  // We write cookies to the final two words in the stack and detect if they are
+  // ever overwritten.
+  HEAPU32[((max)>>2)] = 0x02135467;
+  HEAPU32[(((max)+(4))>>2)] = 0x89BACDFE;
+  // Also test the global address 0 for integrity.
+  HEAPU32[((0)>>2)] = 1668509029;
+}
+
+function checkStackCookie() {
+  if (ABORT) return;
+  var max = _emscripten_stack_get_end();
+  // See writeStackCookie().
+  if (max == 0) {
+    max += 4;
+  }
+  var cookie1 = HEAPU32[((max)>>2)];
+  var cookie2 = HEAPU32[(((max)+(4))>>2)];
+  if (cookie1 != 0x02135467 || cookie2 != 0x89BACDFE) {
+    abort(`Stack overflow! Stack cookie has been overwritten at ${ptrToString(max)}, expected hex dwords 0x89BACDFE and 0x2135467, but received ${ptrToString(cookie2)} ${ptrToString(cookie1)}`);
+  }
+  // Also test the global address 0 for integrity.
+  if (HEAPU32[((0)>>2)] != 0x63736d65 /* 'emsc' */) {
+    abort('Runtime error: The application has corrupted its heap memory area (address zero)!');
+  }
+}
+// end include: runtime_stack_check.js
 // include: runtime_exceptions.js
 // Base Emscripten EH error class
 class EmscriptenEH {}
@@ -314,31 +347,15 @@ function dbg(...args) {
 })();
 
 function consumedModuleProp(prop) {
-  var value = Module[prop];
-  var msg = `Attempt to modify \`Module.${prop}\` after it has already been processed.  This can happen, for example, when code is injected via '--post-js' rather than '--pre-js'`;
-  if (Array.isArray(value)) {
-    value = new Proxy(value, {
-      set(target, key, val) {
-        abort(msg);
-        return false;
-      },
-      defineProperty(target, key, descriptor) {
-        abort(msg);
-        return false;
-      },
-      deleteProperty(target, key) {
-        abort(msg);
-        return false;
+  if (!Object.getOwnPropertyDescriptor(Module, prop)) {
+    Object.defineProperty(Module, prop, {
+      configurable: true,
+      set() {
+        abort(`Attempt to set \`Module.${prop}\` after it has already been processed.  This can happen, for example, when code is injected via '--post-js' rather than '--pre-js'`);
+
       }
     });
   }
-  Object.defineProperty(Module, prop, {
-    configurable: true,
-    get() { return value; },
-    set() {
-      abort(msg);
-    }
-  });
 }
 
 function makeInvalidEarlyAccess(name) {
@@ -435,68 +452,14 @@ function unexportedRuntimeSymbol(sym) {
 }
 
 // end include: runtime_debug.js
-// include: runtime_stack_check.js
-const stackCookie1 = 0x02135467;
-const stackCookie2 = 0x89BACDFE;
-
-// Initializes the stack cookie. Called at the startup of main and at the startup of each thread in pthreads mode.
-function writeStackCookie() {
-  var max = _emscripten_stack_get_end();
-  assert((max & 3) == 0);
-  // If the stack ends at address zero we write our cookies 4 bytes into the
-  // stack.  This prevents interference with SAFE_HEAP and ASAN which also
-  // monitor writes to address zero.
-  if (max == 0) {
-    max += 4;
-  }
-  // The stack grow downwards towards _emscripten_stack_get_end.
-  // We write cookies to the final two words in the stack and detect if they are
-  // ever overwritten.
-  HEAPU32[((max)>>2)] = stackCookie1;
-  HEAPU32[(((max)+(4))>>2)] = stackCookie2;
-  // Also test the global address 0 for integrity.
-  HEAPU32[((0)>>2)] = 1668509029;
-}
-
-function u32ToHexString(num) {
-  return '0x' + (num >>> 0).toString(16).padStart(8, '0');
-}
-
-function checkStackCookie() {
-  if (ABORT) return;
-  var max = _emscripten_stack_get_end();
-  // See writeStackCookie().
-  if (max == 0) {
-    max += 4;
-  }
-  var val1 = HEAPU32[((max)>>2)];
-  var val2 = HEAPU32[(((max)+(4))>>2)];
-  if (val1 != stackCookie1 || val2 != stackCookie2) {
-    abort(`Stack overflow! Stack cookie has been overwritten at ${ptrToString(max)}, expected hex dwords ${u32ToHexString(stackCookie2)} and ${u32ToHexString(stackCookie1)}, but received ${u32ToHexString(val2)} ${u32ToHexString(val1)}`);
-  }
-  // Also test the global address 0 for integrity.
-  if (HEAPU32[((0)>>2)] != 0x63736d65 /* 'emsc' */) {
-    abort('Runtime error: The application has corrupted its heap memory area (address zero)!');
-  }
-}
-// end include: runtime_stack_check.js
 // Memory management
 
 var runtimeInitialized = false;
 
 
 
-// When ALLOW_MEMORY_GROWTH is enabled, the conversion from Wasm
-// memory to ArrayBuffer requires some additional logic.
-function getMemoryBuffer() {
-  return wasmMemory.buffer;
-}
-
 function updateMemoryViews() {
-  // If we already have a heap that is resizeable/growable buffer we don't
-  // need to do anything in updateMemoryViews.
-  if (HEAP8?.buffer?.resizable) return;
-  var b = getMemoryBuffer();
+  var b = wasmMemory.buffer;
   HEAP8 = new Int8Array(b);
   HEAP16 = new Int16Array(b);
   HEAPU8 = new Uint8Array(b);
@@ -516,10 +479,11 @@ assert(globalThis.Int32Array && globalThis.Float64Array && Int32Array.prototype.
        'JS engine does not provide full typed array support');
 
 function preRun() {
-  var preRun = Module['preRun'];
-  if (preRun) {
-    if (typeof preRun == 'function') preRun = [preRun];
-    onPreRuns.push(...preRun);
+  if (Module['preRun']) {
+    if (typeof Module['preRun'] == 'function') Module['preRun'] = [Module['preRun']];
+    while (Module['preRun'].length) {
+      addOnPreRun(Module['preRun'].shift());
+    }
   }
   consumedModuleProp('preRun');
   // Begin ATPRERUNS hooks
@@ -543,17 +507,22 @@ TTY.init();
   // Begin ATPOSTCTORS hooks
   FS.ignorePermissions = false;
   // End ATPOSTCTORS hooks
+}
 
+function preMain() {
   checkStackCookie();
+  // No ATMAINS hooks
 }
 
 function postRun() {
   checkStackCookie();
+   // PThreads reuse the runtime from the main thread.
 
-  var postRun = Module['postRun'];
-  if (postRun) {
-    if (typeof postRun == 'function') postRun = [postRun];
-    onPostRuns.push(...postRun);
+  if (Module['postRun']) {
+    if (typeof Module['postRun'] == 'function') Module['postRun'] = [Module['postRun']];
+    while (Module['postRun'].length) {
+      addOnPostRun(Module['postRun'].shift());
+    }
   }
   consumedModuleProp('postRun');
 
@@ -597,13 +566,14 @@ function abort(what) {
   throw e;
 }
 
-function createExportWrapper(name, func, nargs) {
-  assert(func);
+function createExportWrapper(name, nargs) {
   return (...args) => {
     assert(runtimeInitialized, `native function \`${name}\` called before runtime initialization`);
+    var f = wasmExports[name];
+    assert(f, `exported native function \`${name}\` not found`);
     // Only assert for too many arguments. Too few can be valid since the missing arguments will be zero filled.
     assert(args.length <= nargs, `native function \`${name}\` called with ${args.length} args but expects ${nargs}`);
-    return func(...args);
+    return f(...args);
   };
 }
 
@@ -614,6 +584,9 @@ function findWasmBinary() {
 }
 
 function getBinarySync(file) {
+  if (file == wasmBinaryFile && wasmBinary) {
+    return new Uint8Array(wasmBinary);
+  }
   if (readBinary) {
     return readBinary(file);
   }
@@ -696,15 +669,18 @@ async function createWasm() {
   // Load the wasm module and create an instance of using native support in the JS engine.
   // handle a generated wasm instance, receiving its exports and
   // performing other necessary setup
-  function receiveInstance(instance) {
+  /** @param {WebAssembly.Module=} module*/
+  function receiveInstance(instance, module) {
     wasmExports = instance.exports;
 
     assignWasmExports(wasmExports);
 
     updateMemoryViews();
 
+    removeRunDependency('wasm-instantiate');
     return wasmExports;
   }
+  addRunDependency('wasm-instantiate');
 
   // Prefer streaming instantiation if available.
   // Async compilation can be confusing when an error on the page overwrites Module
@@ -729,14 +705,15 @@ async function createWasm() {
   // performing.
   // Also pthreads and wasm workers initialize the wasm instance through this
   // path.
-  var instantiateWasm = Module['instantiateWasm'];
-  if (instantiateWasm) {
-    return new Promise((resolve) => {
+  if (Module['instantiateWasm']) {
+    return new Promise((resolve, reject) => {
       try {
-        instantiateWasm(info, (inst) => resolve(receiveInstance(inst)));
+        Module['instantiateWasm'](info, (inst, mod) => {
+          resolve(receiveInstance(inst, mod));
+        });
       } catch(e) {
         err(`Module.instantiateWasm callback failed with error: ${e}`);
-        throw e;
+        reject(e);
       }
     });
   }
@@ -802,6 +779,71 @@ async function createWasm() {
   var onPreRuns = [];
   var addOnPreRun = (cb) => onPreRuns.push(cb);
 
+  var runDependencies = 0;
+  
+  
+  var dependenciesFulfilled = null;
+  
+  var runDependencyTracking = {
+  };
+  
+  var runDependencyWatcher = null;
+  var removeRunDependency = (id) => {
+      runDependencies--;
+  
+      Module['monitorRunDependencies']?.(runDependencies);
+  
+      assert(id, 'removeRunDependency requires an ID');
+      assert(runDependencyTracking[id]);
+      delete runDependencyTracking[id];
+      if (runDependencies == 0) {
+        if (runDependencyWatcher !== null) {
+          clearInterval(runDependencyWatcher);
+          runDependencyWatcher = null;
+        }
+        if (dependenciesFulfilled) {
+          var callback = dependenciesFulfilled;
+          dependenciesFulfilled = null;
+          callback(); // can add another dependenciesFulfilled
+        }
+      }
+    };
+  
+  
+  var addRunDependency = (id) => {
+      runDependencies++;
+  
+      Module['monitorRunDependencies']?.(runDependencies);
+  
+      assert(id, 'addRunDependency requires an ID')
+      assert(!runDependencyTracking[id]);
+      runDependencyTracking[id] = 1;
+      if (runDependencyWatcher === null && globalThis.setInterval) {
+        // Check for missing dependencies every few seconds
+        runDependencyWatcher = setInterval(() => {
+          if (ABORT) {
+            clearInterval(runDependencyWatcher);
+            runDependencyWatcher = null;
+            return;
+          }
+          var shown = false;
+          for (var dep in runDependencyTracking) {
+            if (!shown) {
+              shown = true;
+              err('still waiting on run dependencies:');
+            }
+            err(`dependency: ${dep}`);
+          }
+          if (shown) {
+            err('(end of list)');
+          }
+        }, 10000);
+        // Prevent this timer from keeping the runtime alive if nothing
+        // else is.
+        runDependencyWatcher.unref?.()
+      }
+    };
+
 
   
     /**
@@ -831,6 +873,7 @@ async function createWasm() {
       ptr >>>= 0;
       return '0x' + ptr.toString(16).padStart(8, '0');
     }
+
 
   
     /**
@@ -870,14 +913,6 @@ async function createWasm() {
 
   var UTF8Decoder = globalThis.TextDecoder && new TextDecoder();
   
-  
-    /**
-   * heapOrArray is either a regular array, or a JavaScript typed array view.
-   * @param {number} idx
-   * @param {number=} maxBytesToRead
-   * @param {boolean=} ignoreNul
-   * @return {number}
-   */
   var findStringEnd = (heapOrArray, idx, maxBytesToRead, ignoreNul) => {
       var maxIdx = idx + maxBytesToRead;
       if (ignoreNul) return maxIdx;
@@ -1021,7 +1056,7 @@ var initRandomFill = () => {
     // This block is not needed on v19+ since crypto.getRandomValues is builtin
     if (ENVIRONMENT_IS_NODE) {
       var nodeCrypto = require('node:crypto');
-      return (view) => (nodeCrypto.randomFillSync(view), 0);
+      return (view) => nodeCrypto.randomFillSync(view);
     }
 
     return (view) => (crypto.getRandomValues(view), 0);
@@ -1830,73 +1865,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       }
     };
   
-  var dependenciesPromise = null;
-  var resolveRunDependencies = async () => dependenciesPromise;
-  var runDependencies = 0;
-  
-  
-  var dependenciesPromiseResolve = null;
-  
-  var runDependencyTracking = {
-  };
-  
-  var runDependencyWatcher = null;
-  var removeRunDependency = (id) => {
-      runDependencies--;
-  
-      Module['monitorRunDependencies']?.(runDependencies);
-  
-      assert(id, 'removeRunDependency requires an ID');
-      assert(runDependencyTracking[id]);
-      delete runDependencyTracking[id];
-      if (!runDependencies) {
-        if (runDependencyWatcher !== null) {
-          clearInterval(runDependencyWatcher);
-          runDependencyWatcher = null;
-        }
-        dependenciesPromiseResolve();
-      }
-    };
-  
-  
-  
-  
-  var addRunDependency = (id) => {
-      if (!runDependencies) {
-        dependenciesPromise = new Promise((resolve) => dependenciesPromiseResolve = resolve);
-      }
-      runDependencies++;
-  
-      Module['monitorRunDependencies']?.(runDependencies);
-  
-      assert(id, 'addRunDependency requires an ID')
-      assert(!runDependencyTracking[id]);
-      runDependencyTracking[id] = 1;
-      if (runDependencyWatcher === null && globalThis.setInterval) {
-        // Check for missing dependencies every few seconds
-        runDependencyWatcher = setInterval(() => {
-          if (ABORT) {
-            clearInterval(runDependencyWatcher);
-            runDependencyWatcher = null;
-            return;
-          }
-          var shown = false;
-          for (var dep in runDependencyTracking) {
-            if (!shown) {
-              shown = true;
-              err('still waiting on run dependencies:');
-            }
-            err(`dependency: ${dep}`);
-          }
-          if (shown) {
-            err('(end of list)');
-          }
-        }, 10000);
-        // Prevent this timer from keeping the runtime alive if nothing
-        // else is.
-        runDependencyWatcher.unref?.()
-      }
-    };
   
   
   var preloadPlugins = [];
@@ -2036,48 +2004,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
         get isDevice() {
           return FS.isChrdev(this.mode);
-        }
-        // The per-inode readiness wait-queue. The node carries a Set of listener
-        // entries {cb}; producers (SOCKFS, PIPEFS) call notifyListeners on a
-        // readiness transition, and poll()/epoll consume it. It lives on the node
-        // (not the fd) so dup'd fds share one queue. Only nodes that derive real
-        // readiness (sockets, pipes, and an epoll's own node) ever use this -
-        // always-ready types (regular files, ttys) never register or notify.
-        addListener(cb, exclusive = false) {
-          var entry = {cb, exclusive};
-          var listeners = (this.listeners ??= new Set());
-          listeners.add(entry);
-          return {listeners, entry};
-        }
-        notifyListeners(flags) {
-          // Iterates the set without copying, which is safe ONLY under a
-          // load-bearing contract that every internal listener must honour:
-          //   1. A listener must not run user code synchronously (a poll waiter only
-          //      resolves a Promise; an epoll registration only re-lists +
-          //      re-notifies; the epoll callback only schedules a tick). User code
-          //      runs on a later tick, never inside this loop.
-          //   2. A listener may delete entries only from ITS OWN waiter, never from
-          //      a sibling node's set that may be mid-iteration. (Deleting an entry
-          //      of the set being iterated here is fine - a Set tolerates removal of
-          //      a not-yet-visited entry mid-iteration; mutating a *different* node's
-          //      set is fine because that set is not being iterated.)
-          // Violating either gives silently skipped wakeups that are near-impossible
-          // to reproduce. Any new producer/listener must preserve it.
-          if (!this.listeners) return;
-          // Fire every non-exclusive listener. Among EPOLLEXCLUSIVE registrations
-          // (one fd watched by several epolls) wake only one, rotating round-robin
-          // per node, to avoid a thundering herd. (Only epoll registrations are ever
-          // exclusive; poll waiters and a node's own consumers are not.)
-          var excl;
-          for (var entry of this.listeners) {
-            if (entry.exclusive) (excl ||= []).push(entry);
-            else entry.cb(flags);
-          }
-          if (excl) {
-            var i = (this.exclTurn || 0) % excl.length;
-            this.exclTurn = i + 1;
-            excl[i].cb(flags);
-          }
         }
       },
   lookupPath(path, opts = {}) {
@@ -2656,25 +2582,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
         return parent.node_ops.symlink(parent, newname, oldpath);
       },
-  link(oldpath, newpath, flags) {
-        var lookup = FS.lookupPath(newpath, { parent: true });
-        var parent = lookup.node;
-        if (!parent) {
-          throw new FS.ErrnoError(44);
-        }
-        var newname = PATH.basename(newpath);
-        var errCode = FS.mayCreate(parent, newname);
-        if (errCode) {
-          throw new FS.ErrnoError(errCode);
-        }
-        // Hardlinks are only supported by filesystem backends that provide a
-        // `link` node op (e.g. NODERAWFS backed by the host). NODEFS omits it:
-        // a host hardlink cannot be confined to the mount root.
-        if (!parent.node_ops.link) {
-          throw new FS.ErrnoError(34);
-        }
-        return parent.node_ops.link(parent, newname, oldpath, flags);
-      },
   rename(old_path, new_path) {
         var old_dirname = PATH.dirname(old_path);
         var new_dirname = PATH.dirname(new_path);
@@ -2921,12 +2828,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
         FS.doTruncate(stream, stream.node, len);
       },
-  utime(path, atime, mtime, dontFollow) {
-        var lookup = FS.lookupPath(path, { follow: !dontFollow });
-        FS.doSetAttr(null, lookup.node, {
+  utime(path, atime, mtime) {
+        var lookup = FS.lookupPath(path, { follow: true });
+        var node = lookup.node;
+        var setattr = FS.checkOpExists(node.node_ops.setattr, 63);
+        setattr(node, {
           atime: atime,
-          mtime: mtime,
-          dontFollow
+          mtime: mtime
         });
       },
   open(path, flags, mode = 0o666) {
@@ -3027,11 +2935,6 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           throw new FS.ErrnoError(8);
         }
         if (stream.getdents) stream.getdents = null; // free readdir state
-        // The fd is going away: wake anything waiting on it (poll/epoll) with
-        // POLLNVAL so a blocking wait unblocks and an epoll registration is evicted
-        // on its next derive. Only sockets/pipes/epoll ever carry a wait-queue, so
-        // for every other stream (incl. nodeless noderawfs stdio) this is a no-op.
-        stream.node?.notifyListeners(32);
         try {
           if (stream.stream_ops.close) {
             stream.stream_ops.close(stream);
@@ -3702,7 +3605,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           // MAP_PRIVATE calls need not to be synced back to underlying fs
           return 0;
         }
-        var buffer = HEAPU8.subarray(addr, addr + len);
+        var buffer = HEAPU8.slice(addr, addr + len);
         FS.msync(stream, buffer, offset, len, flags);
       },
   getStreamFromFD(fd) {
@@ -4605,11 +4508,11 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
       // final data parameter, so we simply pass a heap view starting at zero
       // effectively uploading whatever happens to be near address zero.  See
       // https://github.com/emscripten-core/emscripten/issues/19300.
-      GLctx.compressedTexImage2D(target, level, internalFormat, width, height, border, HEAPU8.subarray(data, data + imageSize));
+      GLctx.compressedTexImage2D(target, level, internalFormat, width, height, border, HEAPU8.subarray((data), data+imageSize));
     };
 
   var _emscripten_glCompressedTexSubImage2D = (target, level, xoffset, yoffset, width, height, format, imageSize, data) => {
-      GLctx.compressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, HEAPU8.subarray(data, data + imageSize));
+      GLctx.compressedTexSubImage2D(target, level, xoffset, yoffset, width, height, format, HEAPU8.subarray((data), data+imageSize));
     };
 
   var _emscripten_glCopyTexImage2D = (x0, x1, x2, x3, x4, x5, x6, x7) => GLctx.copyTexImage2D(x0, x1, x2, x3, x4, x5, x6, x7);
@@ -6574,6 +6477,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
       },
   init() {
+        Module['preMainLoop'] && MainLoop.preMainLoop.push(Module['preMainLoop']);
+        Module['postMainLoop'] && MainLoop.postMainLoop.push(Module['postMainLoop']);
       },
   runIter(func) {
         if (ABORT) return;
@@ -6961,6 +6866,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   isFullscreen:false,
   pointerLock:false,
   moduleContextCreatedCallbacks:[],
+  workers:[],
   preloadedImages:{
   },
   preloadedAudios:{
@@ -7027,7 +6933,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
             var b = new Blob([byteArray], { type: Browser.getMimetype(name) });
             var url = URL.createObjectURL(b); // XXX we never revoke this!
             var audio = new Audio();
-            audio.addEventListener('canplaythrough', () => finish(audio)); // use addEventListener due to chromium bug 124926
+            audio.addEventListener('canplaythrough', () => finish(audio), false); // use addEventListener due to chromium bug 124926
             audio.onerror = (event) => {
               if (done) return;
               err(`warning: browser could not fully decode audio ${name}, trying slower base64 approach`);
@@ -7078,7 +6984,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
           // forced aspect ratio can be enabled by defining 'forcedAspectRatio' on Module
           // Module['forcedAspectRatio'] = 4 / 3;
   
-          document.addEventListener('pointerlockchange', pointerLockChange);
+          document.addEventListener('pointerlockchange', pointerLockChange, false);
   
           if (Module['elementPointerLock']) {
             canvas.addEventListener("click", (ev) => {
@@ -7086,7 +6992,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
                 Browser.getCanvas().requestPointerLock();
                 ev.preventDefault();
               }
-            });
+            }, false);
           }
         }
       },
@@ -7167,14 +7073,16 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
               Browser.updateCanvasDimensions(canvas);
             }
           }
+          Module['onFullScreen']?.(Browser.isFullscreen);
+          Module['onFullscreen']?.(Browser.isFullscreen);
         }
   
         if (!Browser.fullscreenHandlersInstalled) {
           Browser.fullscreenHandlersInstalled = true;
-          document.addEventListener('fullscreenchange', fullscreenChange);
-          document.addEventListener('mozfullscreenchange', fullscreenChange);
-          document.addEventListener('webkitfullscreenchange', fullscreenChange);
-          document.addEventListener('MSFullscreenChange', fullscreenChange);
+          document.addEventListener('fullscreenchange', fullscreenChange, false);
+          document.addEventListener('mozfullscreenchange', fullscreenChange, false);
+          document.addEventListener('webkitfullscreenchange', fullscreenChange, false);
+          document.addEventListener('MSFullscreenChange', fullscreenChange, false);
         }
   
         // create a new parent to ensure the canvas has no siblings. this allows browsers to optimize full screen performance when its parent is the full screen root
@@ -7394,6 +7302,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
         var w = wNative;
         var h = hNative;
+        if (Module['forcedAspectRatio'] > 0) {
+          if (w/h < Module['forcedAspectRatio']) {
+            w = Math.round(h * Module['forcedAspectRatio']);
+          } else {
+            h = Math.round(w / Module['forcedAspectRatio']);
+          }
+        }
         if ((getFullscreenElement() === canvas.parentNode) && (typeof screen != 'undefined')) {
            var factor = Math.min(screen.width / w, screen.height / h);
            w = Math.round(w * factor);
@@ -7445,18 +7360,7 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         var ptr = HEAPU32[((iov)>>2)];
         var len = HEAPU32[(((iov)+(4))>>2)];
         iov += 8;
-        try {
-          var curr = FS.read(stream, HEAP8, ptr, len, offset);
-        } catch (e) {
-          // On a non-blocking stream a subsequent read may would-block after we
-          // already gathered data. POSIX readv is a single gather-read: return
-          // what we have rather than failing the whole call.
-          if (ret > 0 && e instanceof FS.ErrnoError &&
-              (e.errno == 6 || e.errno == 6)) {
-            break;
-          }
-          throw e;
-        }
+        var curr = FS.read(stream, HEAP8, ptr, len, offset);
         if (curr < 0) return -1;
         ret += curr;
         if (curr < len) break; // nothing more to read
@@ -7503,27 +7407,23 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
 
   /** @param {number=} offset */
   var doWritev = (stream, iov, iovcnt, offset) => {
-      // Gather all iovecs into one contiguous buffer and issue a single
-      // FS.write, matching POSIX writev's single gather-write semantics (as
-      // __syscall_sendmsg already does). Per-iovec writes fragment a stream
-      // socket send into multiple segments, breaking stream byte semantics.
-      if (iovcnt == 1) {
-        // Single iovec: write directly from HEAP8, no gather buffer needed.
-        return FS.write(stream, HEAP8, HEAPU32[((iov)>>2)], HEAPU32[(((iov)+(4))>>2)], offset);
-      }
-      var total = 0;
-      for (var i = 0, p = iov; i < iovcnt; i++, p += 8) {
-        total += HEAPU32[(((p)+(4))>>2)];
-      }
-      var view = new Uint8Array(total);
-      var voff = 0;
-      for (var i = 0; i < iovcnt; i++, iov += 8) {
+      var ret = 0;
+      for (var i = 0; i < iovcnt; i++) {
         var ptr = HEAPU32[((iov)>>2)];
         var len = HEAPU32[(((iov)+(4))>>2)];
-        view.set(HEAPU8.subarray(ptr, ptr + len), voff);
-        voff += len;
+        iov += 8;
+        var curr = FS.write(stream, HEAP8, ptr, len, offset);
+        if (curr < 0) return -1;
+        ret += curr;
+        if (curr < len) {
+          // No more space to write.
+          break;
+        }
+        if (typeof offset != 'undefined') {
+          offset += curr;
+        }
       }
-      return FS.write(stream, view, 0, total, offset);
+      return ret;
     };
   
   function _fd_write(fd, iov, iovcnt, pnum) {
@@ -7631,6 +7531,8 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
   var _glReadPixels = _emscripten_glReadPixels;
 
   var _glRenderbufferStorage = _emscripten_glRenderbufferStorage;
+
+  var _glScissor = _emscripten_glScissor;
 
   var _glShaderSource = _emscripten_glShaderSource;
 
@@ -8662,14 +8564,16 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
               Browser.updateResizeListeners();
             }
           }
+          Module['onFullScreen']?.(Browser.isFullscreen);
+          Module['onFullscreen']?.(Browser.isFullscreen);
         }
   
         if (!Browser.fullscreenHandlersInstalled) {
           Browser.fullscreenHandlersInstalled = true;
-          document.addEventListener('fullscreenchange', fullscreenChange);
-          document.addEventListener('mozfullscreenchange', fullscreenChange);
-          document.addEventListener('webkitfullscreenchange', fullscreenChange);
-          document.addEventListener('MSFullscreenChange', fullscreenChange);
+          document.addEventListener('fullscreenchange', fullscreenChange, false);
+          document.addEventListener('mozfullscreenchange', fullscreenChange, false);
+          document.addEventListener('webkitfullscreenchange', fullscreenChange, false);
+          document.addEventListener('MSFullscreenChange', fullscreenChange, false);
         }
   
         // create a new parent to ensure the canvas has no siblings. this allows browsers to optimize full screen performance when its parent is the full screen root
@@ -8698,6 +8602,13 @@ var stringToUTF8Array = (str, heap, outIdx, maxBytesToWrite) => {
         }
         var w = wNative;
         var h = hNative;
+        if (Module['forcedAspectRatio'] && Module['forcedAspectRatio'] > 0) {
+          if (w/h < Module['forcedAspectRatio']) {
+            w = Math.round(h * Module['forcedAspectRatio']);
+          } else {
+            h = Math.round(w / Module['forcedAspectRatio']);
+          }
+        }
         if ((getFullscreenElement() === canvas.parentNode) && (typeof screen != 'undefined')) {
           var factor = Math.min(screen.width / w, screen.height / h);
           w = Math.round(w * factor);
@@ -9005,9 +8916,10 @@ var miniTempWebGLIntBuffersStorage = new Int32Array(288);
 
   // Begin ATMODULES hooks
   if (Module['noExitRuntime']) noExitRuntime = Module['noExitRuntime'];
-
+if (Module['preloadPlugins']) preloadPlugins = Module['preloadPlugins'];
 if (Module['print']) out = Module['print'];
 if (Module['printErr']) err = Module['printErr'];
+if (Module['wasmBinary']) wasmBinary = Module['wasmBinary'];
   // End ATMODULES hooks
 
   checkIncomingModuleAPI();
@@ -9031,13 +8943,10 @@ if (Module['printErr']) err = Module['printErr'];
   assert(typeof Module['wasmMemory'] == 'undefined', 'Use of `wasmMemory` detected.  Use -sIMPORTED_MEMORY to define wasmMemory externally');
   assert(typeof Module['INITIAL_MEMORY'] == 'undefined', 'Detected runtime INITIAL_MEMORY setting.  Use -sIMPORTED_MEMORY to define wasmMemory dynamically');
 
-  var preInit = Module['preInit'];
-  if (preInit) {
-    if (typeof preInit == 'function') Module['preInit'] = preInit = [preInit];
-    // Written as a loop so that preInit functions that themselves add more
-    // preInit functions.  Is this actually needed?
-    while (preInit.length > 0) {
-      preInit.shift()();
+  if (Module['preInit']) {
+    if (typeof Module['preInit'] == 'function') Module['preInit'] = [Module['preInit']];
+    while (Module['preInit'].length > 0) {
+      Module['preInit'].shift()();
     }
   }
   consumedModuleProp('preInit');
@@ -9109,14 +9018,12 @@ if (Module['printErr']) err = Module['printErr'];
   'screenOrientation',
   'fillOrientationChangeEventData',
   'registerOrientationChangeEventCallback',
-  'callCanvasResizedCallback',
   'JSEvents_requestFullscreen',
   'JSEvents_resizeCanvasForFullscreen',
   'registerRestoreOldStyle',
   'hideEverythingExceptGivenElement',
   'restoreHiddenElements',
   'setLetterbox',
-  'currentFullscreenStrategy',
   'softFullscreenResizeWebGLRenderTarget',
   'doRequestFullscreen',
   'registerPointerlockErrorEventCallback',
@@ -9257,6 +9164,7 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'registerFocusEventCallback',
   'fillFullscreenChangeEventData',
   'registerFullscreenChangeEventCallback',
+  'currentFullscreenStrategy',
   'restoreOldWindowedStyle',
   'fillPointerlockChangeEventData',
   'registerPointerlockChangeEventCallback',
@@ -9365,7 +9273,6 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'FS_mkdir',
   'FS_mkdev',
   'FS_symlink',
-  'FS_link',
   'FS_rename',
   'FS_rmdir',
   'FS_readdir',
@@ -9467,71 +9374,51 @@ function checkIncomingModuleAPI() {
   ignoredModuleProp('onRealloc');
   ignoredModuleProp('onFree');
   ignoredModuleProp('onSbrkGrow');
-  ignoredModuleProp('onCOSCacheHit');
-  ignoredModuleProp('onCOSCacheMiss');
-  ignoredModuleProp('onCOSStore');
-  ignoredModuleProp('GL_MAX_TEXTURE_IMAGE_UNITS');
-  ignoredModuleProp('SDL_canPlayWithWebAudio');
-  ignoredModuleProp('SDL_numSimultaneouslyQueuedBuffers');
-  ignoredModuleProp('freePreloadedMediaOnUse');
-  ignoredModuleProp('preinitializedWebGLContext');
-  ignoredModuleProp('keyboardListeningElement');
-  ignoredModuleProp('doNotCaptureKeyboard');
-  ignoredModuleProp('extraStackTrace');
-  ignoredModuleProp('preloadPlugins');
-  ignoredModuleProp('preMainLoop');
-  ignoredModuleProp('postMainLoop');
-  ignoredModuleProp('forcedAspectRatio');
-  ignoredModuleProp('mainScriptUrlOrBlob');
-  ignoredModuleProp('onFullScreen');
-  ignoredModuleProp('INITIAL_MEMORY');
-  ignoredModuleProp('wasmMemory');
-  ignoredModuleProp('wasmBinary');
 }
 var ASM_CONSTS = {
-  89670: () => { if (document.fullscreenElement) return 1; },  
- 89716: () => { return Module.canvas.width; },  
- 89748: () => { return parseInt(Module.canvas.style.width); },  
- 89796: () => { document.exitFullscreen(); },  
- 89823: () => { setTimeout(function(){ Module.requestFullscreen(false, false); }, 100); },  
- 89895: () => { if (document.fullscreenElement) return 1; },  
- 89941: () => { return Module.canvas.width; },  
- 89973: () => { return screen.width; },  
- 89998: () => { document.exitFullscreen(); },  
- 90025: ($0) => { const canvasId = UTF8ToString($0); setTimeout(function() { Module.requestFullscreen(false, true); setTimeout(function() { document.querySelector(canvasId).style.width="unset"; }, 100); }, 100); },  
- 90219: () => { return window.innerWidth; },  
- 90245: () => { return window.innerHeight; },  
- 90272: () => { if (document.fullscreenElement) return 1; },  
- 90318: () => { return Module.canvas.width; },  
- 90350: () => { return parseInt(Module.canvas.style.width); },  
- 90398: () => { if (document.fullscreenElement) return 1; },  
- 90444: () => { return Module.canvas.width; },  
- 90476: () => { return screen.width; },  
- 90501: () => { return window.innerWidth; },  
- 90527: () => { return window.innerHeight; },  
- 90554: () => { if (document.fullscreenElement) return 1; },  
- 90600: () => { return Module.canvas.width; },  
- 90632: () => { return screen.width; },  
- 90657: () => { document.exitFullscreen(); },  
- 90684: () => { if (document.fullscreenElement) return 1; },  
- 90730: () => { return Module.canvas.width; },  
- 90762: () => { return parseInt(Module.canvas.style.width); },  
- 90810: () => { document.exitFullscreen(); },  
- 90837: ($0) => { Module.canvas.style.opacity = $0; },  
- 90875: () => { return screen.width; },  
- 90900: () => { return screen.height; },  
- 90926: () => { return window.screenX; },  
- 90953: () => { return window.screenY; },  
- 90980: () => { return window.devicePixelRatio; },  
- 91016: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
- 91069: ($0) => { Module.canvas.style.cursor = UTF8ToString($0); },  
- 91120: () => { Module.canvas.style.cursor = 'none'; },  
- 91157: ($0, $1, $2, $3) => { try { navigator.getGamepads()[$0].vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: $3, weakMagnitude: $1, strongMagnitude: $2 }); } catch (e) { try { navigator.getGamepads()[$0].hapticActuators[0].pulse($2, $3); } catch (e) { } } },  
- 91413: ($0) => { Module.canvas.style.cursor = UTF8ToString($0); },  
- 91464: () => { if (document.pointerLockElement) return 1; },  
- 91511: () => { if (document.fullscreenElement) return 1; },  
- 91557: () => { return window.innerWidth; },  
- 91583: () => { return window.innerHeight; }
+  89814: () => { if (document.fullscreenElement) return 1; },  
+ 89860: () => { return Module.canvas.width; },  
+ 89892: () => { return parseInt(Module.canvas.style.width); },  
+ 89940: () => { document.exitFullscreen(); },  
+ 89967: () => { setTimeout(function(){ Module.requestFullscreen(false, false); }, 100); },  
+ 90039: () => { if (document.fullscreenElement) return 1; },  
+ 90085: () => { return Module.canvas.width; },  
+ 90117: () => { return screen.width; },  
+ 90142: () => { document.exitFullscreen(); },  
+ 90169: ($0) => { const canvasId = UTF8ToString($0); setTimeout(function() { Module.requestFullscreen(false, true); setTimeout(function() { document.querySelector(canvasId).style.width="unset"; }, 100); }, 100); },  
+ 90363: () => { return window.innerWidth; },  
+ 90389: () => { return window.innerHeight; },  
+ 90416: () => { if (document.fullscreenElement) return 1; },  
+ 90462: () => { return Module.canvas.width; },  
+ 90494: () => { return parseInt(Module.canvas.style.width); },  
+ 90542: () => { if (document.fullscreenElement) return 1; },  
+ 90588: () => { return Module.canvas.width; },  
+ 90620: () => { return screen.width; },  
+ 90645: () => { return window.innerWidth; },  
+ 90671: () => { return window.innerHeight; },  
+ 90698: () => { if (document.fullscreenElement) return 1; },  
+ 90744: () => { return Module.canvas.width; },  
+ 90776: () => { return screen.width; },  
+ 90801: () => { document.exitFullscreen(); },  
+ 90828: () => { if (document.fullscreenElement) return 1; },  
+ 90874: () => { return Module.canvas.width; },  
+ 90906: () => { return parseInt(Module.canvas.style.width); },  
+ 90954: () => { document.exitFullscreen(); },  
+ 90981: ($0) => { Module.canvas.style.opacity = $0; },  
+ 91019: () => { return screen.width; },  
+ 91044: () => { return screen.height; },  
+ 91070: () => { return window.screenX; },  
+ 91097: () => { return window.screenY; },  
+ 91124: () => { return window.devicePixelRatio; },  
+ 91160: ($0) => { navigator.clipboard.writeText(UTF8ToString($0)); },  
+ 91213: ($0) => { Module.canvas.style.cursor = UTF8ToString($0); },  
+ 91264: () => { Module.canvas.style.cursor = 'none'; },  
+ 91301: ($0, $1, $2, $3) => { try { navigator.getGamepads()[$0].vibrationActuator.playEffect('dual-rumble', { startDelay: 0, duration: $3, weakMagnitude: $1, strongMagnitude: $2 }); } catch (e) { try { navigator.getGamepads()[$0].hapticActuators[0].pulse($2, $3); } catch (e) { } } },  
+ 91557: ($0) => { Module.canvas.style.cursor = UTF8ToString($0); },  
+ 91608: () => { if (document.pointerLockElement) return 1; },  
+ 91655: () => { if (document.fullscreenElement) return 1; },  
+ 91701: () => { return window.innerWidth; },  
+ 91727: () => { return window.innerHeight; }
 };
 function SetCanvasIdJs(out,outSize) { var canvasId = "#" + Module.canvas.id; stringToUTF8(canvasId, out, outSize); }
 function __asyncjs__RequestClipboardData() { return Asyncify.handleAsync(async () => { if (navigator.clipboard && window.isSecureContext) { let items = await navigator.clipboard.read(); for (const item of items) { if (item.types.includes("text/plain")) { const blob = await item.getType("text/plain"); const text = await blob.text(); window._lastClipboardString = text; } else if (item.types.find(t => t.startsWith("image/"))) { const blob = await item.getType(item.types.find(t => t.startsWith("image/"))); const bitmap = await createImageBitmap(blob); const canvas = document.createElement('canvas'); canvas.width = bitmap.width; canvas.height = bitmap.height; const ctx = canvas.getContext('2d'); ctx.drawImage(bitmap, 0, 0); const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data; window._lastImgWidth = canvas.width; window._lastImgHeight = canvas.height; window._lastImgData = imgData; } } } else console.warn("Clipboard read() requires HTTPS/Localhost"); }); }
@@ -9539,10 +9426,10 @@ function GetLastPastedText() { var str = window._lastClipboardString || ""; var 
 function GetLastPastedImage(width,height) { if (window._lastImgData) { const data = window._lastImgData; if (data.length > 0) { const ptr = _malloc(data.length); HEAPU8.set(data, ptr); if (width) setValue(width, window._lastImgWidth, 'i32'); if (height) setValue(height, window._lastImgHeight, 'i32'); window._lastImgData = null; return ptr; } } return 0; }
 
 // Imports from the Wasm binary.
+var _malloc = makeInvalidEarlyAccess('_malloc');
+var _free = makeInvalidEarlyAccess('_free');
 var _main = Module['_main'] = makeInvalidEarlyAccess('_main');
 var _fflush = makeInvalidEarlyAccess('_fflush');
-var _free = makeInvalidEarlyAccess('_free');
-var _malloc = makeInvalidEarlyAccess('_malloc');
 var _emscripten_stack_get_end = makeInvalidEarlyAccess('_emscripten_stack_get_end');
 var _emscripten_stack_get_base = makeInvalidEarlyAccess('_emscripten_stack_get_base');
 var _strerror = makeInvalidEarlyAccess('_strerror');
@@ -9557,10 +9444,10 @@ var wasmMemory = makeInvalidEarlyAccess('wasmMemory');
 var wasmTable = makeInvalidEarlyAccess('wasmTable');
 
 function assignWasmExports(wasmExports) {
+  assert(typeof wasmExports['malloc'] != 'undefined', 'missing Wasm export: malloc');
+  assert(typeof wasmExports['free'] != 'undefined', 'missing Wasm export: free');
   assert(typeof wasmExports['main'] != 'undefined', 'missing Wasm export: main');
   assert(typeof wasmExports['fflush'] != 'undefined', 'missing Wasm export: fflush');
-  assert(typeof wasmExports['free'] != 'undefined', 'missing Wasm export: free');
-  assert(typeof wasmExports['malloc'] != 'undefined', 'missing Wasm export: malloc');
   assert(typeof wasmExports['emscripten_stack_get_end'] != 'undefined', 'missing Wasm export: emscripten_stack_get_end');
   assert(typeof wasmExports['emscripten_stack_get_base'] != 'undefined', 'missing Wasm export: emscripten_stack_get_base');
   assert(typeof wasmExports['strerror'] != 'undefined', 'missing Wasm export: strerror');
@@ -9571,13 +9458,13 @@ function assignWasmExports(wasmExports) {
   assert(typeof wasmExports['emscripten_stack_get_current'] != 'undefined', 'missing Wasm export: emscripten_stack_get_current');
   assert(typeof wasmExports['memory'] != 'undefined', 'missing Wasm export: memory');
   assert(typeof wasmExports['__indirect_function_table'] != 'undefined', 'missing Wasm export: __indirect_function_table');
-  _main = Module['_main'] = createExportWrapper('main', wasmExports['main'], 2);
-  _fflush = createExportWrapper('fflush', wasmExports['fflush'], 1);
-  _free = createExportWrapper('free', wasmExports['free'], 1);
-  _malloc = createExportWrapper('malloc', wasmExports['malloc'], 1);
+  _malloc = createExportWrapper('malloc', 1);
+  _free = createExportWrapper('free', 1);
+  _main = Module['_main'] = createExportWrapper('main', 2);
+  _fflush = createExportWrapper('fflush', 1);
   _emscripten_stack_get_end = wasmExports['emscripten_stack_get_end'];
   _emscripten_stack_get_base = wasmExports['emscripten_stack_get_base'];
-  _strerror = createExportWrapper('strerror', wasmExports['strerror'], 1);
+  _strerror = createExportWrapper('strerror', 1);
   _emscripten_stack_init = wasmExports['emscripten_stack_init'];
   _emscripten_stack_get_free = wasmExports['emscripten_stack_get_free'];
   __emscripten_stack_restore = wasmExports['_emscripten_stack_restore'];
@@ -10089,6 +9976,8 @@ var wasmImports = {
   /** @export */
   glRenderbufferStorage: _glRenderbufferStorage,
   /** @export */
+  glScissor: _glScissor,
+  /** @export */
   glShaderSource: _glShaderSource,
   /** @export */
   glTexImage2D: _glTexImage2D,
@@ -10194,40 +10083,56 @@ function stackCheckInit() {
   writeStackCookie();
 }
 
-async function run() {
-  assert(!calledRun);
-  calledRun = true;
+function run() {
+
+  if (runDependencies > 0) {
+    dependenciesFulfilled = run;
+    return;
+  }
 
   stackCheckInit();
 
   preRun();
 
-  if (runDependencies) {
-    await resolveRunDependencies();
+  // a preRun added a dependency, run will be called later
+  if (runDependencies > 0) {
+    dependenciesFulfilled = run;
+    return;
   }
 
-  var setStatus = Module['setStatus'];
-  if (setStatus) {
-    setStatus('Running...');
-    // Yield to the event loop to allow the browser to paint "Running..."
-    await new Promise((resolve) => setTimeout(resolve, 1));
-    // Then we want to clear the status text, but only after the rest of this function runs.
-    setTimeout(setStatus, 1, '');
+  function doRun() {
+    // run may have just been called through dependencies being fulfilled just in this very frame,
+    // or while the async setStatus time below was happening
+    assert(!calledRun);
+    calledRun = true;
+    Module['calledRun'] = true;
+
+    if (ABORT) return;
+
+    initRuntime();
+
+    preMain();
+
+    Module['onRuntimeInitialized']?.();
+    consumedModuleProp('onRuntimeInitialized');
+
+    var noInitialRun = Module['noInitialRun'] || false;
+    if (!noInitialRun) callMain();
+
+    postRun();
   }
 
-  if (ABORT) return;
-
-  initRuntime();
-
-  // No ATMAINS hooks
-
-  Module['onRuntimeInitialized']?.();
-  consumedModuleProp('onRuntimeInitialized');
-
-  var noInitialRun = Module['noInitialRun'] || false;
-  if (!noInitialRun) callMain();
-
-  postRun();
+  if (Module['setStatus']) {
+    Module['setStatus']('Running...');
+    setTimeout(() => {
+      setTimeout(() => Module['setStatus'](''), 1);
+      doRun();
+    }, 1);
+  } else
+  {
+    doRun();
+  }
+  checkStackCookie();
 }
 
 function checkUnflushedContent() {
@@ -10273,7 +10178,9 @@ var wasmExports;
 
 // With async instantation wasmExports is assigned asynchronously when the
 // instance is received.
-createWasm().then(() => run());
+createWasm();
+
+run();
 
 // end include: postamble.js
 

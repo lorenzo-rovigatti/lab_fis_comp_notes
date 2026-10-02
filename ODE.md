@@ -66,7 +66,7 @@ dove $\Delta \theta = \theta_1 - \theta_2$ e $M = m_1 + m_2$. Queste equazioni s
 :label: sim:pendolo_doppio
 :width: 100%
 
-Simulazione di un pendolo doppio di parametri $l_1 = l_2 = 1$ m, $m_1 = 0.2$ Kg e $m_2 = 0.1$ Kg e condizioni iniziali $\theta_{1,0} = 170^\circ$, $\theta_{2,0} = 0^\circ$, $\omega_{1,0} = \omega_{2,0} = 0$.
+Simulazione di un pendolo doppio di parametri $l_1 = l_2 = 1$ m, $m_1 = 0.2$ Kg e $m_2 = 0.1$ Kg. Una volta messa a fuoco la finestra (per esempio premendo con il mouse all'interno della finestra), è possibile premere 1 o 2 per selezionare il regime: 1 corrisponde al regime regolare (condizioni iniziali $\theta_{1,0} = 45^\circ$, $\theta_{2,0} = 44^\circ$, $\omega_{1,0} = \omega_{2,0} = 0$), 2 corrisponde al regime caotico (condizioni iniziali $\theta_{1,0} = 170^\circ$, $\theta_{2,0} = 0^\circ$, $\omega_{1,0} = \omega_{2,0} = 0$).
 ```
 
 [^definizione_caos]: È possibile rendere questa definizione, che qui sembra piuttosto generica, formale e non ambigua.
