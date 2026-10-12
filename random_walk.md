@@ -401,7 +401,7 @@ $$
 La trasformazione di Box–Muller genera due numeri gaussiani indipendenti, $Z_1$ e $Z_2$, usando la stessa coppia di numeri uniformi. Se la nostra funzione restituisse soltanto $Z_1$, getteremmo via metà del risultato appena calcolato:
 
 ```c
-double gaussian(void) {
+double gaussian() {
     double u1 = 1.0 - drand48();
     double u2 = drand48();
 
