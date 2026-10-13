@@ -2,3 +2,6 @@ book.pdf
 book_typst.pdf
 _build
 notebooks/.ipynb*
+notebooks/ripasso.png
+notebooks/lancio_proiettile.pdf
+notebooks/caduta.dat
