@@ -988,13 +988,13 @@ $$
 x_{n+1} = 2x_n - x_{n-1} + a_n \Delta t^2.
 $$
 
-Questo è l'algoritmo di Verlet, che permette di calcolare la posizione $x_{n+1}$ al passo temporale successivo utilizzando la posizione corrente $x_n$, la posizione precedente $ x_{n-1}$ e l'accelerazione corrente $a_n$. Sebbene scritto in questo modo il metodo di Verlet non coinvolge esplicitamente la velocità, se consideriamo lo sviluppo fino al secondo ordine possiamo scrivere esplicitamente
+Questo è l'algoritmo di Verlet, che permette di calcolare la posizione $x_{n+1}$ al passo temporale successivo utilizzando la posizione corrente $x_n$, la posizione precedente $ x_{n-1}$ e l'accelerazione corrente $a_n$. Sebbene scritto in questo modo il metodo di Verlet non coinvolga esplicitamente la velocità, se consideriamo lo sviluppo fino al secondo ordine possiamo scrivere esplicitamente
 
 $$
 v_n = \frac{x_{n+1} - x_{n-1}}{2\Delta t} + \mathcal{O}(\Delta t^2),
 $$
 
-dove è importante la differenza di accuratezza ($\mathcal{O}(\Delta t^2)$ *vs* $\mathcal{O}(\Delta t^4)$) rispetto a $x$. Inoltre, per $\Delta t$ sufficientemente piccolo, $x_{n+1}$ e $x_{n-1}$ saranno molto simili, quindi la loro differenza può dare problemi quando i numeri vengono rappresentanti sul calcolatore. Per questo motivo il metodo è raramente usato in questa forma, ma si modifica per includere un aggiornamento esplicito per la velocità, ottenendo il ben più comune metodo "Velocity Verlet". Invece di basarsi sulle posizioni dei passi temporali precedente e corrente, l'algoritmo Velocity Verlet aggiorna la posizione e la velocità in un processo a due fasi.
+dove è importante la differenza di accuratezza ($\mathcal{O}(\Delta t^2)$ *vs* $\mathcal{O}(\Delta t^4)$) rispetto a $x$. Inoltre, per $\Delta t$ sufficientemente piccolo, $x_{n+1}$ e $x_{n-1}$ sono molto simili, quindi la loro differenza può dare problemi quando i numeri vengono rappresentanti sul calcolatore. Per questo motivo il metodo è raramente usato in questa forma, ma si modifica per includere un aggiornamento esplicito per la velocità, ottenendo il ben più comune metodo "Velocity Verlet". Invece di basarsi sulle posizioni dei passi temporali precedente e corrente, l'algoritmo Velocity Verlet aggiorna la posizione e la velocità in un processo a due fasi.
 
 In primo luogo, utilizziamo la velocità e l'accelerazione correnti per aggiornare la posizione al tempo $t + \Delta t$. Questo viene fatto in modo simile al metodo Verlet di base, ma con il termine della velocità esplicitamente incluso:
 
@@ -1085,14 +1085,14 @@ $$
 \lambda^2 - \left(2 - \omega_0^2 \Delta t^2\right)\lambda + 1 = 0.
 $$
 
-Questa equazione vi ricorda qualcosa? Questa equazione è assolutamente identica a quella ottenuta con il metodo di Eulero-Cromer, eq. [](#eq:characteristic_pol_ec)!
+Vi ricorda qualcosa? Questa equazione è identica a quella ottenuta con il metodo di Eulero-Cromer, eq. [](#eq:characteristic_pol_ec)!
 
 Sebbene le due matrici di evoluzione siano diverse (Velocity Verlet ha coefficienti simmetrici sulla diagonale ed è un metodo del secondo ordine, mentre Eulero-Cromer è asimmetrico ed è del primo ordine), esse condividono lo stesso polinomio caratteristico e di conseguenza hanno gli stessi identici autovalori e quindi la stessa condizione di stabilità, eq. [](#eq:stability_eulero_cromer). La differenza maggiore tra i due metodi è nella loro accuratezza. Utilizzando la stessa logica applicata a Eulero ed Eulero-Cromer, definiamo l'errore di troncamento locale come la differenza tra la soluzione numerica e quella teorica dopo un passo di integrazione. Sviluppando posizione e velocità fino al quarto ordine, scriviamo le soluzioni esatte come
 
 $$
 \label{eq:sviluppo_xv_4}
 \begin{cases}
-x(t_{n+1}) & = x(t_n) + v(t_n) \Delta t + \frac{1}{2} a(t_n) \Delta t^2 + \frac{}{6} \od{a(t_n)}{t} \Delta t^3 + O(\Delta t^4)\\
+x(t_{n+1}) & = x(t_n) + v(t_n) \Delta t + \frac{1}{2} a(t_n) \Delta t^2 + \frac{1}{6} \od{a(t_n)}{t} \Delta t^3 + O(\Delta t^4)\\
 v(t_{n+1}) & = v(t_n) + a(t_n) \Delta t + \frac{1}{2} \od{a(t_n)}{t} \Delta t^2 + \frac{1}{6} \odd{a(t_n)}{t} \Delta t^3 + O(\Delta t^4).
 \end{cases}
 $$
@@ -1263,7 +1263,7 @@ Dall'alto verso il basso, i tre pannelli mostrano la posizione $x(t)$, la veloci
 
 La [](#fig:pendulum_xvE) mostra una differenza qualitativa già osservata nel caso dell'oscillatore armonico. Il metodo di Eulero introduce una deriva sistematica: come abbiamo visto, a ogni oscillazione il pendolo acquista una piccola quantità di energia numerica e la traiettoria si allontana progressivamente da quella fisica.
 
-Diversamente, ed esattamente come per l'oscillatore armonico, per Eulero-Cromer e Velocity Verletl'energia numerica non è esattamente costante, ma compie piccole oscillazioni attorno al valore corretto senza mostrare una deriva sistematica (nella figura questo si vede solo per Eulero-Cromer). Come già discusso, questa proprietà è legata alla simpletticità dei due algoritmi: la discretizzazione modifica leggermente la dinamica del sistema, ma ne preserva la struttura geometrica nello spazio delle fasi. In effetti, per un integratore simplettico di ordine $p$ ci aspettiamo genericamente un andamento del tipo[^backward_analysis]
+Diversamente, ed esattamente come per l'oscillatore armonico, per Eulero-Cromer e Velocity Verlet l'energia numerica non è esattamente costante, ma compie piccole oscillazioni attorno al valore corretto senza mostrare una deriva sistematica (nella figura questo si vede solo per Eulero-Cromer). Come già discusso, questa proprietà è legata alla simpletticità dei due algoritmi: la discretizzazione modifica leggermente la dinamica del sistema, ma ne preserva la struttura geometrica nello spazio delle fasi. In effetti, per un integratore simplettico di ordine $p$ ci aspettiamo genericamente un andamento del tipo[^backward_analysis]
 
 $$
 E_n-E_0 = \Delta t^p F(t_n) + \mathcal{O}(\Delta t^{p+1}),
@@ -1310,7 +1310,7 @@ Massimo scostamento dell'energia dal valore iniziale, $\epsilon_E$ (in alto) e f
 
 I risultati della [](#fig:pendulum_errors) sono coerenti con quanto ci aspettiamo dall'ordine dei metodi. Eulero-Cromer è un algoritmo simplettico del primo ordine e le oscillazioni dell'energia scalano quindi come $\Delta t$. Velocity Verlet è invece simplettico e del secondo ordine, e infatti le oscillazioni dell'energia scalano come $\Delta t^2$.
 
-Il metodo di Eulero mostra anch'esso, a tempo finale fissato e nel regime di piccoli $\Delta t$, un errore energetico che diminuisce linearmente con $\Delta t$. Questo fatto, però, non implica che Eulero sia simplettico: la differenza fondamentale è il comportamento temporale dell'errore. Nel caso di Eulero l'errore tende ad accumularsi producendo una deriva dell'energia, mentre per Eulero-Cromer e Velocity Verlet esso rimane limitato e oscillatorio. La sola dipendenza di $\epsilon_E$ da $\Delta t$ non è quindi sufficiente a stabilire se un algoritmo sia simplettico. La caratteristica distintiva dei metodi simplettici è la combinazione delle due proprietà: l'ampiezza dell'errore energetico diminuisce con l'ordine previsto e, soprattutto, non presenta una deriva secolare a tempi lunghi.
+Il metodo di Eulero mostra anch'esso, a tempo finale fissato e nel regime di piccoli $\Delta t$, un errore energetico che diminuisce linearmente con $\Delta t$. Questo fatto, però, non implica che Eulero sia simplettico: la differenza fondamentale è il comportamento temporale dell'errore. Nel caso di Eulero l'errore tende ad accumularsi producendo una deriva dell'energia, mentre per Eulero-Cromer e Velocity Verlet esso rimane limitato e oscillatorio. La sola dipendenza di $\epsilon_E$ da $\Delta t$ non è quindi sufficiente a stabilire se un algoritmo sia simplettico. La caratteristica distintiva dei metodi simplettici è la combinazione delle due proprietà: l'ampiezza dell'errore energetico diminuisce con l'ordine previsto e, soprattutto, non presenta una deriva a tempi lunghi.
 
 ```{note} Ordine del metodo e ordine dell'errore sull'energia
 :class: dropdown
