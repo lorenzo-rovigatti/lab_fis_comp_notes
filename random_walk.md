@@ -7,11 +7,11 @@ exports:
 (sec:random-walk)=
 # Introduzione
 
-All'inizio del XIX secolo Robert Brown osservò al microscopio il moto irregolare di piccole particelle sospese in un fluido[^particelle]. Le particelle continuavano a cambiare direzione in modo apparentemente imprevedibile, anche in assenza di correnti macroscopiche visibili.
+All'inizio del XIX secolo Robert Brown osservò al microscopio il moto irregolare di piccole particelle sospese in un fluido[^particelle]. Pensiamo a quello che sappiamo del moto di un corpo in un fluido: la forza di attrito risultante dovrebbe fermare il moto indipendentemente dalla velocità iniziale se, come nell'esperimento di Brown, non sono presenti forze esterne. Al contrario, Brown osservò come le particelle continuavano a cambiare direzione in modo apparentemente imprevedibile, anche in assenza di correnti macroscopiche visibili.
 
 [^particelle]: Brown era un botanico, e le prime osservazioni furono fatte utilizzando grani di polline.
 
-Oggi interpretiamo questo **moto browniano** come il risultato degli urti continui tra la particella sospesa e le molecole del fluido. A ogni istante la particella riceve un numero enorme di impulsi microscopici provenienti da direzioni diverse. In media questi impulsi si compensano, ma le compensazioni non sono mai esatte: rimane una forza risultante fluttuante, che cambia rapidamente intensità e direzione.
+Questo **moto browniano** fu interpretato come il risultato degli urti continui tra la particella sospesa e le molecole del fluido. A ogni istante la particella riceve un numero enorme di impulsi microscopici provenienti da direzioni diverse. In media questi impulsi si compensano, ma le compensazioni non sono mai esatte: rimane una forza risultante fluttuante, che cambia rapidamente intensità e direzione.
 
 Seguire nel dettaglio tutti questi urti sarebbe non solo estremamente complicato, ma anche poco utile. Le scale microscopiche associate al moto delle molecole del fluido sono infatti molto più piccole delle scale spaziali e temporali sulle quali osserviamo la particella sospesa.
 
