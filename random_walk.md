@@ -7,7 +7,24 @@ exports:
 (sec:random-walk)=
 # Introduzione
 
-All'inizio del XIX secolo Robert Brown osservò al microscopio il moto irregolare di piccole particelle sospese in un fluido[^particelle]. Pensiamo a quello che sappiamo del moto di un corpo in un fluido: la forza di attrito risultante dovrebbe fermare il moto indipendentemente dalla velocità iniziale se, come nell'esperimento di Brown, non sono presenti forze esterne. Al contrario, Brown osservò come le particelle continuavano a cambiare direzione in modo apparentemente imprevedibile, anche in assenza di correnti macroscopiche visibili.
+All'inizio del XIX secolo Robert Brown osservò al microscopio il moto irregolare di piccole particelle sospese in un fluido[^particelle]. Pensiamo a quello che sappiamo del moto di un corpo in un fluido: la forza di attrito risultante dovrebbe fermare il moto indipendentemente dalla velocità iniziale se, come nell'esperimento di Brown, non sono presenti forze esterne. In effetti, l'equazione del moto di un punto materiale in un fluido viscoso si può scrivere come
+
+$$
+\label{eq:dissipazione}
+m\odd{x}{t} = -\gamma v(t),
+$$
+
+dove $\gamma$ è il coefficiente di attrito. Questa equazione ha soluzione
+
+$$
+\label{eq:dissipazione_esatta}
+\begin{cases}
+x(t) = x(0) + \frac{v_0}{\tau_v}(1 - e^{-t / \tau_v})\\
+v(t) = v_0e^{-t/\tau_v},
+\end{cases}
+$$
+
+dove abbiamo implicitamente definito il *tempo di rilassamento* della velocità come $\tau_v=\frac{m}{\gamma}$. È chiaro come $v(t) \to 0$ e $x(t) \to {\rm costante}$ per $t \to \infty$. Contrariamente a queste aspettative, Brown osservò come le particelle continuavano a cambiare direzione in modo apparentemente imprevedibile, anche in assenza di correnti macroscopiche visibili.
 
 [^particelle]: Brown era un botanico, e le prime osservazioni furono fatte utilizzando grani di polline.
 
@@ -26,63 +43,6 @@ Il modello che costruiamo è quindi una descrizione **coarse-grained** (cioè *a
 
 Se osserviamo la particella su tempi sufficientemente brevi, essa possiede una velocità ben definita e il moto è approssimativamente balistico. In questo caso conviene scrivere un'equazione del moto per la velocità, in cui il fluido esercita sulla particella una forza di attrito e una forza casuale. Si tratta dell'equazione di Langevin: un'equazione differenziale ordinaria con una forzante stocastica, che possiamo integrare con i metodi numerici già visti per le ODE.
 
-Su tempi molto più lunghi del tempo che la particella impiega a "dimenticare" la propria velocità, la traiettoria efficace risulta invece continua ma non differenziabile: ingrandendone un tratto continuano ad apparire nuove irregolarità. Poiché la traiettoria non è differenziabile, non è possibile associarle una velocità istantanea ordinaria. A queste scale conviene rinunciare del tutto alla velocità e descrivere il moto mediante spostamenti casuali definiti su intervalli temporali finiti: è il **random walk** (o *cammino aleatorio*), che otterremo come limite dell'equazione di Langevin e che studieremo poi come modello a sé stante.
-
-Una singola traiettoria browniana è estremamente irregolare. La posizione della particella dopo un certo tempo non può essere prevista conoscendo
-soltanto la sua posizione iniziale: traiettorie preparate nelle stesse condizioni macroscopiche producono evoluzioni microscopiche diverse.
-
-L'obiettivo non è quindi prevedere esattamente una particolare traiettoria, ma descrivere le proprietà statistiche di un insieme di possibili
-traiettorie. Possiamo domandarci, per esempio,
-
-- qual è lo spostamento medio;
-- quanto si disperdono le posizioni rispetto alla media;
-- come cresce nel tempo la distanza tipica dalla posizione iniziale;
-- qual è la probabilità di trovare la particella in una certa regione di spazio ad un certo tempo.
-
-Queste quantità possono essere definite considerando molte realizzazioni indipendenti dello stesso esperimento in cui poniamo una particella in $x_0$ al tempo 0. Se $x_n^{(\alpha)}$ è la posizione dopo $n$ passi nella traiettoria $\alpha$, allora la distanza media percorsa dalla particella al tempo $t_n$ è
-
-$$
-\langle x_n-x_0\rangle
-\simeq
-\frac{1}{N_{\mathrm{traj}}}
-\sum_{\alpha=1}^{N_{\mathrm{traj}}}
-\left(x_n^{(\alpha)}-x_0^{(\alpha)}\right),
-$$
-
-dove la media è effettuata su molte traiettorie osservate tutte dopo lo stesso numero di passi.
-
-In alternativa, in molti sistemi è possibile ottenere informazioni statistiche anche osservando una singola traiettoria per un tempo molto
-lungo. In questo caso si confrontano spostamenti che partono da istanti diversi della stessa traiettoria. Ad esempio, dividiamo l'intera traiettoria in $M$ segmenti di lunghezza $n$. In questo caso, la distanza media percorsa dalla particella è
-
-$$
-\langle x_n-x_0\rangle
-\simeq
-\frac{1}{M}
-\sum_{m=0}^{M - 1}
-\left(x_{mn + n}-x_{mn}\right),
-$$
-
-Notiamo subito come in entrambi i casi (medie calcolate su più traiettorie e medie calcolate sulla stessa traiettoria), ciò che conta è lo spostamento rispetto a una posizione iniziale. Per questo motivo conviene portarsi esplicitamente dietro la posizione iniziale $x_0$ e studiare la quantità
-
-$$
-X_n\equiv x_n-x_0.
-$$
-
-Nel caso di una media di insieme, $x_0$ è la posizione dalla quale vengono preparate le diverse realizzazioni. Nel caso di una media lungo una
-traiettoria, il ruolo di $x_0$ può essere assunto di volta in volta dalla posizione all'inizio di ciascun intervallo osservato.
-
-Studiare $x_n-x_0$, anziché direttamente $x_n$, permette inoltre di separare le proprietà del moto dalla scelta arbitraria dell'origine delle coordinate. Infatti, per un sistema omogeneo le statistiche degli spostamenti non devono dipendere dal punto dello spazio dal quale la particella è partita.
-
-:::{note} Distinguere il tipo di moto
-Una quantità molto utile per studiare il moto di oggetti (che siano particelle, colloidi, persone, *ecc*) è lo spostamento quadratico medio (*mean-square displacement* o MSD) in funzione del tempo:
-
-$$
-\mathrm{MSD}(t)\equiv \left\langle[x(t)-x(0)]^2\right\rangle.
-$$
-
-È comune in molti sistemi fisici molto diversi tra loro che l'MSD e il tempo siano connessi da una legge a potenza del tipo $\mathrm{MSD}(t)\propto t^\beta$. Spesso, $\beta$ dipende dal tempo: in questo caso l'MSD mostra *regimi* differenti. Ad esempio, il moto di una particella può essere di tipo balistico ($\beta = 2$) a tempi brevi, e diffusivo ($\beta = 1$) a tempi lunghi.
-:::
-
 (sec:langevin-equation)=
 # L'equazione di Langevin
 
@@ -90,7 +50,7 @@ Il primo punto di vista che adottiamo è il più vicino alla meccanica newtonian
 
 Questo approccio fu introdotto da Paul Langevin all'inizio del Novecento. L'idea fondamentale consiste nel separare l'effetto delle molecole del fluido in due contributi:
 
-1. un termine di attrito, che tende a frenare la particella;
+1. un termine di attrito, che tende a frenare la particella, e che porterebbe, da solo, all'equazione [](#eq:dissipazione);
 2. una parte rapidamente fluttuante (detta spesso *di rumore*), dovuta al fatto che gli urti microscopici non si compensano mai esattamente.
 
 In una dimensione l'equazione di Langevin più semplice è
@@ -99,26 +59,9 @@ $$
 m\odd{x}{t} = -\gamma v(t) + \eta(t),
 $$
 
-dove $\gamma > 0$ è il coefficiente di attrito e quindi $-\gamma v(t)$ è la forza dissipativa, e $\eta(t)$ è una forza casuale che rappresenta gli urti con il fluido. La novità rispetto alle ODE considerate finora, come le equazioni differenziali dovute all'applicazione delle leggi di Newton, è che la forzante $\eta(t)$ non è una funzione deterministica del tempo, e non può essere scritta in termini di $x(t)$ e $v(t)$. In questo caso, infatti, "risolvere l'equazione" significa ottenere una traiettoria che non è unica, ma dipende dalla realizzazione. Il sistema va quindi studiato in termini probabilistici, usando le medie [discusse nell'introduzione](#sec:random-walk).
+dove $\eta(t)$ è una forza casuale che rappresenta gli urti con il fluido. La novità rispetto alle ODE considerate finora, come le equazioni differenziali dovute all'applicazione delle leggi di Newton, è che la forzante $\eta(t)$ non è una funzione deterministica del tempo, e non può essere scritta in termini di $x(t)$ e $v(t)$. In questo caso, infatti, "risolvere l'equazione" significa ottenere una traiettoria che non è unica, ma dipende dalla realizzazione. Il sistema va quindi studiato in termini probabilistici.
 
-Prima di introdurre il rumore ripassiamo l'effetto della dissipazione. Ponendo $\eta(t) = 0$ l'equazione diventa
-
-$$
-m\odd{x}{t} = m\od{v}{t}=-\gamma v,
-$$
-
-che ha soluzione
-
-$$
-\label{eq:dissipazione_esatta}
-v(t)=v_0e^{-\gamma t/m} = v_0e^{-t/\tau_v},
-$$
-
-dove abbiamo implicitamente definito il *tempo di rilassamento* della velocità come $\tau_v=\frac{m}{\gamma}$
-
-La velocità iniziale viene quindi "dimenticata" su una scala temporale
-dell'ordine di $\tau_v$. Infatti, per tempi molto più brevi, $t\ll\tau_v$, la velocità cambia poco e il moto è approssimativamente balistico. Per tempi molto più lunghi, $t\gg\tau_v$, la memoria della velocità iniziale è persa e diventano dominanti gli effetti
-cumulativi delle fluttuazioni casuali.
+Consideriamo prima di tutto l'effetto della parte deterministica. Ricordando la soluzione esatta, eq. [](#eq:dissipazione_esatta), la velocità iniziale viene "dimenticata" su una scala temporale dell'ordine di $\tau_v$. Infatti, per tempi molto più brevi, $t\ll\tau_v$, la velocità cambia poco e il moto è approssimativamente balistico. Per tempi molto più lunghi, $t\gg\tau_v$, la memoria della velocità iniziale è persa e diventano dominanti gli effetti cumulativi delle fluttuazioni casuali.
 
 Questa scala temporale è importante anche da un altro punto di vista: per risolvere numericamente la dinamica di un sistema con un termine di attrito, $\Delta t$ deve essere sufficientemente piccolo da poter risolvere correttamente il rilassamento, e quindi si deve avere $\Delta t \ll \tau_v$.
 
@@ -257,7 +200,7 @@ $$
 
 dove il parametro $\sigma$ determina l'intensità delle fluttuazioni.
 
-Come vedrete più avanti nel corso di Meccanica Statistica, considerando una particella in equilibrio con un fluido alla temperatura $T$, il [teorema di equipartizione](https://it.wikipedia.org/wiki/Teorema_di_equipartizione_dell%27energia) richiede
+Come vedrete più avanti nel corso di Meccanica Statistica, considerando una particella in equilibrio con un fluido alla temperatura $T$, il teorema di equipartizione (vedi box più sotto) richiede
 
 $$
 \frac{1}{2}m\langle v^2\rangle = \frac{1}{2}k_{\mathrm B}T,
@@ -268,6 +211,12 @@ dove $k_B$ è la costante di Boltzmann. Dissipazione e rumore non possono quindi
 $$
 \sigma=\sqrt{2\gamma k_{\mathrm B}T}.
 $$
+
+```{note} Il teorema di equipartizione
+Il [teorema di equipartizione](https://it.wikipedia.org/wiki/Teorema_di_equipartizione_dell%27energia) dice che, quando un sistema è in equilibrio termico, il calore disponibile non "preferisce" un certo modo di muoversi rispetto agli altri: si distribuisce tra tutti i modi indipendenti in cui il sistema può immagazzinare energia. Per esempio, una particella in un fluido può muoversi nelle tre direzioni. Ciascuna di queste possibilità rappresenta un grado di libertà e, in media, riceve la stessa quota di energia. Quindi $\frac{1}{2} k_B T$ non indica semplicemente "quanto velocemente si muovono le particelle", ma indica quanto energia, in media, è associata a ciascun modo indipendente di movimento. È importante sottolineare che questo è un risultato statistico: non significa che ogni particella abbia esattamente $\frac{1}{2} k_B T$ per grado di libertà. Alcune ne avranno di più, altre di meno; è la media sull'enorme numero di particelle a dare quel valore.
+
+Nel caso dell'equazione di Langevin, l'ipotesi che il teorema di equipartizione valga è decisamente non banale: significa assumere che la particella di polline abbia la stessa energia di una molecola del solvente in cui è dispersa.
+```
 
 L'equazione di Langevin diventa quindi
 
@@ -484,7 +433,7 @@ if(has_spare)
 
 non sarebbe mai verificata.
 
-:::{warning}
+:::{warning} Attenzione!
 La funzione ora possiede uno **stato interno**: il suo risultato dipende anche da ciò che è accaduto nelle chiamate precedenti. Questa soluzione è semplice
 ed efficiente per un programma sequenziale, ma in casi più complessi applicare soluzioni del genere richiede cautela.
 :::
@@ -561,6 +510,8 @@ $$
 
 ma è sempre presente, e può diventare visibile se il passo temporale non è sufficientemente piccolo. Questo fornisce un utile test numerico: variando $\Delta t$, si può verificare se e come $m\langle v^2\rangle$ converga a $k_{\mathrm B}T$.
 
+Detto questo, a differenza delle equazioni deterministiche che abbiamo visto nella parte precedente, in cui Eulero porta sempre ad instabilità numeriche dopo un certo tempo di simulazione, qui il termine di attrito fa sì che l'algoritmo non esploda (purché $\Delta t$ sia molto più piccolo dei tempi caratteristici del sistema). Di conseguenza, nonostante sia possibile discretizzare la parte deterministica con qualunque degli algoritmi che abbiamo visto (velocity Verlet, Runge-Kutta, *ecc*), spesso si adotta Eulero per semplicità.
+
 ````{note} Approfondimento: un aggiornamento diverso per la velocità
 :class: dropdown
 
@@ -627,6 +578,61 @@ Utilizzando la soluzione esatta otteniamo un'espressione per l'aggiornamento del
 (sec:langevin-diffusion)=
 ## Dalla dinamica di Langevin alla diffusione
 
+Su tempi molto più lunghi del tempo che la particella impiega a "dimenticare" la propria velocità, la traiettoria efficace risulta continua ma non differenziabile: ingrandendone un tratto continuano ad apparire nuove irregolarità. Poiché la traiettoria non è differenziabile, non è possibile associarle una velocità istantanea ordinaria. A queste scale conviene rinunciare del tutto alla velocità e descrivere il moto mediante spostamenti casuali definiti su intervalli temporali finiti: è il **random walk** (o *cammino aleatorio*), che otterremo come limite dell'equazione di Langevin e che studieremo poi come modello a sé stante.
+
+Una singola traiettoria browniana è estremamente irregolare. La posizione della particella dopo un certo tempo non può essere prevista conoscendo soltanto la sua posizione iniziale: traiettorie preparate nelle stesse condizioni macroscopiche producono evoluzioni microscopiche diverse.
+
+L'obiettivo non è quindi prevedere esattamente una particolare traiettoria, ma descrivere le proprietà statistiche di un insieme di possibili traiettorie. Possiamo domandarci, per esempio,
+
+- qual è lo spostamento medio;
+- quanto si disperdono le posizioni rispetto alla media;
+- come cresce nel tempo la distanza tipica dalla posizione iniziale;
+- qual è la probabilità di trovare la particella in una certa regione di spazio ad un certo tempo.
+
+Queste quantità possono essere definite considerando molte realizzazioni indipendenti dello stesso esperimento in cui poniamo una particella in $x_0$ al tempo 0. Se $x_n^{(\alpha)}$ è la posizione dopo $n$ passi nella traiettoria $\alpha$, allora la distanza media percorsa dalla particella al tempo $t_n$ è
+
+$$
+\langle x_n-x_0\rangle
+\simeq
+\frac{1}{N_{\mathrm{traj}}}
+\sum_{\alpha=1}^{N_{\mathrm{traj}}}
+\left(x_n^{(\alpha)}-x_0^{(\alpha)}\right),
+$$
+
+dove la media è effettuata su molte traiettorie osservate tutte dopo lo stesso numero di passi.
+
+In alternativa, in molti sistemi è possibile ottenere informazioni statistiche anche osservando una singola traiettoria per un tempo molto lungo. In questo caso si confrontano spostamenti che partono da istanti diversi della stessa traiettoria. Ad esempio, dividiamo l'intera traiettoria in $M$ segmenti di lunghezza $n$. In questo caso, la distanza media percorsa dalla particella è
+
+$$
+\langle x_n-x_0\rangle
+\simeq
+\frac{1}{M}
+\sum_{m=0}^{M - 1}
+\left(x_{mn + n}-x_{mn}\right),
+$$
+
+Notiamo subito come in entrambi i casi (medie calcolate su più traiettorie e medie calcolate sulla stessa traiettoria), ciò che conta è lo spostamento rispetto a una posizione iniziale. Per questo motivo conviene portarsi esplicitamente dietro la posizione iniziale $x_0$ e studiare la quantità
+
+$$
+X_n\equiv x_n-x_0.
+$$
+
+Nel caso di una media di insieme, $x_0$ è la posizione dalla quale vengono preparate le diverse realizzazioni. Nel caso di una media lungo una
+traiettoria, il ruolo di $x_0$ può essere assunto di volta in volta dalla posizione all'inizio di ciascun intervallo osservato.
+
+Studiare $x_n-x_0$, anziché direttamente $x_n$, permette inoltre di separare le proprietà del moto dalla scelta arbitraria dell'origine delle coordinate. Infatti, per un sistema omogeneo le statistiche degli spostamenti non devono dipendere dal punto dello spazio dal quale la particella è partita.
+
+:::{note} Distinguere il tipo di moto
+Una quantità molto utile per studiare il moto di oggetti (che siano particelle, colloidi, persone, *ecc*) è lo spostamento quadratico medio (*mean-square displacement* o MSD) in funzione del tempo:
+
+$$
+\mathrm{MSD}(t)\equiv \left\langle[x(t)-x(0)]^2\right\rangle.
+$$
+
+È comune in molti sistemi fisici molto diversi tra loro che l'MSD e il tempo siano connessi da una legge a potenza del tipo $\mathrm{MSD}(t)\propto t^\beta$. Spesso, $\beta$ dipende dal tempo: in questo caso l'MSD mostra *regimi* differenti. Ad esempio, il moto di una particella può essere di tipo balistico ($\beta = 2$) a tempi brevi, e diffusivo ($\beta = 1$) a tempi lunghi.
+:::
+
+
 ```{figure} #cell:res_langevin
 :label: fig:res_langevin
 :align: center
@@ -634,11 +640,15 @@ Utilizzando la soluzione esatta otteniamo un'espressione per l'aggiornamento del
 A sinistra: lo spostamento quadratico medio ottenuto risolvendo l'equazione di Langevin di parametri $\gamma = 1$, $m = 1$, $k_B T = 1$ integrata con il metodo di Eulero con $\Delta t = 0.01$. I risultati sono stati ottenuti mediando su 10000 traiettorie. Le linee tratteggiate sono gli andamenti teorici balistico e diffusivo nei rispettivi regimi di validità. A destra: le distribuzioni degli spostamenti numeriche (linee continue) e teoriche (gaussiane di varianza $2Dt$, eq. [](#eq:diff_gaussian), linee tratteggiate) a $t = 10$ e $t = 100$.
 ```
 
-La [](#fig:res_langevin) mostra alcuni risultati di simulazione ottenuti mediando molte traiettorie. Nel pannello di sinistra, che mostra lo spostamento quadratico medio, si può vedere come l'equazione di Langevin contenga sia il regime balistico sia quello diffusivo. Infatti, per tempi molto brevi rispetto a $\tau_v$, la velocità non ha ancora perso memoria del suo valore iniziale e
+La [](#fig:res_langevin) mostra alcuni risultati di simulazione ottenuti mediando molte traiettorie (e che avremmo potuto ottenere anche mediando su un unica traiettoria molto lunga, come appena discusso). Nel pannello di sinistra, che mostra lo spostamento quadratico medio, si può vedere come l'equazione di Langevin contenga sia il regime balistico ($\left\langle[x(t)-x_0]^2\right\rangle \propto t^2$) sia quello diffusivo ($\left\langle[x(t)-x_0]^2\right\rangle \propto t$).
+
+Per quanto riguarda il primo regime, consideriamo una singola realizzazione del moto di un granello di polline di condizioni iniziali $x_0$ e $v_0$: per tempi molto brevi rispetto a $\tau_v$, la velocità non ha ancora perso memoria del suo valore iniziale e[^prefattore_balistico]
 
 $$
 x(t)-x_0\simeq v_0t.
 $$
+
+[^prefattore_balistico]: Mediando su tante realizzazioni si trova come il coefficiente davanti all'espansione del MSD per tempi piccoli sia comunque legato alla temperatura.
 
 Di conseguenza,
 
