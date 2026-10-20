@@ -24,11 +24,11 @@ v(t) = v_0e^{-t/\tau_v},
 \end{cases}
 $$
 
-dove abbiamo implicitamente definito il *tempo di rilassamento* della velocità come $\tau_v=\frac{m}{\gamma}$. È chiaro come $v(t) \to 0$ e $x(t) \to {\rm costante}$ per $t \to \infty$. Contrariamente a queste aspettative, Brown osservò come le particelle continuavano a cambiare direzione in modo apparentemente imprevedibile, anche in assenza di correnti macroscopiche visibili.
+dove abbiamo implicitamente definito il *tempo di rilassamento*, che controlla lo smorzamento esponenziale della velocità, come $\tau_v=\frac{m}{\gamma}$. È chiaro come, nel limite $t \to \infty$, $v(t) \to 0$ e $x(t) \to {\rm costante}$. Contrariamente a queste aspettative, Brown osservò come le particelle continuavano a cambiare direzione in modo apparentemente imprevedibile, anche in assenza di correnti macroscopiche visibili.
 
 [^particelle]: Brown era un botanico, e le prime osservazioni furono fatte utilizzando grani di polline.
 
-Questo **moto browniano** fu interpretato come il risultato degli urti continui tra la particella sospesa e le molecole del fluido. A ogni istante la particella riceve un numero enorme di impulsi microscopici provenienti da direzioni diverse. In media questi impulsi si compensano, ma le compensazioni non sono mai esatte: rimane una forza risultante fluttuante, che cambia rapidamente intensità e direzione.
+Questo **moto browniano** fu interpretato, all'inizio del '900, come il risultato degli urti continui tra la particella sospesa e le molecole del fluido. A ogni istante la particella riceve un numero enorme di impulsi microscopici provenienti da direzioni diverse. In media questi impulsi si compensano, ma le compensazioni non sono mai esatte: rimane una forza risultante fluttuante, che cambia rapidamente intensità e direzione.
 
 Seguire nel dettaglio tutti questi urti sarebbe non solo estremamente complicato, ma anche poco utile. Le scale microscopiche associate al moto delle molecole del fluido sono infatti molto più piccole delle scale spaziali e temporali sulle quali osserviamo la particella sospesa.
 
@@ -424,8 +424,7 @@ Le due variabili statiche hanno ruoli differenti:
 
 Durante la prima chiamata `has_spare` vale zero. La funzione genera quindi $Z_1$ e $Z_2$, restituisce $Z_1$ e conserva $Z_2$ in `spare`. Durante la seconda chiamata `has_spare` vale uno: la funzione restituisce immediatamente il valore conservato, senza generare nuovi numeri uniformi e senza valutare nuovamente logaritmo, seno e coseno (che sono tra le funzioni matematiche più "costose" in termini di cicli CPU). La terza chiamata genera una nuova coppia, la quarta usa nuovamente il valore conservato, e così via. Il costo della trasformazione di Box–Muller viene pertanto sostenuto una volta ogni due numeri gaussiani prodotti.
 
-Se `has_spare` e `spare` non fossero `static`, verrebbero ricreate a ogni chiamata. In particolare, `has_spare` sarebbe inizializzata ogni volta a zero
-e l'istruzione condizionale
+Se `has_spare` e `spare` non fossero `static`, verrebbero ricreate a ogni chiamata della funzione. Di conseguenza, `has_spare` verrebbe inizializzata ogni volta a zero e l'istruzione condizionale
 
 ```c
 if(has_spare)
@@ -676,42 +675,67 @@ che ricaveremo nella prossima sezione. La dinamica di Langevin fornisce quindi u
 (sec:overdamped)=
 ## Il limite sovrasmorzato
 
-Vediamo ora cosa resta dell'equazione di Langevin quando la osserviamo su scale temporali molto più lunghe di $\tau_v$. Partiamo dalla forma a incrementi,
+Vediamo ora cosa resta dell'equazione di Langevin quando la osserviamo su scale temporali $\tau$ molto lunghe rispetto al tempo caratteristico dello smorzamento esponenziale della velocità, cioè per $\tau \gg \tau_v = m / \gamma$.
+
+Partiamo dal caso deterministico. Con una forza costante $F$, la soluzione di $m\,\dot v = -\gamma v + F$ è
 
 $$
-m\Delta v = -\gamma v\Delta t + \sigma\Delta W,
+v(t) = \frac{F}{\gamma} + \left(v_0 - \frac{F}{\gamma}\right) e^{-t/\tau_v}.
 $$
 
-e ricordiamo che $v\Delta t$ è lo spostamento $\Delta x$ compiuto nell'intervallo. Sommando gli incrementi su un intervallo di durata $\tau$ (cioè su molti passi $\Delta t$) si ottiene
+Dopo qualche $\tau_v$ la velocità raggiunge il valore limite $F/\gamma$ e l'accelerazione si annulla. Se guardiamo il sistema su tempi $\tau \gg \tau_v$ possiamo saltare il transiente e scrivere direttamente $\gamma v = F$: la velocità, e non più l'accelerazione, è proporzionale alla forza.
+
+Facciamo lo stesso ragionamento in presenza di rumore. Dividiamo l'equazione [](#eq:langevin_incrementi) per $\gamma$, usiamo $v\,\Delta t = \Delta x$ e, ricordando che $D \equiv k_{\mathrm B}T/\gamma$, possiamo scrivere
 
 $$
-m\left[v(t+\tau)-v(t)\right] = -\gamma\left[x(t+\tau)-x(t)\right] + \sigma\left[W(t+\tau)-W(t)\right].
+\tau_v\,\Delta v = -\Delta x + \sqrt{2D}\,\Delta W .
 $$
 
-Questa relazione è esatta. Confrontiamo ora l'ordine di grandezza dei tre termini:
-
-- la velocità fluttua attorno a zero con $\langle v^2\rangle = k_{\mathrm B}T/m$, quindi il membro sinistro è tipicamente dell'ordine di $m\sqrt{k_{\mathrm B}T/m}=\sqrt{m k_{\mathrm B}T}$, *indipendentemente da* $\tau$;
-- il termine di rumore cresce invece come $\sigma\sqrt{\tau}=\sqrt{2\gamma k_{\mathrm B}T\tau}$, e lo stesso vale (lo verificheremo a posteriori) per il termine di attrito.
-
-Il rapporto tra il primo e il secondo termine è
+Questa relazione vale per un passo $\Delta t$ piccolo, ma è lineare negli incrementi: sommandola su tutti i passi contenuti in un intervallo di durata $\tau$ si ottiene, senza alcuna approssimazione,
 
 $$
-\frac{\sqrt{m k_{\mathrm B}T}}{\sqrt{2\gamma k_{\mathrm B}T\tau}} = \sqrt{\frac{\tau_v}{2\tau}},
+\tau_v\left[v(t+\tau)-v(t)\right] = -\left[x(t+\tau)-x(t)\right] + \sqrt{2D}\left[W(t+\tau)-W(t)\right].
 $$
 
-che diventa trascurabile per $\tau \gg \tau_v$. In questo limite, detto **sovrasmorzato** (*overdamped*), l'inerzia della particella non conta più e si ha
+Tutti i termini sono spostamenti, e possiamo confrontarne l'ordine di grandezza:
+
+- a destra, poiché $\langle[W(t+\tau)-W(t)]^2\rangle = \tau$, il termine di rumore è dell'ordine di $\sqrt{2D\tau}$: è la distanza percorsa diffondendo, che cresce con $\tau$. Lo stesso vale per lo spostamento $x(t+\tau)-x(t)$ (lo verificheremo a posteriori);
+- a sinistra, per l'equipartizione la velocità fluttua attorno a zero con ampiezza $v_{th} = \sqrt{k_{\mathrm B}T/m}$, quindi il termine è dell'ordine di $\ell_b \equiv \tau_v v_{th}$, la distanza che la particella percorre "per inerzia" prima di dimenticare la propria velocità. Questa lunghezza **non** cresce con $\tau$.
+
+Il rapporto tra le due lunghezze è il parametro adimensionale che controlla l'approssimazione:
 
 $$
-x(t+\tau)-x(t) \simeq \frac{\sigma}{\gamma}\left[W(t+\tau)-W(t)\right] = \sqrt{\frac{2k_{\mathrm B}T}{\gamma}}\,\left[W(t+\tau)-W(t)\right].
+\frac{\ell_b}{\sqrt{2D\tau}} = \sqrt{\frac{\tau_v}{2\tau}} .
 $$
 
-Gli spostamenti sono quindi proporzionali agli incrementi di un processo di Wiener. Usando $\langle(\Delta W)^2\rangle=\tau$,
+Per $\tau \gg \tau_v$ il termine inerziale è quindi trascurabile. In questo limite, detto **sovrasmorzato** (*overdamped*), l'inerzia della particella non conta più e rimane
 
 $$
-\left\langle[x(t+\tau)-x(t)]^2\right\rangle = \frac{2k_{\mathrm B}T}{\gamma}\tau \equiv 2D\tau,
+x(t+\tau)-x(t) \simeq \sqrt{2D}\,\left[W(t+\tau)-W(t)\right].
 $$
 
-che è proprio la relazione di Einstein, $D=k_{\mathrm B}T/\gamma$. Il ragionamento non è una dimostrazione rigorosa, ma cattura la fisica: su tempi lunghi, attrito e rumore si bilanciano e la velocità perde ogni ruolo dinamico.
+Per un colloide di raggio $1\,\mu\mathrm{m}$ in acqua (come può essere un piccolo grano di polline) si ha $\tau_v \approx 0.2\,\mu\mathrm{s}$ e $\ell_b \approx 0.2\,\mathrm{nm}$: la particella dimentica la propria velocità dopo essersi spostata di meno di un millesimo del proprio raggio.
+
+Gli spostamenti sono quindi proporzionali agli incrementi di un processo di Wiener. Usando $\langle[W(t+\tau)-W(t)]^2\rangle=\tau$,
+
+$$
+\left\langle[x(t+\tau)-x(t)]^2\right\rangle = 2D\tau ,
+$$
+
+cioè proprio il comportamento diffusivo: $D = k_{\mathrm B}T/\gamma$ è il coefficiente di diffusione, e questa è la relazione di Einstein. Il ragionamento non è una dimostrazione rigorosa, ma cattura la fisica: su tempi lunghi, attrito e rumore si bilanciano e la velocità perde ogni ruolo dinamico.
+
+```{note} Il risultato esatto
+Per una particella libera in equilibrio termico, lo spostamento quadratico medio previsto dall'equazione di Langevin si può calcolare esattamente (non lo faremo):
+
+$$
+\left\langle[x(t+\tau)-x(t)]^2\right\rangle = 2D\left[\tau - \tau_v\left(1-e^{-\tau/\tau_v}\right)\right].
+$$
+
+- Per $\tau \ll \tau_v$, sviluppando l'esponenziale al secondo ordine, si ottiene $v_{th}^2\,\tau^2$: il regime balistico.
+- Per $\tau \gg \tau_v$ l'esponenziale è trascurabile e resta $2D\tau - 2D\tau_v = 2D\tau - 2\ell_b^2$ (si verifica facilmente che $\ell_b^2 = D\tau_v$): il risultato sovrasmorzato più una correzione costante, legata proprio alla lunghezza inerziale $\ell_b$.
+
+La correzione relativa vale $\tau_v/\tau$ e diventa trascurabile per $\tau \gg \tau_v$, come previsto dalla stima degli ordini di grandezza.
+```
 
 Numericamente, nel limite sovrasmorzato non è più necessario integrare l'equazione per la velocità: la posizione si aggiorna direttamente come
 
@@ -720,7 +744,7 @@ $$
 x_{n+1} = x_n + \sqrt{2D\Delta t}\,R_n,
 $$
 
-con $R_n$ gaussiane standard indipendenti. Questo schema (spesso chiamato *dinamica browniana*) richiede soltanto $\Delta t \gg \tau_v$, e non più $\Delta t \ll \tau_v$, perché la scala $\tau_v$ è stata eliminata dalla descrizione. Il prezzo da pagare è che il regime balistico a tempi brevi non è più descritto.
+con $R_n$ gaussiane standard indipendenti. Questo schema è spesso chiamato *dinamica browniana*. Poiché la scala $\tau_v$ è stata eliminata dalla descrizione, non è più necessario scegliere $\Delta t \ll \tau_v$: il passo si sceglie in base ai tempi che vogliamo osservare, che devono comunque essere molto più lunghi di $\tau_v$. Per il colloide dell'esempio si passa da passi di frazioni di microsecondo a passi che possono essere anche di millisecondi. Il prezzo da pagare è che il regime balistico a tempi brevi non è più descritto.
 
 L'equazione [](#eq:overdamped) descrive una particella che a ogni passo compie uno spostamento casuale, indipendente dai precedenti. Nella prossima sezione semplificheremo ulteriormente questa descrizione, permettendo alla particella di spostarsi soltanto di una quantità fissa verso destra o verso sinistra.
 
@@ -733,11 +757,13 @@ Una simulazione dell'equazione di Langevin permette di verificare direttamente d
    $$
    \langle v(t)\rangle=v_0e^{-t/\tau_v}.
    $$
+   Qui la media su tante realizzazioni va fatta a velocità iniziale costante.
 
 2. A tempi lunghi la velocità soddisfa l'equipartizione,
    $$
    \langle v^2\rangle=\frac{k_{\mathrm B}T}{m}.
    $$
+   Per ottenere questo risultato si possono fare tante simulazioni diverse oppure una simulazione molto lunga. In entrambi i casi è necessario scartare la prima parte della traiettoria, cioè far partire l'analisi da un tempo $t_0 \gg m / \gamma$).
 
 3. Lo spostamento quadratico medio è balistico a tempi brevi,
    $$
@@ -758,6 +784,10 @@ Una simulazione dell'equazione di Langevin permette di verificare direttamente d
 
 (sec:random-walk-1d)=
 # Random walk unidimensionale discreto
+
+Supponiamo di voler simulare un gas come quello che studiate a termodinamica. Per ottenere dei risultati realistici non è necessario simulare un numero di Avogrado di molecole, che sarebbe computazionalmente impossibile, richiede comunque seguire la traiettoria di centinaia (in alcuni casi anche di più, fino a qualche milione) di "particelle". Al livello di descrizione che abbiamo considerato finora, dovremmo studiare un numero molto grande di equazioni differenziali in parallelo, aggiungendo termini di accoppiamento dovuti all'interazione tra particelle. Simulazioni del genere possono richiedere giorni o settimane di simulazione (in dipendenza dal sistema studiato) con sistemi hardware moderni, ma sono state a lungo proibitive per via della loro complessità. Ripercorriamo qui brevemente la strada che è stata percorsa per ottenere descrizioni semplificate che, a tempi lunghi, hanno un comportamente asintotico che coincide con quello del sistema completo. Il motivo non è solo la curiosità storica, ma la volontà di mettere in evidenza il processo che ha permesso (e ancora permette) di comprendere quali siano gli elementi essenziali che determinano le proprietà specifiche del fenomeno della diffusione e del moto browniano. 
+
+Per fare ciò discretizziamo l'equazione del moto non solo sulla parte temporale (come abbiamo già fatto) ma anche sulla parte spaziale, suddividendo lo spazio in una griglia delle dimensioni spaziali che vogliamo studiare (una o due, nel seguito). Questo semplifica il problema e lo rende attaccabile con una simulazione della durata di pochi minuti.
 
 Nel [limite sovrasmorzato](#sec:overdamped), il moto browniano si riduce a una successione di spostamenti casuali indipendenti. Possiamo allora semplificare ulteriormente e dimenticare del tutto la dinamica sottostante: il modello più semplice che contiene questi ingredienti è il random walk simmetrico unidimensionale, in cui gli spostamenti possono assumere soltanto due valori e la particella si muove quindi su un reticolo di passo $\Delta x$.
 
