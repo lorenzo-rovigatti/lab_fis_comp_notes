@@ -195,6 +195,7 @@ Se per generare una traiettoria utilizzassimo $\Delta W \propto \Delta t$, la va
 La forza ideale $\eta(t)$ varia su tempi arbitrariamente brevi e non deve essere interpretata come una normale funzione regolare. Conviene quindi, come fatto per il processo di Wiener, scrivere l'equazione direttamente in termini degli incrementi prodotti in un intervallo finito:
 
 $$
+\label{eq:langevin_incrementi}
 m \Delta v = -\gamma v \Delta t + \sigma\Delta W,
 $$
 
