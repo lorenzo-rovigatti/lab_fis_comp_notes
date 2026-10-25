@@ -1078,7 +1078,7 @@ $$
 
 Quindi, il determinante è esattamente pari a 1, indipendentemente dal valore del passo temporale $\Delta t$: Velocity Verlet è un algoritmo simplettico (conserva l'area nello spazio delle fasi) per qualsiasi parametro di discretizzazione scelto. Non introduce alcuna dissipazione o amplificazione artificiale dell'area di stati iniziali. 
 
-Studiato ora gli autovalori. Il polinomio caratteristico di Velocity Verlet è:
+Studiamo ora gli autovalori. Il polinomio caratteristico di Velocity Verlet è:
 
 $$
 \label{eq:char_verlet}
@@ -1097,7 +1097,7 @@ v(t_{n+1}) & = v(t_n) + a(t_n) \Delta t + \frac{1}{2} \od{a(t_n)}{t} \Delta t^2 
 \end{cases}
 $$
 
-Se ora sottriamo queste quantità da quelle numeriche, eq. [](#eq:velocity_verlet), e sostituiamo a $a_{n+1}$ il suo sviluppo di Taylor, $a_{n+1} = a(t_n) + \dot{a}(t_n) \Delta t + \frac{1}{2} \ddot{a}(t_n) \Delta t^2 + \mathcal{O}(\Delta t^3)$[^box_an1], otteniamo
+Se ora sottraiamo queste quantità da quelle numeriche, eq. [](#eq:velocity_verlet), e sostituiamo a $a_{n+1}$ il suo sviluppo di Taylor, $a_{n+1} = a(t_n) + \dot{a}(t_n) \Delta t + \frac{1}{2} \ddot{a}(t_n) \Delta t^2 + \mathcal{O}(\Delta t^3)$[^box_an1], otteniamo
 
 $$
 \begin{cases}
@@ -1207,7 +1207,7 @@ passo = eulero;
 fa quindi puntare `passo` alla funzione `eulero`, ma non esegue ancora la funzione. Per eseguirla usiamo invece le parentesi, esattamente come per una normale chiamata:
 
 ```c
-passo(&sist, &punto);
+passo(&sistema, &punto);
 ```
 
 Il ciclo che realizza la simulazione non deve più sapere quale algoritmo sia stato scelto:
@@ -1327,7 +1327,7 @@ $$
 
 Questo comportamento può rimanere visibile anche per il pendolo in determinati regimi, ma non rappresenta una proprietà generale di tutti i sistemi non lineari.
 
-Analogamente, il [metodo Runge-Kutta del quarto ordine](#sec:rk4) ha un errore globale $\mathcal{O}(\Delta t^4)$ ma, per motivi simili, per il pendolo si trova $\Delta E_{\rm RK2}\propto\Delta t^5$.
+Analogamente, il [metodo Runge-Kutta del quarto ordine](#sec:rk4) ha un errore globale $\mathcal{O}(\Delta t^4)$ ma, per motivi simili, per il pendolo si trova $\Delta E_{\rm RK4}\propto\Delta t^5$.
 
 Il messaggio importante è quindi che l'ordine del metodo non coincide necessariamente con l'oordine dell'errore di un particolare osservabile, mentre per un integratore simplettico di ordine $p$ l'ampiezza delle oscillazioni energetiche è solitamente dell'ordine di $\mathcal{O}(\Delta t^p)$.
 ```
@@ -1444,7 +1444,7 @@ v_{n+1} = v_n + a_{n+1/2} \Delta t,
 \end{cases}
 $$
 
-dove $a_{n+1/2} = a(x_{n+1/2}, v_{v+1/2}, t_{n+1/2})$ è l'accelerazione calcolata nel punto medio dell'intervallo, ottenuta integrando di mezzo passo $x_n$ e $v_n$. Calcolare due volte l'accelerazione (in $n$ e in $n + 1/2$) è il prezzo computazionale che si paga per migliorare l'accuratezza rispetto al metodo di Eulero. Questo è un prezzo che molte volte (ma non necessariamente sempre) vale la pena di pagare.
+dove $a_{n+1/2} = a(x_{n+1/2}, v_{n+1/2}, t_{n+1/2})$ è l'accelerazione calcolata nel punto medio dell'intervallo, ottenuta integrando di mezzo passo $x_n$ e $v_n$. Calcolare due volte l'accelerazione (in $n$ e in $n + 1/2$) è il prezzo computazionale che si paga per migliorare l'accuratezza rispetto al metodo di Eulero. Questo è un prezzo che molte volte (ma non necessariamente sempre) vale la pena di pagare.
 
 ### Stabilità ed accuratezza
 
@@ -1628,7 +1628,7 @@ v_{n+1} = v_n + \frac{\Delta t}{6}
 \end{cases}
 $$
 
-**Nota Bene:** per l'oscillatore armonico l'accelerazione dipende solo dalla velocità,e quindi le quantità $k_{i,v}$ si ottengono semplicemente valutando $-\omega_0^2 x$ nei diversi punti intermedi costruiti dall'algoritmo. Nel caso più generale (ad esempio quello dell'oscillatore smorzato o forzato), l'accelerazione dipende anche da $v$ e da $t$, e quindi è importante aggiornare correttamente entrambe le variabili nei passi intermedi.
+**Nota Bene:** per l'oscillatore armonico l'accelerazione dipende solo dalla posizione, e quindi le quantità $k_{i,v}$ si ottengono semplicemente valutando $-\omega_0^2 x$ nei diversi punti intermedi costruiti dall'algoritmo. Nel caso più generale (ad esempio quello dell'oscillatore smorzato o forzato), l'accelerazione dipende anche da $v$ e da $t$, e quindi è importante aggiornare correttamente entrambe le variabili nei passi intermedi.
 
 ```{note}  Approfondimento: determinazione dei coefficienti $b_i$
 :label: box:coeff_rk4
@@ -1752,7 +1752,7 @@ Come per gli algoritmi visti, studiamo la stabilità di RK4 applicandolo all'osc
 Il determinante della matrice di propagazione è
 
 $$
-\det(\hat{M}_{RK4}) = 1 - \frac{\omega_0^6\Delta t^6}{72} + \frac{z^6}{576}.
+\det(\hat{M}_{RK4}) = 1 - \frac{\omega_0^6\Delta t^6}{72} + \frac{\omega_0^8\Delta t^8}{576}.
 $$
 
 Gli autovalori invece valgono 
@@ -1761,7 +1761,7 @@ $$
 \lambda_{1,2} = 1 - \frac{\omega_0^2\Delta t^2}{2} + \frac{\omega_0^4\Delta t^4}{24} \pm i\left(\omega_0\Delta t - \frac{\omega_0^3\Delta t^3}{6}\right).
 $$
 
-Poiché gli autovalori sono complessi coniugati, il loro modulo è uguale al determinante:
+Poiché gli autovalori sono complessi coniugati, il loro modulo al quadrato è uguale al determinante:
 
 $$
 |\lambda_1|^2 = |\lambda_2|^2 = \det(\hat{M}_{RK4}) = 1 - \frac{\omega_0^6\Delta t^6}{72} + \frac{\omega_0^8\Delta t^8}{576}.
