@@ -1767,7 +1767,7 @@ $$
 |\lambda_1|^2 = |\lambda_2|^2 = \det(\hat{M}_{RK4}) = 1 - \frac{\omega_0^6\Delta t^6}{72} + \frac{\omega_0^8\Delta t^8}{576}.
 $$
 
-Questo risultato mostra che, come RK2, anche RK4 non è simplettico. Tuttavia la deviazione da 1 compare soltanto a partire dall'ordine $z^6 = (\omega_0\Delta t)^6$, cioè è molto piccola per passi temporali sufficientemente piccoli. A differenza di RK2, l'espressione del determinante ha un termine negativo e uno positivo, e quindi può cambiare segno a seconda dei parametri. La condizione per cui la dinamica non esplode è $\det(\hat{M}_{RK4}) \leq 1$, cioè 
+Questo risultato mostra che, come RK2, anche RK4 non è simplettico. Tuttavia la deviazione da 1 compare soltanto a partire dall'ordine $(\omega_0\Delta t)^6$, cioè è molto piccola per passi temporali sufficientemente piccoli. A differenza di RK2, l'espressione del determinante ha un termine negativo e uno positivo, e quindi può cambiare segno a seconda dei parametri. La condizione per cui la dinamica non esplode è $\det(\hat{M}_{RK4}) \leq 1$, cioè 
 
 $$
 \omega_0^6\Delta t^6\left(-\frac{1}{72} + \frac{\omega_0^2\Delta t^2}{576} \right) \leq 0,
@@ -2432,6 +2432,42 @@ return 0;
 ```
 
 La memoria dinamica ci permette così di scrivere un solo programma capace di simulare un numero arbitrario di pianeti, limitato soltanto dalla memoria disponibile, senza conoscere $N$ quando scriviamo o compiliamo il codice.
+
+:::{note} Come trovare gli errori di memoria
+Nel migliore dei casi errori di memoria (ad esempio accedere a caselle non di pertinenza del programma) interrompono il programma (*crash*), ma in casi peggiori possono corromperne il comportamento senza che ci siano segni visibili. Per ovviare a questo problema possiamo chiedere al compilatore di aggiungere dei controlli sugli accessi alla memoria compilando con i parametri aggiuntivi `-fsanitize=address -g`:
+
+* `-fsanitize=address` controlla ogni accesso alla memoria
+* `-g` fa sì che eventuali messaggi di errore riportino anche il numero di riga
+
+Un esempio è
+
+```bash
+gcc -o oscillatore oscillatore.c -lm -fsanitize=address -g
+```
+
+E un esempio di output potrebbe essere:
+
+```bash
+./oscillatore euler 0.001 100000 1.0 0.0 1.0
+ERROR: AddressSanitizer: heap-buffer-overflow
+WRITE of size 8 ...
+    #0 ... in main oscillatore.c:39
+... located 0 bytes after 80-byte region
+allocated by thread T0 here:
+    #1 ... in main oscillatore.c:30
+```
+
+Riporto qui una tabella riassuntiva con gli errori più comuni:
+
+| Messaggio | Significato|
+|---|---|
+| *heap-buffer-overflow* | accesso fuori dalla memoria riservata |
+| *LeakSanitizer: detected memory leaks* | manca un `free` |
+| *heap-use-after-free* | uso della memoria dopo `free` |
+| *attempting double-free* | `free` chiamato due volte |
+
+**Nota Bene:** con queste opzioni il programma sarà più lento. Questo modo di compilare si usa per cercare gli errori in fase di sviluppo e *debugging*, non quando si deve usare il programma (ad esempio per far girare simulazioni lunghe).
+:::
 
 (sec:caos)=
 # Il pendolo smorzato e forzato: un esempio di moto caotico
