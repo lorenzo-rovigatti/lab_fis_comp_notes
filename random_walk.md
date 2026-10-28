@@ -1103,7 +1103,7 @@ La [](#fig:res_random_walk_prob) mostra come l'approssimazione continua funzioni
 
 Il teorema del limite centrale mostra che il comportamento diffusivo non dipende dalla scelta particolare di passi discreti verso destra o verso sinistra. Le ipotesi essenziali sono che gli incrementi $\xi_i$ siano indipendenti e identicamente distribuiti, con media nulla e varianza finita. Se queste condizioni sono verificate, per $n$ grande la distribuzione dello spostamento tenderà a una gaussiana, indipendentemente dalla forma dettagliata della distribuzione dei singoli passi. Il random walk destra/sinistra è quindi soltanto il più semplice esempio di una classe molto più generale di processi diffusivi.
 
-:::{warning}
+:::{warning} Attenzione
 La finitezza della varianza è essenziale. Distribuzioni con code molto larghe e varianza infinita non soddisfano il teorema del limite centrale nella sua forma usuale e possono dare origine a dinamiche non diffusive.
 :::
 
@@ -1163,12 +1163,14 @@ $$
 Ricordando la definizione di coefficiente di diffusione, eq. [](#eq:D), possiamo prendere il limite al continuo, $\Delta x\to0$ e $\Delta t\to0$, ottenendo
 
 $$
+\label{eq:diffusione}
 \frac{\partial P(x,t)}{\partial t} = D\frac{\partial^2P(x,t)}{\partial x^2}.
 $$
 
 Questa è l'**equazione di diffusione**, formalmente identica all'[equazione del calore](https://it.wikipedia.org/wiki/Equazione_del_calore). Si può dimostrare (ma noi non lo faremo) che la soluzione di questa equazione differenziale per una particella che si trova con certezza in $x_0$ al tempo iniziale[^condizione_iniziale] è
 
 $$
+\label{eq:soluzione_diffusione}
 P(x,t) = \frac{1}{\sqrt{4\pi Dt}} \exp\left[ -\frac{(x-x_0)^2}{4Dt} \right].
 $$
 
@@ -1188,16 +1190,177 @@ $$
 \left\langle[x(t)-x_0]^2\right\rangle=2Dt.
 $$
 
-Il random walk discreto e l'equazione di diffusione descrivono quindi la
-stessa fisica su scale differenti:
+Il random walk discreto e l'equazione di diffusione descrivono quindi la stessa fisica su scale differenti:
 
-- il random walk fornisce una descrizione microscopica in termini di passi
-  casuali;
-- l'equazione di diffusione fornisce una descrizione continua e
-  macroscopica dell'evoluzione della densità di probabilità.
+- il random walk fornisce una descrizione microscopica in termini di passi casuali;
+- l'equazione di diffusione fornisce una descrizione continua e macroscopica dell'evoluzione della densità di probabilità.
 
 [^condizione_iniziale]: Questo tipo di condizioni iniziali si può scrivere formalmente come
 $$
 P(x,0)=\delta(x-x_0),
 $$
 dove $\delta(x)$ è la [delta di Dirac](https://it.wikipedia.org/wiki/Delta_di_Dirac), un oggetto matematico che verrà introdotto durante il corso di Modelli e Metodi Matematici della Fisica.
+
+# Oltre la singola particella
+
+## Camminatori indipendenti
+
+Cosa succede quando aggiungiamo una goccia di latte al nostro caffè[^giordano]? Se non mescoliamo con il cucchiaino vedremo la macchia di latte allargarsi sempre di più, finché l'iniziale punto bianco si sarà allargato e avrà occupato tutta la superficie del caffè. In prima approssimazione consideriamo le "particelle" di latte (soprattutto grassi e proteine) come non interagenti: ognuna viene urtata dalle molecole di acqua (di cui è prevalentemente composto il caffè), e sarà quindi sottoposta al fenomeno della diffusione. 
+
+Possiamo modellizzare questo fenomeno dal punto di vista di una densità di probabilità, risolvendo l'equazione di diffusione [](#eq:diffusione) a partire da una condizione iniziale $P(\vec r, 0)$ proporzionale alla distribuzione di massa iniziale della goccia (dove $\vec r = (x, y)$ è la posizione sulla superficie del caffè). Si trova numericamente che, se le condizioni iniziali sono sufficientemente localizzate, la soluzione al tempo $t$ è ben approssimata da una gaussiana, in tutto e per tutto simile a quella dell'equazione [](#eq:soluzione_diffusione): la varianza della distribuzione aumenta con il tempo e quindi il latte, inizialmente concentrato nella goccia, si spargerà man mano verso i bordi.
+
+Utilizzando, per semplicità, una descrizione discreta, possiamo simulare questo processo considerando una griglia bidimensionale su cui si muovono non uno ma $N$ camminatori.
+
+[^giordano]: Ho preso questo esempio (e la simulazione che propongo più sotto) dal libro "Computational Physics" di N. J. Giordano e H. Nakanishi, seconda edizione, 2006.
+
+(sec:random-walk-2d)=
+### Il random walk bidimensionale
+
+Su un reticolo quadrato di passo $\Delta x$, a ogni intervallo $\Delta t$ il camminatore si sposta verso uno dei quattro siti primi vicini, scelto con probabilità $1/4$. Il ragionamento fatto in una dimensione si ripete senza modifiche: i passi sono indipendenti e di media nulla, e ogni passo ha modulo $\Delta x$, quindi
+
+$$
+\left\langle |\vec r_n - \vec r_0|^2 \right\rangle = n\Delta x^2.
+$$
+
+Lungo ciascuna direzione, però, il camminatore si muove soltanto in metà dei passi (in media), per cui $\langle (x_n - x_0)^2\rangle = n\Delta x^2/2$. Perché ogni componente soddisfi la stessa legge del caso unidimensionale, $\langle (x(t) - x_0)^2\rangle = 2Dt$, definiamo
+
+$$
+\label{eq:D_2d}
+D \equiv \frac{\Delta x^2}{4\Delta t},
+\qquad\text{da cui}\qquad
+\left\langle |\vec r(t) - \vec r_0|^2 \right\rangle = 4Dt.
+$$
+
+Estendendo al caso 2D il ragionamento che ci ha portato a derivare [l'equazione di diffusione](#sec:diffusion-equation) (cioè passando da due a quattro siti vicini), si ottiene l'equazione di diffusione bidimensionale
+
+$$
+\label{eq:diffusione_2d}
+\frac{\partial P}{\partial t} = D\left(\frac{\partial^2 P}{\partial x^2} + \frac{\partial^2 P}{\partial y^2}\right),
+$$
+
+la cui soluzione, per una particella che parte da $\vec r_0$, è il prodotto di due gaussiane unidimensionali di varianza $2Dt$, una per ciascuna componente.
+
+(sec:many-walkers)=
+### Da una a molte particelle
+
+Consideriamo ora $N$ camminatori, ciascuno con una propria posizione iniziale $\vec r_k(0)$. Poiché non interagiscono, ognuno evolve come se gli altri non ci fossero. Detta $P_k(\vec r, t)$ la probabilità di trovare la particella $k$ in $\vec r$ al tempo $t$, la densità media di particelle è
+
+$$
+\rho(\vec r, t) = \sum_{k=1}^N P_k(\vec r, t).
+$$
+
+L'equazione di diffusione è *lineare*: la somma di due soluzioni è ancora una soluzione. Anche la densità del latte soddisfa quindi l'eq. [](#eq:diffusione_2d), con condizione iniziale data dalla forma della goccia, che si allarga come una sovrapposizione di gaussiane centrate nelle posizioni iniziali delle particelle. Inoltre, poiché la posizione al tempo $t$ è la somma della posizione iniziale e di uno spostamento casuale indipendente da essa, le varianze si sommano: se $\sigma_0^2$ è la varianza iniziale delle posizioni lungo ciascuna direzione,
+
+$$
+\label{eq:sigma_goccia}
+\sigma^2(t) = \sigma_0^2 + 2Dt.
+$$
+
+Quando $2Dt \gg \sigma_0^2$ la forma iniziale della goccia è dimenticata, e la macchia è indistinguibile da quella prodotta da una goccia puntiforme.
+
+Notiamo anche che, se partono dallo stesso punto, $N$ camminatori simulati contemporaneamente sono equivalenti a $N$ realizzazioni indipendenti di un singolo camminatore: una singola "fotografia" del sistema fornisce un istogramma di $P(\vec r, t)$. Come in ogni istogramma, il numero di particelle in una regione fluttua attorno al suo valor medio $\bar n$, con fluttuazioni relative dell'ordine di $1/\sqrt{\bar n}$. Con qualche centinaio di particelle la macchia simulata appare "granulosa"; in una tazza vera, che contiene un numero enorme[^avogadro] di particelle, le fluttuazioni sono invisibili e il mescolamento appare come un processo regolare e deterministico.
+
+[^avogadro]: Magari non comparabile con il numero di Avogadro, $\mathcal{N}_A \approx 6.022 \times 10^{23}$, perché le "particelle" di latte sono molto più grandi delle dimensioni molecolari standard, ma comunque molto maggiore del numero di oggetti che si possono simulare in un computer.
+
+(sec:finite-cup)=
+### Una tazza di dimensioni finite
+
+Le particelle non possono attraversare le pareti della tazza. Consideriamo quindi una scatola quadrata di lato $L$ e adottiamo la regola più semplice: se lo spostamento estratto porterebbe la particella fuori dalla scatola, la mossa viene rifiutata e la particella resta dov'è.
+
+Finché la nuvola è piccola rispetto alla scatola le particelle non "sentono" le pareti. Quando invece $\sigma(t)$ diventa confrontabile con $L$, cioè dopo un tempo dell'ordine di
+
+$$
+t_{\rm eq} \sim \frac{L^2}{D},
+$$
+
+le particelle hanno esplorato tutta la scatola e la densità diventa uniforme: il sistema ha raggiunto l'**equilibrio**. Da questo momento le proprietà macroscopiche (la densità media in ciascuna regione della tazza) non cambiano più, anche se le singole particelle continuano a muoversi.
+
+:::{note} Quanto bisogna aspettare?
+Usando la relazione di Einstein con l'attrito di Stokes, $D = k_B T/(6\pi\eta a)$, per particelle di raggio $a \approx 0.1\,\mu{\rm m}$ in acqua calda si trova $D \approx 6\times 10^{-12}\,{\rm m^2/s}$. Per una tazza di $8$ cm si ha $t_{\rm eq} \sim L^2/D \approx 10^8$ s, cioè qualche anno! Nella realtà il latte si mescola in pochi secondi grazie ai moti macroscopici del fluido (turbolenza e convezione). Il nostro modello descrive quindi una tazza perfettamente immobile, ma la fisica dell'approccio all'equilibrio non dipende da questo dettaglio.
+:::
+
+:::{warning} Attenzione alle pareti!
+Una regola apparentemente equivalente consiste nello scegliere la direzione del passo soltanto tra quelle permesse (con probabilità $1/3$ sui bordi e $1/2$ negli angoli). Con questa regola la densità di equilibrio **non** è uniforme. All'equilibrio, infatti, il numero di particelle che in media passano da un sito di bordo $e$ a un suo vicino interno $b$ deve essere uguale a quello delle particelle che fanno il percorso inverso, e quindi $\rho_e/3 = \rho_b/4$, cioè $\rho_e = \frac{3}{4}\rho_b$. Con la regola del rifiuto, invece, la probabilità di passare da un sito a un vicino è $1/4$ in entrambe le direzioni, e la densità uniforme è stazionaria.
+:::
+
+Per far evolvere il sistema, a ogni passo elementare scegliamo una particella a caso e le facciamo compiere un passo. Chiamiamo *sweep* un insieme di $N$ tentativi, dopo i quali ogni particella si è mossa in media una volta, e lo usiamo come unità di tempo. Per camminatori indipendenti questo è equivalente a muovere tutte le particelle una volta per unità di tempo; quando introdurremo le interazioni, invece, la differenza diventerà importante.
+
+```{figure} figures/coffee_snapshots.png
+:label: fig:coffee_snapshots
+:align: center
+
+Configurazion istantanee di $N = 10000$ camminatori indipendenti in una scatola di lato $L = 200$, inizialmente disposti nella cella centrale, a diversi tempi (in unità di sweep). La griglia tratteggiata indica le $8 \times 8$ celle utilizzate per il calcolo dell'entropia, eq. [](#eq:entropia_gibbs).
+```
+
+La [](#fig:coffee_snapshots) mostra quattro configurazioni estratte da una simulazione di un sistema di $N = 10000$ camminatori inizializzati al centro di una una griglia $200 \times 200$.
+
+(sec:gibbs-entropy)=
+### L'entropia di una goccia di latte
+
+La [](#fig:res_coffee_snapshots) mostra un processo con una direzione temporale ben precisa: se vi mostrassimo le stesse fotografie in ordine casuale, sapreste rimetterle in ordine senza esitazione. Il corso di Termodinamica ci suggerisce la grandezza adatta a rendere quantitativa questa osservazione: l'**entropia**, che per un sistema isolato non diminuisce mai e all'equilibrio raggiunge il suo valore massimo.
+
+Per calcolarla dividiamo la scatola in $M$ celle quadrate di lato $\ell_c$. Questa griglia **non** ha nulla a che vedere con il reticolo su cui si muovono i camminatori: ogni cella contiene molti siti, e la griglia stabilisce soltanto la risoluzione con cui descriviamo il sistema. Se al tempo $t$ la cella $i$ contiene $n_i(t)$ particelle, $P_i = n_i/N$ è la probabilità che una particella scelta a caso si trovi nella cella $i$, e definiamo
+
+$$
+\label{eq:entropia_gibbs}
+S = -\sum_{i=1}^{M} P_i \log P_i,
+$$
+
+dove le celle vuote non contribuiscono, dato che $\lim_{x \to 0} x\log x = 0$. Due casi limite aiutano a capire il significato di $S$:
+
+- se tutte le particelle si trovano nella stessa cella, $S = 0$: sappiamo dove si trova ogni particella, dunque l'entropia è minima;
+- se le particelle sono distribuite uniformemente, $P_i = 1/M$ e $S = \log M$: una particella scelta a caso può trovarsi ovunque, e la nostra incertezza sulla sua posizione è massima.
+
+Più in generale, se le particelle sono distribuite uniformemente su $K$ celle, $S = \log K$: possiamo leggere $e^S$ come il *numero effettivo di celle occupate*. Si può dimostrare che $\log M$ è il valore massimo possibile: lo stato di equilibrio, a densità uniforme, è quello di massima entropia.
+
+Possiamo anche prevedere come cresce $S$. Finché le particelle non raggiungono le pareti e la nuvola è più grande di una cella, la distribuzione è approssimativamente gaussiana e occupa un'area efficace proporzionale a $\sigma^2$ (precisamente $2\pi e\,\sigma^2$). Il numero di celle occupate è quindi circa $2\pi e\,\sigma^2/\ell_c^2$, e
+
+$$
+\label{eq:S_gauss}
+S(t) \simeq \log\frac{2\pi e\,\sigma^2(t)}{\ell_c^2}.
+$$
+
+Poiché $\sigma^2$ cresce linearmente nel tempo, $S$ cresce come $\log t$. La crescita si arresta quando l'area efficace diventa uguale a quella della scatola, cioè dopo un tempo $t^* \approx L^2/(4\pi e D)$; da quel momento $S \simeq \log M$.
+
+Due osservazioni. La prima: finché la goccia è più piccola di una cella, $S$ non cambia, perché la descrizione a grana grossa non "vede" quello che accade su scale più piccole di $\ell_c$. La seconda: dimezzando $\ell_c$ (e quindi quadruplicando $M$) a $S$ si aggiunge semplicemente $\log 4$, come si vede dall'eq. [](#eq:S_gauss). Il valore assoluto di $S$ dipende dalla risoluzione scelta, ma le sue *variazioni* no, esattamente come in termodinamica, dove hanno significato fisico soltanto le differenze di entropia.
+
+Infine, con un numero finito di particelle le occupazioni $n_i$ fluttuano attorno a $N/M$ anche all'equilibrio. Poiché la distribuzione uniforme è quella di entropia massima, ogni fluttuazione *riduce* $S$, che all'equilibrio risulta leggermente inferiore a $\log M$ (di circa $M/2N$) e fluttua attorno al suo valore medio. Per una stima affidabile serve quindi che ogni cella contenga molte particelle, cioè che $N \gg M$.
+
+```{figure} figures/entropy_comparison.png
+:label: fig:entropy_comparison
+:align: center
+:width: 600px
+
+Entropia, eq. [](#eq:entropia_gibbs), in funzione del tempo (definito come numero di *sweep*, in scala logaritmica) per $L = 200$, $\ell_c = 25$ (cioè per una griglia $8 \times 8$) e diversi valori del numero di camminatori. La linea tratteggiata orizzontale indica il valore massimo $\log M$, quella obliqua la previsione per camminatori liberi, eq. [](#eq:S_gauss).
+```
+
+La [](#fig:entropy_comparison) mostra l'andamento dell'entropia in funziona del tempo per un sistema con $L = 200$, $\ell_c = 25$ (e quindi l'entropia è calcolata su una griglia di $8 \times 8$ celle) e diversi valori di $N$ numero di camminatori. I dati mostrano l'iniziale crescita logaritmica e il limite costante asintotico (che tende a quello teorico, $\log M$, per grandi valori di $N$).
+
+```{note} Il collegamento con la termodinamica
+
+Supponiamo che inizialmente la goccia occupi uniformemente un'area $A_0$ e che, all'equilibrio, le particelle occupino uniformemente tutta l'area $A = L^2$ della scatola. Usando l'interpretazione di $e^S$ come numero di celle occupate, la variazione di entropia per particella è
+
+$$
+\Delta S = \log\frac{A}{A_0}.
+$$
+
+Moltiplicando per il numero di particelle e reintroducendo $k_B$ otteniamo $N k_B\log(A/A_0)$: è la variazione di entropia nell'*espansione libera* di un gas perfetto, $\Delta S = N k_B\log(V_f/V_i)$, nella sua versione bidimensionale. Non è un caso: le nostre particelle non interagiscono, e formano quindi un gas perfetto che si espande irreversibilmente nello spazio a disposizione. Nel corso di Laboratorio di Termodinamica avete calcolato questa variazione immaginando una trasformazione reversibile che collega gli stessi stati iniziale e finale; qui l'abbiamo misurata direttamente dalle posizioni delle particelle.
+```
+
+(sec:arrow-of-time)=
+### La freccia del tempo
+
+Le regole del random walk non distinguono passato e futuro: un passo da un sito $a$ a un vicino $b$ ha la stessa probabilità del passo inverso. Se registrassimo il moto di una *singola* particella, non sapremmo dire se il filmato scorre nel verso giusto. Lo stesso vale per le leggi della meccanica che governano le molecole del caffè. Eppure, guardando l'*intera* goccia, il verso del tempo è evidente. Da dove nasce questa asimmetria?
+
+All'equilibrio ogni particella si trova in un punto qualsiasi della scatola con la stessa probabilità, indipendentemente dalle altre. La probabilità che, a un certo istante, tutte le particelle si trovino di nuovo nella regione occupata inizialmente dalla goccia è quindi
+
+$$
+\left(\frac{A_0}{A}\right)^N.
+$$
+
+Per $N = 400$ particelle inizialmente in un quadrato di $20\times 20$ siti, in una scatola di $200\times 200$ siti, questa probabilità vale $10^{-800}$: anche esaminando un miliardo di configurazioni al secondo per l'intera età dell'universo non avremmo alcuna speranza di vedere la goccia ricomporsi. Nulla nelle regole microscopiche lo vieta, ma è talmente improbabile da non accadere mai in pratica. In questo senso il secondo principio della termodinamica ha una natura *statistica*: piccole diminuzioni di $S$ avvengono continuamente (sono le fluttuazioni attorno all'equilibrio che si vedono nella [](#fig:res_coffee_entropy)), mentre diminuzioni grandi sono esponenzialmente improbabili in $N$. Notiamo anche che la freccia del tempo della simulazione l'abbiamo introdotta noi, preparando il sistema in una configurazione molto speciale: partendo da particelle distribuite a caso, $S$ si limiterebbe a fluttuare attorno al valore di equilibrio.
+
+Resta un'ultima domanda. Nel nostro modello le particelle esplorano tutta la scatola con la stessa probabilità perché lo abbiamo imposto noi, scegliendo passi casuali e indipendenti. Le molecole di un fluido reale seguono invece le equazioni deterministiche della meccanica. L'idea che anche un sistema reale, all'equilibrio, esplori tutti gli stati accessibili con la stessa probabilità prende il nome di [ipotesi ergodica](https://it.wikipedia.org/wiki/Ipotesi_ergodica), e non può essere dedotta dalle leggi di Newton. Una spiegazione plausibile della sua validità ci è già familiare: il **caos**. Come abbiamo visto per il pendolo smorzato e forzato, equazioni deterministiche possono amplificare esponenzialmente piccole differenze nelle condizioni iniziali. In un fluido ogni molecola subisce un numero enorme di urti, e dopo pochi urti la sua traiettoria è, a tutti gli effetti pratici, indistinguibile da un moto casuale: è proprio quello che il random walk descrive.
+
+## Camminatori interagenti: il gas reticolare
+
