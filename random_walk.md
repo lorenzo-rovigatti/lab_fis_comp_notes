@@ -1207,9 +1207,7 @@ dove $\delta(x)$ è la [delta di Dirac](https://it.wikipedia.org/wiki/Delta_di_D
 
 Cosa succede quando aggiungiamo una goccia di latte al nostro caffè[^giordano]? Se non mescoliamo con il cucchiaino vedremo la macchia di latte allargarsi sempre di più, finché l'iniziale punto bianco si sarà allargato e avrà occupato tutta la superficie del caffè. In prima approssimazione consideriamo le "particelle" di latte (soprattutto grassi e proteine) come non interagenti: ognuna viene urtata dalle molecole di acqua (di cui è prevalentemente composto il caffè), e sarà quindi sottoposta al fenomeno della diffusione. 
 
-Possiamo modellizzare questo fenomeno dal punto di vista di una densità di probabilità, risolvendo l'equazione di diffusione [](#eq:diffusione) a partire da una condizione iniziale $P(\vec r, 0)$ proporzionale alla distribuzione di massa iniziale della goccia (dove $\vec r = (x, y)$ è la posizione sulla superficie del caffè). Si trova numericamente che, se le condizioni iniziali sono sufficientemente localizzate, la soluzione al tempo $t$ è ben approssimata da una gaussiana, in tutto e per tutto simile a quella dell'equazione [](#eq:soluzione_diffusione): la varianza della distribuzione aumenta con il tempo e quindi il latte, inizialmente concentrato nella goccia, si spargerà man mano verso i bordi.
-
-Utilizzando, per semplicità, una descrizione discreta, possiamo simulare questo processo considerando una griglia bidimensionale su cui si muovono non uno ma $N$ camminatori.
+Possiamo modellizzare questo fenomeno dal punto di vista di una densità di probabilità, risolvendo l'equazione di diffusione [](#eq:diffusione) a partire da una condizione iniziale $P(\vec r, 0)$ proporzionale alla distribuzione di massa iniziale della goccia (dove $\vec r = (x, y)$ è la posizione sulla superficie del caffè). Utilizzando, per semplicità, una descrizione discreta, possiamo simulare questo processo considerando una griglia bidimensionale su cui si muovono non uno ma $N$ camminatori.
 
 [^giordano]: Ho preso questo esempio (e la simulazione che propongo più sotto) dal libro "Computational Physics" di N. J. Giordano e H. Nakanishi, seconda edizione, 2006.
 
@@ -1276,7 +1274,7 @@ $$
 le particelle hanno esplorato tutta la scatola e la densità diventa uniforme: il sistema ha raggiunto l'**equilibrio**. Da questo momento le proprietà macroscopiche (la densità media in ciascuna regione della tazza) non cambiano più, anche se le singole particelle continuano a muoversi.
 
 :::{note} Quanto bisogna aspettare?
-Usando la relazione di Einstein con l'attrito di Stokes, $D = k_B T/(6\pi\eta a)$, per particelle di raggio $a \approx 0.1\,\mu{\rm m}$ in acqua calda si trova $D \approx 6\times 10^{-12}\,{\rm m^2/s}$. Per una tazza di $8$ cm si ha $t_{\rm eq} \sim L^2/D \approx 10^8$ s, cioè qualche anno! Nella realtà il latte si mescola in pochi secondi grazie ai moti macroscopici del fluido (turbolenza e convezione). Il nostro modello descrive quindi una tazza perfettamente immobile, ma la fisica dell'approccio all'equilibrio non dipende da questo dettaglio.
+Usando la relazione di Einstein con l'attrito di Stokes, $D = k_B T/(6\pi\eta a)$, per particelle di raggio $a \approx 0.1\,\mu{\rm m}$ in acqua calda si trova $D \approx 6\times 10^{-12}\,{\rm m^2/s}$. Per una tazza di $4$ cm si ha $t_{\rm eq} \sim L^2/D \approx 10^8$ s, cioè qualche anno! Nella realtà il latte si mescola in pochi secondi grazie ai moti macroscopici del fluido (turbolenza e convezione). Il nostro modello descrive quindi una tazza perfettamente immobile, ma la fisica dell'approccio all'equilibrio non dipende da questo dettaglio.
 :::
 
 :::{warning} Attenzione alle pareti!
@@ -1289,7 +1287,7 @@ Per far evolvere il sistema, a ogni passo elementare scegliamo una particella a 
 :label: fig:coffee_snapshots
 :align: center
 
-Configurazion istantanee di $N = 10000$ camminatori indipendenti in una scatola di lato $L = 200$, inizialmente disposti nella cella centrale, a diversi tempi (in unità di sweep). La griglia tratteggiata indica le $8 \times 8$ celle utilizzate per il calcolo dell'entropia, eq. [](#eq:entropia_gibbs).
+Configurazioni istantanee di $N = 10000$ camminatori indipendenti in una scatola di lato $L = 200$, inizialmente disposti nella cella centrale, a diversi tempi (in unità di sweep). La griglia tratteggiata indica le $8 \times 8$ celle utilizzate per il calcolo dell'entropia, eq. [](#eq:entropia_gibbs).
 ```
 
 La [](#fig:coffee_snapshots) mostra quattro configurazioni estratte da una simulazione di un sistema di $N = 10000$ camminatori inizializzati al centro di una una griglia $200 \times 200$.
@@ -1297,7 +1295,7 @@ La [](#fig:coffee_snapshots) mostra quattro configurazioni estratte da una simul
 (sec:gibbs-entropy)=
 ### L'entropia di una goccia di latte
 
-La [](#fig:res_coffee_snapshots) mostra un processo con una direzione temporale ben precisa: se vi mostrassimo le stesse fotografie in ordine casuale, sapreste rimetterle in ordine senza esitazione. Il corso di Termodinamica ci suggerisce la grandezza adatta a rendere quantitativa questa osservazione: l'**entropia**, che per un sistema isolato non diminuisce mai e all'equilibrio raggiunge il suo valore massimo.
+La [](#fig:coffee_snapshots) mostra un processo con una direzione temporale ben precisa: se le stesse configurazioni fossero mostrate in ordine casuale, sapreste rimetterle in ordine senza esitazione. Il corso di Termodinamica ci suggerisce la grandezza adatta a rendere quantitativa questa osservazione: l'**entropia**, che per un sistema isolato non diminuisce mai e all'equilibrio raggiunge il suo valore massimo.
 
 Per calcolarla dividiamo la scatola in $M$ celle quadrate di lato $\ell_c$. Questa griglia **non** ha nulla a che vedere con il reticolo su cui si muovono i camminatori: ogni cella contiene molti siti, e la griglia stabilisce soltanto la risoluzione con cui descriviamo il sistema. Se al tempo $t$ la cella $i$ contiene $n_i(t)$ particelle, $P_i = n_i/N$ è la probabilità che una particella scelta a caso si trovi nella cella $i$, e definiamo
 
@@ -1358,9 +1356,102 @@ $$
 \left(\frac{A_0}{A}\right)^N.
 $$
 
-Per $N = 400$ particelle inizialmente in un quadrato di $20\times 20$ siti, in una scatola di $200\times 200$ siti, questa probabilità vale $10^{-800}$: anche esaminando un miliardo di configurazioni al secondo per l'intera età dell'universo non avremmo alcuna speranza di vedere la goccia ricomporsi. Nulla nelle regole microscopiche lo vieta, ma è talmente improbabile da non accadere mai in pratica. In questo senso il secondo principio della termodinamica ha una natura *statistica*: piccole diminuzioni di $S$ avvengono continuamente (sono le fluttuazioni attorno all'equilibrio che si vedono nella [](#fig:res_coffee_entropy)), mentre diminuzioni grandi sono esponenzialmente improbabili in $N$. Notiamo anche che la freccia del tempo della simulazione l'abbiamo introdotta noi, preparando il sistema in una configurazione molto speciale: partendo da particelle distribuite a caso, $S$ si limiterebbe a fluttuare attorno al valore di equilibrio.
+Per $N = 400$ particelle inizialmente in un quadrato di $20\times 20$ siti, in una scatola di $200\times 200$ siti, questa probabilità vale $10^{-800}$: anche esaminando un miliardo di configurazioni al secondo per l'intera età dell'universo non avremmo alcuna speranza di vedere la goccia ricomporsi. Nulla nelle regole microscopiche lo vieta, ma è talmente improbabile da non accadere mai in pratica. In questo senso il secondo principio della termodinamica ha una natura *statistica*: piccole diminuzioni di $S$ avvengono continuamente (sono le fluttuazioni attorno all'equilibrio che si vedono nella [](#fig:entropy_comparison)), mentre diminuzioni grandi sono esponenzialmente improbabili in $N$. Notiamo anche che la freccia del tempo della simulazione l'abbiamo introdotta noi, preparando il sistema in una configurazione molto speciale: partendo da particelle distribuite a caso, $S$ si limiterebbe a fluttuare attorno al valore di equilibrio.
 
 Resta un'ultima domanda. Nel nostro modello le particelle esplorano tutta la scatola con la stessa probabilità perché lo abbiamo imposto noi, scegliendo passi casuali e indipendenti. Le molecole di un fluido reale seguono invece le equazioni deterministiche della meccanica. L'idea che anche un sistema reale, all'equilibrio, esplori tutti gli stati accessibili con la stessa probabilità prende il nome di [ipotesi ergodica](https://it.wikipedia.org/wiki/Ipotesi_ergodica), e non può essere dedotta dalle leggi di Newton. Una spiegazione plausibile della sua validità ci è già familiare: il **caos**. Come abbiamo visto per il pendolo smorzato e forzato, equazioni deterministiche possono amplificare esponenzialmente piccole differenze nelle condizioni iniziali. In un fluido ogni molecola subisce un numero enorme di urti, e dopo pochi urti la sua traiettoria è, a tutti gli effetti pratici, indistinguibile da un moto casuale: è proprio quello che il random walk descrive.
 
+(sec:lattice-gas)=
 ## Camminatori interagenti: il gas reticolare
 
+Le particelle di latte che abbiamo considerato finora formano un gas perfetto: non interagiscono, e ciascuna si muove come se le altre non esistessero. È un'ottima approssimazione quando le particelle sono poche e distanti tra loro, ma smette di esserlo quando la densità cresce. Le particelle reali hanno infatti dimensioni finite e non possono sovrapporsi: in un sistema denso ogni particella è circondata da altre particelle, e il suo moto è ostacolato dalla loro presenza.
+
+Il modo più semplice di introdurre questo effetto in un modello su reticolo consiste nell'imporre che ogni sito possa essere occupato al massimo da una particella (effetto di *volume escluso*). Il modello che si ottiene prende il nome di **gas reticolare**[^barone]. Pur essendo semplice, contiene un ingrediente nuovo e importante: il moto di ciascuna particella dipende dalla posizione delle altre. Una conseguenza immediata è che non possiamo più *prescrivere* il coefficiente di diffusione, come facevamo per il random walk scegliendo $\Delta x$ e $\Delta t$: $D$ diventa una proprietà emergente del sistema, che dipende dalla densità e che dobbiamo *misurare*, esattamente come faremmo in un esperimento.
+
+[^barone]: La discussione segue quella del capitolo 12 del libro "Programmazione scientifica" di L. M. Barone, E. Marinari, G. Organtini e F. Ricci-Tersenghi.
+
+(sec:lattice-gas-model)=
+### Il modello
+
+Consideriamo un reticolo quadrato di lato $L$ con $N$ particelle, e quindi densità
+
+$$
+\rho = \frac{N}{L^2},
+$$
+
+dove $0 < \rho < 1$, visto che ogni sito contiene al più una particella. Poiché ora ci interessano le proprietà di un sistema omogeneo (e non l'approccio all'equilibrio a partire da una goccia), è conveniente eliminare le pareti e usare **condizioni periodiche al bordo**: una particella che esce dal lato destro rientra da quello sinistro, e una che esce dal lato superiore rientra da quello inferiore. In questo modo tutti i siti sono equivalenti e nessuna particella "sente" la presenza di un bordo.
+
+All'inizio della simulazione le particelle vengono disposte a caso sul reticolo, evitando sovrapposizioni. La dinamica è una successione di tentativi di movimento. A ogni tentativo:
+
+1. si sceglie a caso una delle $N$ particelle;
+2. si sceglie con uguale probabilità uno dei quattro siti primi vicini;
+3. se il sito scelto è libero, la particella vi si sposta;
+4. se è occupato, la configurazione rimane invariata.
+
+Come nella sezione precedente, chiamiamo *sweep* un insieme di $N$ tentativi e lo usiamo come unità di tempo. A differenza del caso non interagente, la scelta di muovere una particella alla volta non è più equivalente a muoverle tutte contemporaneamente: in quel caso due particelle potrebbero tentare di spostarsi nello stesso sito vuoto, e bisognerebbe stabilire una regola per risolvere il conflitto.
+
+Nel limite $\rho \to 0$ ogni particella è praticamente sola, ogni tentativo va a buon fine e ritroviamo il random walk bidimensionale: con $\Delta x = 1$ e $\Delta t = 1$ sweep, l'eq. [](#eq:D_2d) dà $D_0 = 1/4$.
+
+Per implementare la dinamica in modo efficiente servono due informazioni: per ogni particella la sua posizione, e per ogni sito se è occupato (e da quale particella). La prima serve a sapere dove si trova la particella scelta, la seconda a controllare, senza scorrere tutte le altre particelle, se il sito di arrivo è libero. Le due strutture vanno aggiornate insieme a ogni spostamento.
+
+:::{warning} Condizioni periodiche e spostamenti
+Con le condizioni periodiche, le coordinate del sito occupato da una particella non bastano a calcolarne lo spostamento. Una particella che si trova in $x = 0$ e fa un passo verso sinistra finisce nel sito $x = L - 1$: le coordinate sul reticolo sono cambiate di $L - 1$, ma la particella si è spostata di un solo passo. Per misurare lo spostamento bisogna quindi tenere traccia, oltre che del sito occupato, anche dello spostamento "vero", che si ottiene sommando $\pm 1$ a ogni passo senza applicare le condizioni periodiche.
+
+Attenzione anche al calcolo dei siti vicini. Per applicare correttamente le condizioni periodiche possiamo usare l'operatore modulo, `%`: ad esempio, la cella che precede `x` è `(x - 1 + L) % L`.
+:::
+
+(sec:lattice-gas-diffusion)=
+### Misurare il coefficiente di diffusione
+
+Per ogni particella misuriamo lo spostamento rispetto alla posizione iniziale e ne calcoliamo il quadrato medio, mediando su tutte le $N$ particelle:
+
+$$
+\Delta r^2(t) = \frac{1}{N}\sum_{k=1}^{N}\left|\vec r_k(t) - \vec r_k(0)\right|^2.
+$$
+
+Per un random walk libero avremmo $\Delta r^2(t) = 4Dt$. Definiamo quindi
+
+$$
+\label{eq:D_rho_t}
+D(\rho, t) = \frac{\Delta r^2(t)}{4t},
+\qquad
+D(\rho) = \lim_{t\to\infty} D(\rho, t).
+$$
+
+```{figure} figures/lattice_gas_D.png
+:label: fig:lattice_gas_D
+:align: center
+
+(a): $D(\rho, t)$, eq. [](#eq:D_rho_t), in funzione del tempo per $L = 40$ e diverse densità (dall'alto verso il basso, $\rho = 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9$). (b): $D(\rho, t) / (1 - \rho)$: a tempi brevi, le curve relative alle diverse densità tendono a convergere verso $D_0 = 0.25$. (c) il valore asintotico $D(\rho)$ in funzione della densità (simboli), confrontato con la stima $D_0(1-\rho)$, eq. [](#eq:D_campo_medio) (linea tratteggiata). I dati sono stati ottenuti mediando su 1000 simulazioni indipendenti.
+```
+
+Come mostrato nel pannello (a) della [](#fig:lattice_gas_D), se il moto è diffusivo, $D(\rho, t)$ deve tendere a una costante per tempi lunghi, e questa costante è il coefficiente di diffusione del sistema.
+
+Possiamo fare una prima stima di $D(\rho)$ con un argomento semplice. Se le particelle fossero disposte a caso e in modo indipendente, ogni sito vicino sarebbe occupato con probabilità $\rho$, e quindi ogni tentativo andrebbe a buon fine con probabilità $1 - \rho$. La particella si muoverebbe allora come un random walk libero, ma più lentamente, perché solo una frazione $1 - \rho$ dei tentativi produce uno spostamento:
+
+$$
+\label{eq:D_campo_medio}
+D(\rho) \simeq D_0(1 - \rho).
+$$
+
+Il pannello (b) della [](#fig:lattice_gas_D) mostra che questa stima è corretta soltanto a tempi molto brevi: per $t \to 0$ si ha $D(\rho, t) \to D_0(1-\rho)$, ma già dopo pochi sweep $D(\rho, t)$ diminuisce sensibilmente, fino a raggiungere un valore asintotico che in cui la correzione non lineare dipende dalla densità. Per $\rho = 0.5$, per esempio, il coefficiente di diffusione è circa il 30% più piccolo della stima.
+
+Dove sbaglia il nostro argomento? Nell'ipotesi che i siti vicini siano occupati in modo indipendente dalla storia della particella. Subito dopo un salto, il sito appena lasciato è *certamente* vuoto, mentre gli altri tre vicini sono occupati con probabilità $\rho$. Il tentativo successivo ha quindi una probabilità maggiore della media di riportare la particella indietro, annullando lo spostamento appena fatto. Il moto della particella ha quindi una *memoria*: i passi successivi non sono più indipendenti, ma anticorrelati, e lo spostamento netto cresce più lentamente di quanto farebbe se i passi fossero indipendenti. L'effetto è tanto più forte quanto più è alta la densità. Nel limite $\rho \to 1$, in cui nel reticolo rimane una sola lacuna, una particella può muoversi solo scambiandosi di posto con la lacuna, che subito dopo lo scambio si trova proprio accanto alla particella ed è molto probabile che torni indietro: in questo limite si trova $D(\rho) \simeq 0.47\, D_0(1 - \rho)$.
+
+Questo spiega anche l'andamento temporale di $D(\rho, t)$ mostrato in [](#fig:lattice_gas_D)(a)-(b): le correlazioni tra i passi richiedono un certo tempo per svilupparsi, per cui a tempi brevi il moto è quello stimato dall'eq. [](#eq:D_campo_medio), mentre il valore asintotico va misurato su tempi molto più lunghi del tempo tipico tra due salti. In pratica, dopo aver verificato che $D(\rho, t)$ è diventato costante (entro gli errori statistici), si media $D(\rho, t)$ sui tempi successivi.
+
+(sec:lattice-gas-finite-size)=
+### Effetti di taglia finita
+
+Il sistema che vorremmo studiare è infinito, mentre quello che simuliamo ha $L^2$ siti. Le condizioni periodiche eliminano le pareti, ma non rendono il sistema infinito: ci aspettiamo quindi che $D$ dipenda, almeno un po', da $L$. Per accertarcene dobbiamo ripetere la misura per diversi valori di $L$ (per esempio $L = 10, 20, 40, 80, 160$) e controllare che, al crescere di $L$, i risultati smettano di cambiare entro gli errori statistici. È una verifica che va fatta in qualunque simulazione di un sistema finito, e che non può essere fatta studiando una sola taglia.
+
+```{figure} figures/lattice_gas_finite_size.png
+:label: fig:lattice_gas_finite_size
+:align: center
+:width: 600px
+
+$D(\rho, t)$ in funzione del tempo per $\rho = 0.6$ e diverse taglie del reticolo. I dati sono stati ottenuti mediando su 1000 simulazioni indipendenti.
+```
+
+Come si vede in [](#fig:lattice_gas_finite_size), nel gas reticolare l'effetto è piccolo, ma misurabile: per $\rho = 0.6$ il coefficiente di diffusione misurato con $L = 10$ è circa il 2-3% più grande di quello ottenuto con $L \geq 20$, che a sua volta è appena maggiore dei valori ottenti per $L = 40, 80, 160$, che coincidono entro gli errori.
+
+Una parte di questo effetto ha un'origine semplice. In un sistema finito con condizioni periodiche anche il centro di massa delle $N$ particelle si muove, compiendo un passo di lunghezza $1/N$ ogni volta che una particella salta. Si può verificare che, in qualunque configurazione, in ogni riga del reticolo il numero di particelle che hanno il vicino destro libero è uguale a quello delle particelle che hanno libero il vicino sinistro (e lo stesso vale per le colonne): il centro di massa compie quindi un random walk, con coefficiente di diffusione dell'ordine di $D_0(1-\rho)/N$. Questo moto collettivo si somma a quello di ogni particella, e il suo contributo a $D$ diventa trascurabile solo quando $N = \rho L^2$ è grande.
