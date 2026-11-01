@@ -1152,6 +1152,7 @@ Come in [](#fig:error_eulero), con, in aggiunta, l'errore ottenuto applicando l'
 
 La [](#fig:error_velocity_verlet) illustra vividamente l'enorme impatto del passaggio da un errore globale di ordine $\mathcal{O}(\Delta t)$ a uno di ordine $\mathcal{O}(\Delta t^2)$. Per apprezzare concretamente questa differenza, si consideri un passo temporale tipico delle simulazioni reali, ad esempio $\Delta t = 10^{-3}$: in questo scenario, l'accuratezza di Velocity Verlet supera quella di Eulero-Cromer di ben tre ordini di grandezza, riducendo drasticamente l'errore sistematico accumulato sulla traiettoria.
 
+(sec:puntatori_funzione)=
 ## C: Puntatori a funzione, ovvero come scegliere l'algoritmo durante l'esecuzione
 
 Finora abbiamo confrontato diversi algoritmi di integrazione, come Eulero, Eulero-Cromer e Velocity Verlet. Un modo poco pratico di farlo consiste nello scrivere un programma diverso per ogni algoritmo, oppure nel disseminare il ciclo di simulazione di istruzioni `if`. Questo duplica il codice che inizializza il sistema, esegue l'evoluzione e salva i risultati.
@@ -1382,7 +1383,7 @@ $$
 decresce infatti secondo
 
 $$
-\od{E}{t}=-\gamma[v(t)]^2\leq 0,
+\od{E}{t}=-\frac{\gamma}{m}[v(t)]^2\leq 0,
 $$
 
 e tende a zero a tempi lunghi.
@@ -2468,6 +2469,241 @@ Riporto qui una tabella riassuntiva con gli errori più comuni:
 
 **Nota Bene:** con queste opzioni il programma sarà più lento. Questo modo di compilare si usa per cercare gli errori in fase di sviluppo e *debugging*, non quando si deve usare il programma (ad esempio per far girare simulazioni lunghe).
 :::
+
+(sec:vdp)=
+# Oscillazioni autosostenute: l'oscillatore di Van der Pol e i cicli limite
+
+Finora abbiamo incontrato due tipi di comportamento a tempi lunghi. Nei sistemi conservativi, come l'oscillatore armonico o il pendolo semplice, le traiettorie nello spazio delle fasi sono curve chiuse, ma *quale* curva venga percorsa dipende dalle condizioni iniziali: l'energia iniziale fissa l'ampiezza dell'oscillazione per sempre. Nei sistemi dissipativi, come l'oscillatore armonico smorzato, l'energia viene invece progressivamente persa e tutte le traiettorie finiscono nella posizione di equilibrio, "dimenticando" completamente lo stato iniziale.
+
+Molti sistemi, naturali e artificiali, non rientrano in nessuna delle due categorie. Il pendolo di un orologio a [scappamento](https://it.wikipedia.org/wiki/Scappamento), la corda di un violino sfregata dall'archetto, il cuore, i neuroni che emettono impulsi elettrici e i circuiti oscillanti dei trasmettitori radio *oscillano spontaneamente*, senza bisogno di una forza esterna periodica, con un'ampiezza e un periodo fissati dal sistema stesso e non dalle condizioni iniziali. Se il pendolo dell'orologio viene urtato, dopo qualche oscillazione torna al moto di prima; se il cuore subisce una piccola perturbazione, il battito riprende il suo ritmo. Per descrivere queste *oscillazioni autosostenute* serve un meccanismo che immetta energia nel sistema quando l'oscillazione è piccola e la dissipi quando è grande. In questa sezione studieremo il modello più semplice e famoso di questo tipo, l'oscillatore di Van der Pol, che ci permetterà di introdurre il concetto di **ciclo limite** e, più in generale, quello di **attrattore**, che ritroveremo nella [sezione sul caos](#sec:caos).
+
+## L'equazione di Van der Pol
+
+Negli anni '20 del secolo scorso il fisico olandese Balthasar van der Pol, che lavorava per la Philips, studiò i circuiti oscillanti costruiti con le [valvole termoioniche](https://it.wikipedia.org/wiki/Valvola_termoionica) (i triodi) usati nei primi apparecchi radio. Questi circuiti contengono un elemento che si comporta come una resistenza *negativa* per piccole tensioni, e quindi cede energia al circuito, e come una resistenza positiva per tensioni grandi. Dopo aver riscalato il tempo e la tensione in modo da renderli adimensionali (vedi il riquadro qui sotto), la tensione $x(\tau)$ obbedisce all'equazione
+
+$$
+\label{eq:vdp}
+\odd{x}{\tau} - \mu\left(1-x^2\right)\od{x}{\tau} + x = 0,
+$$
+
+dove $\tau$ è il tempo adimensionale e $\mu\geq 0$ è l'unico parametro del modello, che misura l'intensità della non linearità. Introducendo $v\equiv\od{x}{\tau}$, il sistema del primo ordine da integrare è
+
+$$
+\label{eq:vdp_first_order}
+\begin{cases}
+\od{x}{\tau} = v,\\
+\od{v}{\tau} = \mu\left(1-x^2\right)v - x.
+\end{cases}
+$$
+
+Per $\mu = 0$ ritroviamo l'oscillatore armonico con pulsazione unitaria. Notiamo inoltre che le equazioni non cambiano se sostituiamo $(x, v)\to(-x,-v)$: se $[x(\tau), v(\tau)]$ è una soluzione, lo è anche $[-x(\tau), -v(\tau)]$.
+
+```{note} Dal circuito all'equazione di Van der Pol
+:class: dropdown
+
+Questa derivazione è comprensibile solo se avete fatto Elettromagnetismo (e laboratori associati): tra un anno potrete comprenderla appieno!
+
+Consideriamo un condensatore di capacità $C$ e un induttore di induttanza $L$ collegati in parallelo a un elemento non lineare, nel quale la corrente dipende dalla tensione $V$ ai suoi capi secondo la legge
+
+$$
+I_{\rm NL}(V) = -aV + bV^3,\qquad a, b > 0.
+$$
+
+Per piccole tensioni la corrente scorre "al contrario" rispetto a una normale resistenza: l'elemento ha una conduttanza negativa, $\od{I_{\rm NL}}{V} = -a$, e cede energia al circuito. Per tensioni grandi domina il termine cubico e l'elemento torna a dissipare energia. Un comportamento di questo tipo può essere realizzato con un triodo opportunamente retroazionato o, nei circuiti moderni, con un diodo tunnel o con un amplificatore operazionale.
+
+La legge di Kirchhoff per le correnti e la relazione tra tensione e corrente nell'induttore danno
+
+$$
+C\od{V}{t} + I_L + I_{\rm NL}(V) = 0,\qquad L\od{I_L}{t} = V.
+$$
+
+Derivando la prima equazione rispetto al tempo ed eliminando $I_L$ si ottiene
+
+$$
+\odd{V}{t} - \frac{a}{C}\left(1 - \frac{3b}{a}V^2\right)\od{V}{t} + \omega_0^2 V = 0,\qquad \omega_0 = \frac{1}{\sqrt{LC}}.
+$$
+
+Introducendo il tempo adimensionale $\tau = \omega_0 t$ e la tensione adimensionale $x = V\sqrt{3b/a}$ si ritrova l'eq. [](#eq:vdp) con
+
+$$
+\mu = \frac{a}{C\omega_0} = a\sqrt{\frac{L}{C}}.
+$$
+
+Il parametro $\mu$ confronta quindi la rapidità con cui l'elemento non lineare scambia energia con il circuito con il periodo delle oscillazioni libere del circuito $LC$.
+```
+
+Lo stesso meccanismo descrive sistemi molto diversi dai circuiti elettronici. Già nel 1928 van der Pol e il suo collaboratore Jan van der Mark proposero di descrivere il battito cardiaco con un modello di questo tipo, e una sua generalizzazione, il modello di FitzHugh-Nagumo, è ancora oggi uno dei modelli più semplici dell'impulso nervoso. Come per il pendolo, a parte il caso banale $\mu = 0$ l'eq. [](#eq:vdp) non ammette soluzioni in termini di funzioni elementari: il calcolo numerico è lo strumento naturale per studiarla.
+
+## Bilancio energetico e ciclo limite
+
+Per capire il comportamento del sistema conviene usare come "energia" quella dell'oscillatore armonico,
+
+$$
+\label{eq:vdp_energy}
+E = \frac{1}{2}\left(x^2 + v^2\right).
+$$
+
+Derivando rispetto a $\tau$ e usando l'eq. [](#eq:vdp_first_order) si trova
+
+$$
+\label{eq:vdp_dEdt}
+\od{E}{\tau} = xv + v\left[\mu\left(1-x^2\right)v - x\right] = \mu\left(1-x^2\right)v^2.
+$$
+
+Confrontiamo questo risultato con l'oscillatore armonico smorzato, per cui $\od{E}{t} = -\gamma v^2$ (con $m = 1$). Il termine non lineare di Van der Pol si comporta come un attrito con un coefficiente
+
+$$
+\gamma(x) = \mu\left(x^2-1\right)
+$$
+
+che dipende dalla posizione: è positivo per $|x|>1$, dove il sistema perde energia come un oscillatore smorzato, e negativo per $|x|<1$, dove il sistema *acquista* energia.
+
+Le conseguenze sono immediate. L'origine $(x, v) = (0, 0)$ è un punto di equilibrio, ma è instabile: per piccole oscillazioni possiamo trascurare $x^2$ rispetto a $1$, e l'eq. [](#eq:vdp) diventa
+
+$$
+\odd{x}{\tau} - \mu\od{x}{\tau} + x = 0,
+$$
+
+cioè l'equazione di un oscillatore armonico smorzato con un coefficiente di attrito *negativo*, $\gamma/m = -\mu$. Cercando soluzioni nella forma $x\propto e^{\lambda\tau}$ si trova $\lambda = \mu/2 \pm \sqrt{\mu^2/4 - 1}$: entrambe le radici hanno parte reale positiva e le piccole oscillazioni vengono amplificate esponenzialmente, con un fattore $e^{\mu\tau/2}$ per $\mu<2$. Viceversa, per oscillazioni grandi il sistema trascorre la maggior parte del tempo nella regione $|x|>1$, dove l'energia viene dissipata, e le oscillazioni vengono smorzate. Tra questi due regimi esiste una traiettoria chiusa su cui, nell'arco di un periodo, l'energia guadagnata e quella persa si compensano esattamente: il **ciclo limite**.
+
+```{figure} #cell:vdp_phase
+:label: fig:vdp_phase
+:align: center
+
+Oscillatore di Van der Pol con $\mu = 1$, integrato con RK4 e $\Delta\tau = 0.01$ a partire da tre diverse condizioni iniziali (indicate dai cerchi). A sinistra: traiettorie nello spazio delle fasi, con il ciclo limite in nero e il punto di equilibrio instabile indicato dalla croce. A destra: $x(\tau)$ per le stesse tre traiettorie.
+```
+
+La [](#fig:vdp_phase) mostra tre traiettorie che partono da condizioni iniziali molto diverse: una vicina all'origine, che si allontana a spirale, e due lontane, che si avvicinano dall'esterno. Dopo un transiente di pochi periodi tutte e tre percorrono la stessa curva chiusa, con la stessa ampiezza e lo stesso periodo. Questa è la differenza fondamentale rispetto alle orbite chiuse dell'oscillatore armonico: in quel caso ogni condizione iniziale individua un'orbita diversa e le orbite formano una famiglia continua, una dentro l'altra, mentre il ciclo limite è una traiettoria chiusa *isolata*, verso cui convergono tutte le traiettorie vicine. Di conseguenza, se perturbiamo un oscillatore armonico questo passa a un'orbita diversa e ci rimane, mentre se perturbiamo un oscillatore di Van der Pol questo torna, dopo un transiente, sul ciclo limite. È proprio questa robustezza a rendere il ciclo limite il modello naturale degli orologi, meccanici o biologici.
+
+Il pannello destro della [](#fig:vdp_phase) mostra anche che le tre traiettorie, pur percorrendo la stessa curva, non sono sincronizzate: ciascuna conserva una *fase* che dipende dalle condizioni iniziali. Il sistema dimentica quindi l'ampiezza iniziale, ma non l'istante in cui l'oscillazione "è cominciata". Questo è una conseguenza del fatto che le equazioni non dipendono esplicitamente dal tempo: una traiettoria traslata nel tempo è ancora una soluzione.
+
+Il punto di equilibrio dell'oscillatore smorzato e il ciclo limite dell'oscillatore di Van der Pol sono due esempi di **attrattori**: insiemi dello spazio delle fasi verso cui il sistema evolve a tempi lunghi, a partire da un'intera regione di condizioni iniziali, detta *bacino di attrazione*. Per l'oscillatore di Van der Pol il bacino di attrazione del ciclo limite è l'intero piano $(x, v)$, a eccezione dell'origine: una traiettoria che parte esattamente da $(0,0)$ vi rimane per sempre, ma una perturbazione arbitrariamente piccola è sufficiente ad allontanarla. In un sistema conservativo, invece, non possono esistere attrattori, perché le traiettorie conservano l'energia iniziale[^attrattori_conservativi].
+
+[^attrattori_conservativi]: Più in generale, come abbiamo accennato parlando degli algoritmi simplettici, la dinamica di un sistema conservativo conserva le aree nello spazio delle fasi, mentre l'esistenza di un attrattore richiede che un'intera regione di condizioni iniziali venga "compressa" sull'attrattore stesso.
+
+```{figure} #cell:vdp_energy
+:label: fig:vdp_energy
+:align: center
+
+Due periodi del ciclo limite per $\mu = 1$. Dall'alto verso il basso: posizione $x(\tau)$, energia $E(\tau)$, eq. [](#eq:vdp_energy), e la sua derivata, eq. [](#eq:vdp_dEdt). Le bande verdi evidenziano gli intervalli in cui $|x| < 1$, nei quali il sistema acquista energia.
+```
+
+La [](#fig:vdp_energy) mostra come si realizza il bilancio energetico sul ciclo limite. L'energia non è costante: cresce rapidamente mentre il sistema attraversa la regione $|x|<1$, dove $v$ è grande, e diminuisce quando $|x|>1$. Su un periodo intero, però, la variazione netta è nulla, e $E(\tau)$ è una funzione periodica.
+
+### Piccoli valori di $\mu$: l'ampiezza del ciclo limite
+
+Per $\mu\ll1$ la non linearità è debole e il moto su un singolo periodo è molto simile a quello dell'oscillatore armonico, $x(\tau)\simeq A\cos(\tau+\phi)$ e $v(\tau)\simeq -A\sin(\tau+\phi)$, con un'ampiezza $A$ che varia lentamente da un periodo all'altro. Possiamo stimare come cambia $A$ mediando l'eq. [](#eq:vdp_dEdt) su un periodo. Usando $\langle\sin^2\rangle = 1/2$ e $\langle\sin^2\cos^2\rangle = 1/8$ si trova
+
+$$
+\left\langle\od{E}{\tau}\right\rangle \simeq \mu A^2\left\langle\left[1-A^2\cos^2(\tau+\phi)\right]\sin^2(\tau+\phi)\right\rangle = \mu\frac{A^2}{8}\left(4-A^2\right).
+$$
+
+Il bilancio medio è positivo per $A<2$ e negativo per $A>2$: l'ampiezza cresce se è piccola, diminuisce se è grande, e si stabilizza a
+
+$$
+\label{eq:vdp_amplitude}
+A = 2,
+$$
+
+indipendentemente dal valore di $\mu$, purché piccolo. Poiché $E\simeq A^2/2$, la stessa relazione fornisce anche un'equazione per l'evoluzione lenta dell'ampiezza,
+
+$$
+\od{A}{\tau} \simeq \frac{\mu}{8}A\left(4-A^2\right),
+$$
+
+che per $A\ll 2$ si riduce a $\od{A}{\tau}\simeq\mu A/2$, in accordo con la crescita esponenziale $e^{\mu\tau/2}$ trovata linearizzando attorno all'origine. Il tempo necessario per raggiungere il ciclo limite è quindi dell'ordine di $1/\mu$: per $\mu$ piccolo il transiente dura molti periodi. Con metodi perturbativi più raffinati si può mostrare che il periodo del ciclo limite è
+
+$$
+\label{eq:vdp_period_small}
+T \simeq 2\pi\left(1 + \frac{\mu^2}{16}\right),
+$$
+
+che per $\mu\to0$ tende al periodo $2\pi$ dell'oscillatore armonico.
+
+### Grandi valori di $\mu$: le oscillazioni di rilassamento
+
+```{figure} #cell:vdp_mu
+:label: fig:vdp_mu
+:align: center
+
+Ciclo limite dell'oscillatore di Van der Pol per diversi valori di $\mu$. In alto: $x(\tau)$ su tre periodi. In basso: il ciclo limite nello spazio delle fasi. Notate le scale molto diverse sull'asse delle ordinate dei pannelli in basso.
+```
+
+La [](#fig:vdp_mu) mostra come cambia il ciclo limite all'aumentare di $\mu$. Per $\mu = 0.1$ il moto è quasi sinusoidale e il ciclo limite è quasi una circonferenza di raggio $2$. All'aumentare di $\mu$ la forma si deforma progressivamente e per $\mu\gg1$ il moto diventa un'alternanza di fasi lente, in cui $x$ varia lentamente, e di "salti" molto rapidi, in cui $x$ passa da circa $\pm1$ a circa $\mp2$. Van der Pol chiamò questo tipo di moto *oscillazione di rilassamento*: il sistema accumula lentamente una tensione e poi la rilascia bruscamente, come succede per esempio in un condensatore che si carica lentamente e si scarica di colpo. Notate che l'ampiezza resta vicina a $2$ anche in questo regime.
+
+Il periodo e l'ampiezza per $\mu\gg1$ si possono calcolare analiticamente con un ragionamento geometrico, riportato nel riquadro qui sotto. Il risultato è che anche in questo limite $A\simeq2$, mentre il periodo cresce linearmente con $\mu$:
+
+$$
+\label{eq:vdp_period_large}
+T \simeq \left(3-2\ln2\right)\mu \simeq 1.614\,\mu.
+$$
+
+:::{note} Il periodo delle oscillazioni di rilassamento
+:class: dropdown
+
+Introduciamo la funzione $F(x) = x^3/3 - x$ e notiamo che l'eq. [](#eq:vdp) può essere scritta come
+
+$$
+\od{}{\tau}\left[\od{x}{\tau} + \mu F(x)\right] = -x.
+$$
+
+Definendo la nuova variabile $w = v/\mu + F(x)$, il sistema diventa
+
+$$
+\begin{cases}
+\od{x}{\tau} = \mu\left[w - F(x)\right],\\
+\od{w}{\tau} = -\dfrac{x}{\mu}.
+\end{cases}
+$$
+
+```{figure} #cell:vdp_lienard
+:label: fig:vdp_lienard
+:align: center
+
+A sinistra: il ciclo limite per $\mu = 10$ rappresentato nel piano $(x, w)$, con $w = v/\mu + F(x)$, insieme alla curva $w = F(x)$ (linea tratteggiata). I punti neri indicano gli estremi dei rami lenti, $(\pm2, \pm2/3)$ e $(\pm1, \mp2/3)$. A destra: la corrispondente $x(\tau)$.
+```
+
+Per $\mu\gg1$ le due variabili evolvono su scale di tempo molto diverse: $w$ cambia lentamente, su tempi dell'ordine di $\mu$, mentre $x$ cambia rapidamente, su tempi dell'ordine di $1/\mu$, a meno che non sia $w\simeq F(x)$. Il sistema trascorre quindi la maggior parte del tempo vicino alla curva $w = F(x)$ (vedi la [](#fig:vdp_lienard)), muovendosi lentamente lungo i suoi due rami esterni, $|x|>1$, che sono quelli stabili: linearizzando la prima equazione attorno a $w = F(x)$ si trova infatti che una piccola deviazione $\delta x$ evolve come $\od{\delta x}{\tau} = -\mu F'(x)\,\delta x = -\mu(x^2-1)\,\delta x$, e quindi viene smorzata per $|x|>1$ e amplificata per $|x|<1$. Quando raggiunge uno dei due "gomiti" della cubica, in $x = \pm1$ e $w = \mp 2/3$, non può proseguire lungo la curva e salta rapidamente, a $w$ praticamente costante, sull'altro ramo stabile. Il punto di arrivo si trova risolvendo $F(x) = F(1) = -2/3$, cioè $(x-1)^2(x+2) = 0$, da cui $x = -2$: questo spiega perché l'ampiezza resti uguale a $2$ anche per $\mu$ grande.
+
+Il periodo è dominato dal tempo trascorso sui rami lenti. Su questi rami $w = F(x)$, quindi $\od{w}{\tau} = F'(x)\od{x}{\tau} = -x/\mu$, da cui
+
+$$
+d\tau = -\mu\frac{F'(x)}{x}dx = -\mu\frac{x^2-1}{x}dx.
+$$
+
+Il tempo impiegato per andare da $x = 2$ a $x = 1$ è quindi
+
+$$
+\mu\int_1^2\left(x - \frac{1}{x}\right)dx = \mu\left(\frac{3}{2} - \ln 2\right).
+$$
+
+Per simmetria il ramo da $x = -2$ a $x = -1$ richiede lo stesso tempo, e trascurando la durata dei salti si ottiene l'eq. [](#eq:vdp_period_large).
+:::
+
+```{figure} #cell:vdp_period
+:label: fig:vdp_period
+:align: center
+
+Periodo (a sinistra) e ampiezza (a destra) del ciclo limite in funzione di $\mu$, ottenuti integrando con RK4 e scartando il transiente. Le linee tratteggiata e punteggiata indicano i limiti di piccoli e grandi $\mu$, eq. [](#eq:vdp_period_small) ed eq. [](#eq:vdp_period_large).
+```
+
+La [](#fig:vdp_period) confronta i risultati numerici con i due limiti analitici. Per $\mu\lesssim1$ l'accordo con l'eq. [](#eq:vdp_period_small) è ottimo. Per $\mu$ grande il periodo cresce linearmente, ma l'avvicinamento all'eq. [](#eq:vdp_period_large) è lento, perché la durata dei salti e delle fasi di transizione vicino ai gomiti, trascurata nel calcolo, decresce lentamente all'aumentare di $\mu$[^correzione_periodo]. Una verifica più efficace consiste nel confrontare la *pendenza* della curva $T(\mu)$ per i valori di $\mu$ più grandi con il coefficiente $3-2\ln2$. Anche l'ampiezza resta sempre vicina a $2$, con deviazioni massime di circa l'1% per valori intermedi di $\mu$.
+
+[^correzione_periodo]: Si può dimostrare che il primo termine correttivo decresce come $\mu^{-1/3}$: $T \simeq (3-2\ln2)\mu + 7.01\,\mu^{-1/3}$, una formula che riproduce i dati numerici della figura entro l'1% per $\mu \gtrsim 20$.
+
+## Aspetti numerici
+
+Dal punto di vista numerico l'oscillatore di Van der Pol non presenta difficoltà nuove: l'accelerazione dipende dalla velocità, quindi, come per l'oscillatore smorzato, è naturale usare RK4. Se integratore e sistema fisico sono stati separati, passando all'integratore la funzione che calcola le derivate tramite un [puntatore a funzione](#sec:puntatori_funzione), è sufficiente scrivere la funzione che calcola le derivate dell'eq. [](#eq:vdp_first_order).
+
+L'aspetto a cui prestare attenzione è la scelta dei tempi. Il tempo totale di integrazione deve contenere sia il transiente sia un numero di periodi sufficiente a caratterizzare il ciclo limite, e le due richieste dipendono da $\mu$ in modo opposto: per $\mu$ piccolo il periodo è circa $2\pi$, ma il transiente dura un tempo dell'ordine di $1/\mu$, mentre per $\mu$ grande il transiente è breve ma il periodo cresce come $\mu$.
+
+Anche il passo di integrazione dipende da $\mu$. Per $\mu\gg1$ la durata dei salti è dell'ordine di $1/\mu$, e un passo $\Delta\tau$ confrontabile con questa scala non permette di risolverli correttamente. C'è però un problema più sottile: come abbiamo visto studiando la stabilità degli algoritmi, i metodi espliciti come Eulero, velocity Verlet o RK4 sono stabili soltanto se il prodotto tra il passo e la scala di tempo più rapida del sistema è sufficientemente piccolo. Nel caso di Van der Pol, la scala più rapida è quella con cui le traiettorie vengono "richiamate" sui rami lenti, che è dell'ordine di $1/\mu$ (vedi la nota nel riquadro precedente). Ne segue che il passo massimo utilizzabile decresce come $1/\mu$ anche nelle fasi lente del moto, in cui la soluzione varia pochissimo. Poiché il periodo cresce come $\mu$, il numero di passi necessari per simulare un periodo cresce come $\mu^2$. Sistemi di questo tipo, in cui coesistono scale di tempo molto diverse e la stabilità impone un passo molto più piccolo di quello che servirebbe per l'accuratezza, si dicono *rigidi* (*stiff* in inglese) e si affrontano con metodi impliciti, che non tratteremo in questo corso.
+
+## Verso il caos: perché servono tre dimensioni
+
+Il punto di equilibrio dell'oscillatore smorzato e il ciclo limite dell'oscillatore di Van der Pol sono, in un certo senso, gli unici comportamenti possibili a tempi lunghi per un sistema descritto da due sole equazioni del primo ordine che non dipendono esplicitamente dal tempo, come i sistemi che abbiamo studiato finora. Un importante risultato della teoria dei sistemi dinamici, il [*teorema di Poincaré-Bendixson*](https://it.wikipedia.org/wiki/Teorema_di_Poincar%C3%A9-Bendixson), afferma infatti che in questi sistemi una traiettoria che rimane limitata può soltanto avvicinarsi a un punto di equilibrio, percorrere o avvicinarsi a un'orbita chiusa, oppure avvicinarsi a un insieme di punti di equilibrio collegati da traiettorie. L'idea intuitiva è che, per l'unicità della soluzione di un problema di Cauchy, due traiettorie distinte non possono mai incrociarsi: in un piano questo vincolo impedisce alle traiettorie di aggrovigliarsi in modo complicato.
+
+Il caos, quindi, non è possibile in un sistema autonomo con due soli gradi di libertà nello spazio delle fasi, come il pendolo smorzato o l'oscillatore di Van der Pol. Per osservarlo serve almeno una dimensione in più, che possiamo ottenere in due modi: con un sistema di tre (o più) equazioni del primo ordine, oppure aggiungendo una forzante che dipende esplicitamente dal tempo, la cui fase gioca il ruolo di terza variabile. Nella prossima sezione seguiremo la seconda strada, applicando una forzante periodica al pendolo smorzato. Curiosamente, la stessa strada era stata percorsa già nel 1927 da van der Pol e van der Mark, che, collegando il loro circuito a una tensione periodica esterna, notarono in alcuni intervalli dei parametri un "rumore irregolare", a cui non diedero particolare importanza. Oggi quell'osservazione viene considerata una delle prime manifestazioni sperimentali del caos deterministico.
 
 (sec:caos)=
 # Il pendolo smorzato e forzato: un esempio di moto caotico

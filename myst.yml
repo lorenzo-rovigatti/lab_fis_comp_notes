@@ -33,6 +33,8 @@ project:
     - file: cluster.md
     - file: notebooks/ODEs.ipynb
       hidden: true
+    - file: notebooks/vanderpol.ipynb
+      hidden: true
     - file: notebooks/random_walk.ipynb
       hidden: true
     - file: notebooks/percolazione.ipynb
