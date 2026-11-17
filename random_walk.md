@@ -56,6 +56,7 @@ Questo approccio fu introdotto da Paul Langevin all'inizio del Novecento. L'idea
 In una dimensione l'equazione di Langevin più semplice è
 
 $$
+\label{eq:langevin}
 m\odd{x}{t} = -\gamma v(t) + \eta(t),
 $$
 
@@ -726,16 +727,40 @@ $$
 cioè proprio il comportamento diffusivo: $D = k_{\mathrm B}T/\gamma$ è il coefficiente di diffusione, e questa è la relazione di Einstein. Il ragionamento non è una dimostrazione rigorosa, ma cattura la fisica: su tempi lunghi, attrito e rumore si bilanciano e la velocità perde ogni ruolo dinamico.
 
 ```{note} Il risultato esatto
-Per una particella libera in equilibrio termico, lo spostamento quadratico medio previsto dall'equazione di Langevin si può calcolare esattamente (non lo faremo):
+Per una particella libera in equilibrio termico, lo spostamento quadratico medio previsto dall'equazione di Langevin si può calcolare esattamente. Partiamo dall'equazione [](#eq:langevin) e moltiplichiamo a sinistra e a destra per $x$:
 
 $$
-\left\langle[x(t+\tau)-x(t)]^2\right\rangle = 2D\left[\tau - \tau_v\left(1-e^{-\tau/\tau_v}\right)\right].
+mx\odd{x}{t} = -\gamma x v(t) + x\eta(t) = -\gamma x(t) x'(t) + x(t) \eta(t).
 $$
 
-- Per $\tau \ll \tau_v$, sviluppando l'esponenziale al secondo ordine, si ottiene $v_{th}^2\,\tau^2$: il regime balistico.
-- Per $\tau \gg \tau_v$ l'esponenziale è trascurabile e resta $2D\tau - 2D\tau_v = 2D\tau - 2\ell_b^2$ (si verifica facilmente che $\ell_b^2 = D\tau_v$): il risultato sovrasmorzato più una correzione costante, legata proprio alla lunghezza inerziale $\ell_b$.
+Notiamo che $\od{xx'}{t} = xx'' + (x')^2$, cioè $xx'' = \od{xx'}{t} - (x')^2$, quindi
 
-La correzione relativa vale $\tau_v/\tau$ e diventa trascurabile per $\tau \gg \tau_v$, come previsto dalla stima degli ordini di grandezza.
+$$
+m \od{(xx')}{t} - m (x')^2 = -\gamma x v(t) + x\eta(t) = -\gamma x(t) x'(t) + x(t) \eta(t).
+$$
+
+Prendiamo la media di entrambi i membri: notiamo che $m \left\langle (x')^2 \right\rangle = m \langle v^2 \rangle = k_B T$ per il teorema di equipartizione e $\langle x \eta \rangle = 0$ perché le due quantità sono scorrelate e $\langle \eta \rangle = 0$. Definendo $u \equiv \langle xx' \rangle$ troviamo infine
+
+$$
+m u' = -\gamma u + k_B T,
+$$
+
+che ha come soluzione 
+
+$$
+u(t) = \frac{k_BT}{\gamma} \left( 1 - e^{\frac{t}{\tau_v}}\right).
+$$
+
+Poiché $u \equiv \langle xx' \rangle = \frac{1}{2} \od{\langle x^2 \rangle}{t}$, e ricordando che $D = k_B T / \gamma$, si trova
+
+$$
+\langle x^2(t) \rangle = 2D\left[t - \tau_v\left(1-e^{-t/\tau_v}\right)\right].
+$$
+
+- Per $t \ll \tau_v$, sviluppando l'esponenziale al secondo ordine, si ottiene $v_{th}^2\,t^2$: il regime balistico.
+- Per $t \gg \tau_v$ l'esponenziale è trascurabile e resta $2Dt - 2D\tau_v = 2Dt - 2\ell_b^2$ (si verifica facilmente che $\ell_b^2 = D\tau_v$): il risultato sovrasmorzato più una correzione costante, legata proprio alla lunghezza inerziale $\ell_b$.
+
+La correzione relativa vale $\tau_v/t$ e diventa trascurabile per $t \gg \tau_v$, come previsto dalla stima degli ordini di grandezza.
 ```
 
 Numericamente, nel limite sovrasmorzato non è più necessario integrare l'equazione per la velocità: la posizione si aggiorna direttamente come
@@ -1009,7 +1034,7 @@ $$
 da cui si ottiene la distribuzione della posizione sostituendo la dipendenza di $n_+$ da $x_n$ trovata nell'equazione [](#eq:x_n_discreto)[^Px_valida]:
 
 $$
-P_n(x) = \frac{1}{2^n}
+P_n(x - x_0) = \frac{1}{2^n}
 \binom{n}{
 \frac{1}{2}
 \left(
